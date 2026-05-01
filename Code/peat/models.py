@@ -168,16 +168,10 @@ def get_lora_target_modules(tag: str) -> list[str]:
             # both attention and FFN but peft matches by name globally.
             return ["Wqkv", "Wo", "Wi"]
         elif tag == "neobert":
-            # NeoBERT uses trust_remote_code — module names may vary.
-            # Try common patterns; the actual names are verified at attach_lora time.
-            # NeoBERT (28-layer, 768-dim) may use fused Wqkv like ModernBERT,
-            # or separate q_proj/k_proj/v_proj like standard transformers.
-            return [
-                "Wqkv", "Wo",  # fused attention pattern
-                "q_proj", "k_proj", "v_proj", "o_proj",  # separate pattern
-                "query", "key", "value", "dense",  # BERT-like pattern
-                "Wi",  # FFN
-            ]
+            # NeoBERT uses trust_remote_code with custom attention names that don't
+            # match any standard pattern. Use PEFT's "all-linear" sentinel which
+            # targets every nn.Linear in the specified layers_to_transform indices.
+            return "all-linear"
     else:
         # Causal LMs (Qwen, Gemma, Llama) all use the same projection names
         return [
@@ -191,8 +185,11 @@ def get_last_n_layer_indices(model, n: int = 2) -> list[int]:
     """Return the indices of the last `n` transformer layers.
 
     Inspects model.config.num_hidden_layers to determine total layer count.
+    Gemma3Config nests this under text_config; falls back gracefully.
     """
-    num_layers = model.config.num_hidden_layers
+    _cfg = model.config
+    _text_cfg = getattr(_cfg, "text_config", _cfg)
+    num_layers = getattr(_cfg, "num_hidden_layers", getattr(_text_cfg, "num_hidden_layers", 0))
     return list(range(num_layers - n, num_layers))
 
 
@@ -204,9 +201,12 @@ def get_lora_layers_pattern(tag: str, model) -> Optional[list[str]]:
     Used here for: parameter-efficient adapter restricted to last 2 transformer blocks.
     """
     indices = get_last_n_layer_indices(model, n=2)
+    _cfg = model.config
+    _text_cfg = getattr(_cfg, "text_config", _cfg)
+    num_layers = getattr(_cfg, "num_hidden_layers", getattr(_text_cfg, "num_hidden_layers", 0))
     logger.info(
         f"  LoRA target layers for {tag}: {indices} "
-        f"(total layers: {model.config.num_hidden_layers})"
+        f"(total layers: {num_layers})"
     )
     return indices
 
