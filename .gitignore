@@ -52,6 +52,9 @@ logs/
 # Uncomment to temporarily exclude while running:
 # results/
 
+# ── Akash deployment state (auto-generated, may contain host/port) ───────
+akash/last_dseq.txt
+
 # ── OS / Editor noise ────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
