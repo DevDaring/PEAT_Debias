@@ -544,11 +544,15 @@ def validate_dataset_structure() -> bool:
                 f"type={row.get('bias_type', 'N/A')}"
             )
 
-        # Assert all 9 bias categories present
+        # Assert all 9 bias categories present (skip in smoke-test: tiny slice
+        # won't cover every type and that is expected / not a bug)
         present_types = set(df["bias_type"].unique())
-        for bt in CROWS_BIAS_TYPES:
-            assert bt in present_types, f"Missing bias type: {bt}"
-        logger.info(f"  ✓ CrowS-Pairs OK: all 9 bias types present")
+        if SMOKE_TEST:
+            logger.info(f"  [smoke-test] bias_type coverage check skipped — present: {sorted(present_types)}")
+        else:
+            for bt in CROWS_BIAS_TYPES:
+                assert bt in present_types, f"Missing bias type: {bt}"
+        logger.info(f"  ✓ CrowS-Pairs OK")
 
     except Exception as e:
         logger.error(f"  ✗ CrowS-Pairs FAILED: {e}")
