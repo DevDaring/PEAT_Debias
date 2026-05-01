@@ -44,12 +44,23 @@ def _identify_bias_neurons(model, tokenizer, train_df, model_tag, device,
                           max_length=512).to(device)
 
         with torch.no_grad():
-            out_s = model(**inp_s, output_hidden_states=True)
-            out_a = model(**inp_a, output_hidden_states=True)
-
-            # Use last hidden layer, mean-pooled
-            h_s = out_s.hidden_states[-1].mean(dim=1).squeeze(0)
-            h_a = out_a.hidden_states[-1].mean(dim=1).squeeze(0)
+            try:
+                out_s = model(**inp_s, output_hidden_states=True)
+                out_a = model(**inp_a, output_hidden_states=True)
+                # Use last hidden layer, mean-pooled
+                h_s = out_s.hidden_states[-1].mean(dim=1).squeeze(0)
+                h_a = out_a.hidden_states[-1].mean(dim=1).squeeze(0)
+            except TypeError:
+                # NomicBERT (NomicBertForPreTraining) doesn't accept
+                # output_hidden_states — fall back to last_hidden_state
+                out_s = model(**inp_s)
+                out_a = model(**inp_a)
+                def _mean0(out):
+                    if hasattr(out, "last_hidden_state"):
+                        return out.last_hidden_state.mean(dim=1).squeeze(0)
+                    return out.logits.mean(dim=1).squeeze(0)
+                h_s = _mean0(out_s)
+                h_a = _mean0(out_a)
 
             diff = (h_s - h_a).abs()
             if neuron_diffs is None:

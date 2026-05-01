@@ -89,11 +89,22 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
                                       max_length=512).to(device)
 
                     with torch.amp.autocast("cuda", dtype=cast_dtype):
-                        out_s = model(**inp_s, output_hidden_states=True)
-                        out_a = model(**inp_a, output_hidden_states=True)
-
-                        h_s = out_s.hidden_states[-1][:, 0, :]  # CLS or first token
-                        h_a = out_a.hidden_states[-1][:, 0, :]
+                        try:
+                            out_s = model(**inp_s, output_hidden_states=True)
+                            out_a = model(**inp_a, output_hidden_states=True)
+                            h_s = out_s.hidden_states[-1][:, 0, :]  # CLS or first token
+                            h_a = out_a.hidden_states[-1][:, 0, :]
+                        except TypeError:
+                            # NomicBERT (NomicBertForPreTraining) doesn't accept
+                            # output_hidden_states — fall back to last_hidden_state
+                            out_s = model(**inp_s)
+                            out_a = model(**inp_a)
+                            def _cls(out):
+                                if hasattr(out, "last_hidden_state"):
+                                    return out.last_hidden_state[:, 0, :]
+                                return out.logits[:, 0, :]
+                            h_s = _cls(out_s)
+                            h_a = _cls(out_a)
 
                         # Edit hidden states
                         edited_s = editor(h_s)

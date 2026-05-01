@@ -42,11 +42,22 @@ def _compute_steering_vector(model, tokenizer, train_df, model_tag, device, laye
                           max_length=512).to(device)
 
         with torch.no_grad():
-            out_s = model(**inp_s, output_hidden_states=True)
-            out_a = model(**inp_a, output_hidden_states=True)
-
-            h_s = out_s.hidden_states[layer_idx].mean(dim=1)  # mean pool
-            h_a = out_a.hidden_states[layer_idx].mean(dim=1)
+            try:
+                out_s = model(**inp_s, output_hidden_states=True)
+                out_a = model(**inp_a, output_hidden_states=True)
+                h_s = out_s.hidden_states[layer_idx].mean(dim=1)  # mean pool
+                h_a = out_a.hidden_states[layer_idx].mean(dim=1)
+            except TypeError:
+                # NomicBERT (NomicBertForPreTraining) doesn't accept
+                # output_hidden_states — fall back to last_hidden_state
+                out_s = model(**inp_s)
+                out_a = model(**inp_a)
+                def _mean(out):
+                    if hasattr(out, "last_hidden_state"):
+                        return out.last_hidden_state.mean(dim=1)
+                    return out.logits.mean(dim=1)
+                h_s = _mean(out_s)
+                h_a = _mean(out_a)
 
             diffs.append((h_s - h_a).squeeze(0))
 
