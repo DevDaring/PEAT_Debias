@@ -50,10 +50,10 @@ def build_fig1_ss_vs_compute():
     param_counts = {
         "bert-base": 110,
         "modernbert-base": 150,
-        "neobert": 250,
+        "nomicbert": 137,
         "qwen2.5-1.5b": 1500,
         "gemma-3-4b": 4000,
-        "llama-3.2-3b": 3000,
+        "llama-3.1-8b": 8000,
     }
 
     fig, ax = plt.subplots(figsize=(8, 5))

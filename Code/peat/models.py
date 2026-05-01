@@ -9,7 +9,7 @@ load_encoder() and load_causal() with uniform precision policy.
 # else float16. We do NOT use 4-bit or 8-bit quantization for any model in any baseline or PEAT
 # run, because mixed precision regimes across baselines would invalidate compute-vs-accuracy
 # comparisons. LoRA adapters are also in bfloat16/float16 matching the base model. Flash-Attention 2
-# is enabled for every causal model and for ModernBERT/NeoBERT where supported. BERT-base uses
+# is enabled for every causal model and for ModernBERT/NomicBERT where supported. BERT-base uses
 # eager attention because it predates SDPA-flash compatibility for masked-LM heads.
 """
 

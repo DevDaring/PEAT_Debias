@@ -45,7 +45,7 @@ After install, run a verification block that imports torch, bitsandbytes, flash_
 # else float16. We do NOT use 4-bit or 8-bit quantization for any model in any baseline or PEAT
 # run, because mixed precision regimes across baselines would invalidate compute-vs-accuracy
 # comparisons. LoRA adapters are also in bfloat16/float16 matching the base model. Flash-Attention 2
-# is enabled for every causal model and for ModernBERT/NeoBERT where supported. BERT-base uses
+# is enabled for every causal model and for ModernBERT/NomicBERT where supported. BERT-base uses
 # eager attention because it predates SDPA-flash compatibility for masked-LM heads.
 ```
 
@@ -75,7 +75,7 @@ Implement exactly these six models. Hard-code them in `peat/models.py` as a regi
 |---|---|---|---|
 | `bert-base` | `google-bert/bert-base-uncased` | encoder MLM | eager |
 | `modernbert-base` | `answerdotai/ModernBERT-base` | encoder MLM | flash_attention_2 |
-| `neobert` | `chandar-lab/NeoBERT` | encoder MLM | flash_attention_2 (requires `trust_remote_code=True`) |
+| `nomicbert` | `nomic-ai/nomic-bert-2048` | encoder MLM | eager (requires `trust_remote_code=True`) |
 | `qwen2.5-1.5b` | `Qwen/Qwen2.5-1.5B-Instruct` | causal LM | flash_attention_2 |
 | `gemma-3-4b` | `google/gemma-3-4b-it` | causal LM | flash_attention_2 (gated; needs `HF_KEY`) |
 | `llama-3.1-8b` | `meta-llama/Llama-3.1-8B-Instruct` | causal LM | flash_attention_2 (gated; needs `HF_KEY`) |
@@ -84,7 +84,7 @@ Provide loader functions `load_encoder(tag)` and `load_causal(tag)` that:
 - Accept the HF token from `secrets.py`.
 - Set `torch_dtype` per the uniform precision policy.
 - Set `attn_implementation` per the table.
-- Set `trust_remote_code=True` only for `neobert`.
+- Set `trust_remote_code=True` only for `nomicbert`.
 - Move to `cuda` and call `model.eval()` initially.
 - Return `(model, tokenizer, model_config_dict)`.
 
@@ -142,7 +142,7 @@ Implement a function `validate_dataset_structure()` that runs *before any traini
 
 Implement in `peat/peat.py`. The method has six components defined exactly as below. Cite each in code comments. Do not modify the formulation.
 
-**Setup (Step 0).** Freeze base model. Attach LoRA (rank=4, alpha=8, dropout=0.0) on `q_proj, k_proj, v_proj, o_proj` and FFN `gate_proj/up_proj/down_proj` (causal) or `query/key/value/dense` and FFN `intermediate.dense/output.dense` (encoder), restricted to the **last 2 transformer blocks only**. LoRA-B initialized to zero so M_θ ≡ M_θ0 at init. For BERT-base that means layers 10–11; for ModernBERT 20–21; for NeoBERT 26–27 (verify by inspecting `model.config.num_hidden_layers`); for Qwen/Gemma/Llama, the last two decoder layers respectively.
+**Setup (Step 0).** Freeze base model. Attach LoRA (rank=4, alpha=8, dropout=0.0) on `q_proj, k_proj, v_proj, o_proj` and FFN `gate_proj/up_proj/down_proj` (causal) or `query/key/value/dense` and FFN `intermediate.dense/output.dense` (encoder), restricted to the **last 2 transformer blocks only**. LoRA-B initialized to zero so M_θ ≡ M_θ0 at init. For BERT-base that means layers 10–11; for ModernBERT 20–21; for NomicBERT 10–11 (verify by inspecting `model.config.num_hidden_layers`); for Qwen/Gemma/Llama, the last two decoder layers respectively.
 
 **Step 1 — Forward.** For each batch element, run two forwards (M_θ with grad, M_θ0 with no_grad) and obtain `P_θ(·|x,m)` and `P_θ0(·|x,m)` at the masked position(s).
 
@@ -353,7 +353,7 @@ python3 run_all.py
 1. Load environment, setup logging.
 2. Run dry run (§11). If `state/dryrun_passed` exists from a prior run within the last 24 hours, skip — otherwise enforce.
 3. Run dataset preflight (§4.6).
-4. **Stage 1 — PEAT training.** For each core model in `[bert-base, modernbert-base, neobert, qwen2.5-1.5b]`:
+4. **Stage 1 — PEAT training.** For each core model in `[bert-base, modernbert-base, nomicbert, qwen2.5-1.5b]`:
    a. Run successive halving Phase A (25→12→4) on seed 42.
    b. Run Phase B bootstrap-robust selection.
    c. Run Phase C: final retraining with seeds {42, 123, 456} for `c_best`.

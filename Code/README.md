@@ -45,7 +45,7 @@ That's it. The pipeline runs end-to-end without human intervention.
 |-----|----------------|------|------------|
 | `bert-base` | `google-bert/bert-base-uncased` | Encoder MLM | 110M |
 | `modernbert-base` | `answerdotai/ModernBERT-base` | Encoder MLM | 150M |
-| `neobert` | `chandar-lab/NeoBERT` | Encoder MLM | 250M |
+| `nomicbert` | `nomic-ai/nomic-bert-2048` | Encoder MLM | 137M |
 | `qwen2.5-1.5b` | `Qwen/Qwen2.5-1.5B-Instruct` | Causal LM | 1.5B |
 | `gemma-3-4b` | `google/gemma-3-4b-it` | Causal LM | 4B |
 | `llama-3.2-3b` | `meta-llama/Llama-3.2-3B-Instruct` | Causal LM | 3B |
