@@ -41,6 +41,11 @@ echo "  OS: $(uname -s) $(uname -m) — OK"
 # ── Step 1: Upgrade pip ────────────────────────────────────────────────────
 echo ""
 echo "[2/5] Upgrading pip, setuptools, wheel..."
+# Bootstrap pip if not present (some CUDA base images ship without it)
+if ! python3 -m pip --version &>/dev/null; then
+    echo "  pip not found — bootstrapping..."
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3
+fi
 python3 -m pip install --upgrade pip setuptools wheel
 
 # ── Step 2: Install PyTorch ────────────────────────────────────────────────
