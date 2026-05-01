@@ -64,7 +64,7 @@ def run_dryrun(skip_if_recent: bool = True) -> bool:
             logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
             cc = torch.cuda.get_device_capability(0)
             logger.info(f"  Compute capability: {cc[0]}.{cc[1]}")
-            mem = torch.cuda.get_device_properties(0).total_mem / 1e9
+            mem = torch.cuda.get_device_properties(0).total_memory / 1e9
             logger.info(f"  GPU RAM: {mem:.1f} GB")
             free_mem = torch.cuda.mem_get_info()[0] / 1e9
             logger.info(f"  Free GPU RAM: {free_mem:.1f} GB")
@@ -133,14 +133,17 @@ def run_dryrun(skip_if_recent: bool = True) -> bool:
                 key = gcp_key(i)
                 genai.configure(api_key=key)
                 model = genai.GenerativeModel("gemini-2.5-flash-lite")
+                gen_cfg_kwargs = dict(
+                    response_mime_type="application/json",
+                    max_output_tokens=64,
+                    temperature=0.0,
+                )
+                # ThinkingConfig only available in google-generativeai>=0.8
+                if hasattr(genai.types, "ThinkingConfig"):
+                    gen_cfg_kwargs["thinking_config"] = genai.types.ThinkingConfig(thinking_budget=0)
                 response = model.generate_content(
                     'Return the JSON {"ok": true}',
-                    generation_config=genai.types.GenerationConfig(
-                        response_mime_type="application/json",
-                        max_output_tokens=64,
-                        temperature=0.0,
-                        thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
-                    ),
+                    generation_config=genai.types.GenerationConfig(**gen_cfg_kwargs),
                     safety_settings=_GEMINI_SAFETY_SETTINGS,
                 )
                 import json

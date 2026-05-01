@@ -63,9 +63,14 @@ def _extract_stereoset_pair(example: dict) -> Optional[dict]:
     stereo_text = None
     anti_text = None
 
-    # gold_label values are STRINGS: "stereotype", "anti-stereotype", "unrelated"
+    # gold_label values may be integers (ClassLabel) or strings.
+    # HuggingFace ClassLabel mapping: 0=anti-stereotype, 1=stereotype, 2=unrelated
+    _INT_TO_LABEL = {0: "anti-stereotype", 1: "stereotype", 2: "unrelated"}
     for lbl, sent in zip(labels, sentence_texts):
-        lbl_str = str(lbl).lower().strip()
+        if isinstance(lbl, int):
+            lbl_str = _INT_TO_LABEL.get(lbl, "")
+        else:
+            lbl_str = str(lbl).lower().strip()
         if lbl_str == "stereotype":
             stereo_text = sent
         elif lbl_str in ("anti-stereotype", "anti_stereotype"):
