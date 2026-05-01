@@ -269,8 +269,11 @@ def load_encoder(
     except OSError:
         logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
         model = AutoModelForMaskedLM.from_pretrained(spec.hf_id, **model_kwargs)
-    # Some custom loaders (e.g. NomicBERT) use torch.load internally and may
-    # ignore torch_dtype / device. Cast dtype and move to target device.
+    # Some custom loaders (e.g. NomicBERT, ModernBERT) use trust_remote_code and
+    # may leave tied weights (e.g. decoder.weight) as meta tensors even with
+    # low_cpu_mem_usage=False. Calling tie_weights() resolves the aliases to real
+    # tensors so the subsequent .to() succeeds.
+    model.tie_weights()
     model = model.to(dtype=dtype, device=device)
     model.eval()
 
@@ -345,6 +348,9 @@ def load_causal(
     except OSError:
         logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
         model = AutoModelForCausalLM.from_pretrained(spec.hf_id, **model_kwargs_c)
+    # Tied weights (e.g. lm_head.weight) may remain as meta tensors; resolve
+    # aliases before moving to device.
+    model.tie_weights()
     model = model.to(device)
     model.eval()
 
