@@ -48,6 +48,7 @@ from peat.utils import (
     mark_cell_failed,
     mark_cell_skipped,
     save_run_state,
+    send_sms,
     set_seed,
     setup_logger,
 )
@@ -307,10 +308,21 @@ def main():
         logger.info(f"  {key}: {status}")
 
     completed = sum(1 for c in state.get("cells", {}).values() if c.get("status") == "completed")
+    failed    = sum(1 for c in state.get("cells", {}).values() if c.get("status") == "failed")
     total = len(state.get("cells", {}))
-    logger.info(f"\nCompleted: {completed}/{total} cells")
+    logger.info(f"Completed: {completed}/{total} cells")
     logger.info(f"Pipeline finished at {datetime.now(timezone.utc).isoformat()}")
+
+    send_sms(
+        f"PEAT pipeline DONE. {completed}/{total} cells completed, {failed} failed. "
+        f"Time: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}"
+    )
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as _exc:
+        _msg = str(_exc)[:120]
+        send_sms(f"PEAT pipeline CRASHED: {_msg}")
+        raise

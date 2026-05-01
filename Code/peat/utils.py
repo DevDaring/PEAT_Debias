@@ -51,6 +51,50 @@ def ensure_dirs() -> None:
 
 
 # ---------------------------------------------------------------------------
+# SMS Notifications (Fast2SMS)
+# ---------------------------------------------------------------------------
+def send_sms(message: str) -> None:
+    """Send an SMS via Fast2SMS using credentials from .env.
+
+    Reads PHONE_NO and FAST2SMS_API_KEY from the environment.
+    Silently swallows all errors so it never interrupts the pipeline.
+    Phone number: strips leading '+' and whitespace (Fast2SMS wants digits only).
+    """
+    try:
+        import requests as _req
+        from peat.secrets import _get_key  # type: ignore
+
+        api_key  = _get_key("FAST2SMS_API_KEY", required=False)
+        phone_no = _get_key("PHONE_NO", required=False)
+
+        if not api_key or not phone_no:
+            return  # not configured — skip silently
+
+        # Fast2SMS expects digits only, no '+' or spaces
+        phone_digits = phone_no.replace("+", "").replace(" ", "").strip()
+
+        payload = {
+            "sender_id": "FSTSMS",
+            "message":   message[:160],   # SMS length limit
+            "language":  "english",
+            "route":     "q",
+            "numbers":   phone_digits,
+        }
+        headers = {
+            "authorization":  api_key,
+            "Content-Type":   "application/x-www-form-urlencoded",
+        }
+        _req.post(
+            "https://www.fast2sms.com/dev/bulkV2",
+            data=payload,
+            headers=headers,
+            timeout=15,
+        )
+    except Exception:
+        pass  # SMS failure must never crash the pipeline
+
+
+# ---------------------------------------------------------------------------
 # Uniform Precision Policy
 # ---------------------------------------------------------------------------
 # UNIFORM PRECISION POLICY
