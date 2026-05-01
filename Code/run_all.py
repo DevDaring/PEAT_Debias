@@ -69,7 +69,7 @@ def main():
     args, _ = parser.parse_known_args()
 
     if args.smoke_test:
-        set_smoke_test(True, size=4)
+        set_smoke_test(True, size=2)
 
     ensure_dirs()
     logger.info("=" * 70)
@@ -133,7 +133,8 @@ def main():
         return m, tok
 
     best_configs = {}
-    SEEDS = [42, 123, 456]
+    from peat.utils import SMOKE_TEST as _SMOKE
+    SEEDS = [42] if _SMOKE else [42, 123, 456]
 
     for i, model_tag in enumerate(CORE_MODELS):
 
@@ -263,15 +264,7 @@ def main():
 
     from peat.baselines import BASELINE_REGISTRY
 
-    # Prefetch first core model for baselines
-    if CORE_MODELS:
-        _start_prefetch(CORE_MODELS[0])
-
     for i, model_tag in enumerate(CORE_MODELS):
-        # Prefetch next model while current runs all 9 baselines × 3 seeds
-        if i + 1 < len(CORE_MODELS):
-            _start_prefetch(CORE_MODELS[i + 1])
-
         # Skip model load entirely if every baseline for this model_tag is done
         all_done = all(
             is_cell_complete(state, cell_key("baseline", f"{bn}_{model_tag}", s))

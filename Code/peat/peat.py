@@ -441,7 +441,14 @@ def train_peat_one_epoch(
 # ===========================================================================
 
 def _make_config_grid():
-    """Generate the 25-config grid: (λ₁, λ₂) ∈ {1e-3, 1e-2, 1e-1, 1, 10}²."""
+    """Generate the 25-config grid: (λ₁, λ₂) ∈ {1e-3, 1e-2, 1e-1, 1, 10}².
+    In smoke-test mode: 2 configs only."""
+    from peat.utils import SMOKE_TEST
+    if SMOKE_TEST:
+        return [
+            {"lambda_1": 0.01, "lambda_2": 0.01, "id": "l1=0.01_l2=0.01"},
+            {"lambda_1": 0.1,  "lambda_2": 0.1,  "id": "l1=0.1_l2=0.1"},
+        ]
     lambdas = [1e-3, 1e-2, 1e-1, 1.0, 10.0]
     configs = []
     for l1 in lambdas:
@@ -486,6 +493,9 @@ def run_successive_halving(model, tokenizer, model_tag, seed=42, device="cuda"):
                               num_workers=0, drop_last=False)
 
     rounds = [(1, 12), (3, 4), (5, 4)]  # (cumulative_epochs, keep_top_k)
+    from peat.utils import SMOKE_TEST as _SMOKE
+    if _SMOKE:
+        rounds = [(1, 1)]  # smoke: 1 round, 1 epoch, keep 1 config
     survivors = list(range(len(configs)))
     # config_states: CPU LoRA tensors only (~6 MB each vs ~3 GB full state)
     config_states = {}
@@ -679,10 +689,12 @@ def run_final_training(model, tokenizer, model_tag, best_config,
                 [p for p in model.parameters() if p.requires_grad],
                 lr=1e-4, weight_decay=0.01,
             )
-            total_steps = len(train_loader) * 5
+            from peat.utils import SMOKE_TEST as _SMOKE
+            n_epochs = 1 if _SMOKE else 5
+            total_steps = len(train_loader) * n_epochs
             scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
 
-            for epoch in range(1, 6):
+            for epoch in range(1, n_epochs + 1):
                 train_peat_one_epoch(
                     model, model_theta0, tokenizer, train_loader,
                     optimizer, scheduler, model_tag, device, epoch,
