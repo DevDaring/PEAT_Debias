@@ -70,7 +70,7 @@ echo "[4/5] Installing project dependencies..."
 python3 -m pip install \
     "numpy<2.0" \
     "transformers>=5.0.0" \
-    "accelerate>=0.40.0" \
+    "accelerate>=1.1.0" \
     "datasets>=2.16.0" \
     "bitsandbytes>=0.46.1" \
     "pandas>=2.2.0" \
