@@ -536,7 +536,7 @@ def validate_dataset_structure() -> bool:
         logger.info(f"  Dtypes:\n{df.dtypes}")
 
         # 3 random examples
-        for idx in df.sample(3, random_state=42).index:
+        for idx in df.sample(min(3, len(df)), random_state=42).index:
             row = df.loc[idx]
             logger.info(
                 f"  Example {idx}: more='{str(row.get('sent_more', ''))[:60]}...', "
