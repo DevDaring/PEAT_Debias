@@ -387,13 +387,15 @@ def run_successive_halving(model_tag, seed=42, device="cuda"):
     configs = _make_config_grid()
     spec = get_spec(model_tag)
     is_encoder = spec.is_encoder
-    batch_size = 32 if is_encoder else 8
-    grad_accum = 1 if is_encoder else 4
+    # 80GB A100: double causal batch (batch=16 × grad_accum=1 = same effective
+    # batch as before but 2× throughput). Encoders go 32→64 for same reason.
+    batch_size = 64 if is_encoder else 16
+    grad_accum = 1  # no accumulation needed with larger real batch
 
     train_df, val_df = load_stereoset_pairs(seed=seed)
     train_ds = StereoSetDataset(train_df)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
-                              num_workers=0, drop_last=False)
+                              num_workers=2, drop_last=False)
 
     rounds = [(1, 12), (3, 4), (5, 4)]  # (cumulative_epochs, keep_top_k)
     survivors = list(range(len(configs)))
@@ -528,8 +530,9 @@ def run_final_training(model_tag, best_config, seeds=(42, 123, 456), device="cud
     ensure_dirs()
     spec = get_spec(model_tag)
     is_encoder = spec.is_encoder
-    batch_size = 32 if is_encoder else 8
-    grad_accum = 1 if is_encoder else 4
+    # 80GB A100: same doubling as SHA round (2× throughput, same effective batch)
+    batch_size = 64 if is_encoder else 16
+    grad_accum = 1
     checkpoints = {}
 
     for seed in seeds:
@@ -539,7 +542,7 @@ def run_final_training(model_tag, best_config, seeds=(42, 123, 456), device="cud
         train_df, val_df = load_stereoset_pairs(seed=42)  # always same split
         train_ds = StereoSetDataset(train_df)
         train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
-                                  num_workers=0, drop_last=False)
+                                  num_workers=2, drop_last=False)
 
         model, tokenizer, _ = load_model(model_tag, device=device)
         model = attach_lora(model, model_tag)

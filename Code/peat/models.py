@@ -100,11 +100,12 @@ GEMMA_3_4B = ModelSpec(
     gated=True,
 )
 
-# Reference: Meta AI, "Llama 3.2", 2024.
-# Used here for: causal LM (3B); scaling evaluation.
-LLAMA_32_3B = ModelSpec(
-    tag="llama-3.2-3b",
-    hf_id="meta-llama/Llama-3.2-3B-Instruct",
+# Reference: Meta AI, "Llama 3.1", 2024.
+# Used here for: causal LM (8B); scaling evaluation. Upgraded from 3.2-3B to
+# take advantage of the A100-SXM4-80GB VRAM headroom (peak ~34GB vs 80GB).
+LLAMA_31_8B = ModelSpec(
+    tag="llama-3.1-8b",
+    hf_id="meta-llama/Meta-Llama-3.1-8B-Instruct",
     model_type="causal",
     attn_impl="flash_attention_2",
     gated=True,
@@ -114,14 +115,14 @@ LLAMA_32_3B = ModelSpec(
 # Full registry
 MODEL_REGISTRY: dict[str, ModelSpec] = {
     spec.tag: spec
-    for spec in [BERT_BASE, MODERNBERT_BASE, NEOBERT, QWEN_25_15B, GEMMA_3_4B, LLAMA_32_3B]
+    for spec in [BERT_BASE, MODERNBERT_BASE, NEOBERT, QWEN_25_15B, GEMMA_3_4B, LLAMA_31_8B]
 }
 
 # Core models (hyperparameter search + full baselines)
 CORE_MODELS = ["bert-base", "modernbert-base", "neobert", "qwen2.5-1.5b"]
 
 # Scaling models (reuse c_best from qwen2.5-1.5b)
-SCALING_MODELS = ["gemma-3-4b", "llama-3.2-3b"]
+SCALING_MODELS = ["gemma-3-4b", "llama-3.1-8b"]
 
 # All encoder tags
 ENCODER_TAGS = [tag for tag, spec in MODEL_REGISTRY.items() if spec.is_encoder]

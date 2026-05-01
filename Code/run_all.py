@@ -126,17 +126,21 @@ def main():
             best_config, checkpoints = run_peat_full(model_tag, device="cuda")
             best_configs[model_tag] = best_config
 
+            # Load model ONCE, hot-swap weights for each seed (avoids 2 extra
+            # 16GB load/unload cycles per model on the 80GB A100)
+            model, tokenizer, _ = load_model(model_tag, device="cuda")
+            model = attach_lora(model, model_tag)
+            model.eval()
+
             # Evaluate with each seed's checkpoint
             for seed in SEEDS:
                 eval_key = cell_key("peat_eval", model_tag, seed)
                 if is_cell_complete(state, eval_key):
                     continue
 
-                model, tokenizer, _ = load_model(model_tag, device="cuda")
-                model = attach_lora(model, model_tag)
                 if seed in checkpoints:
                     model.load_state_dict(checkpoints[seed]["model_state"])
-                model.eval()
+                    model.eval()
 
                 csv_dir = RAW_DIR / "peat" / model_tag / f"seed_{seed}"
                 csv_dir.mkdir(parents=True, exist_ok=True)
@@ -146,7 +150,8 @@ def main():
                 metrics["seed"] = seed
                 metrics["best_config"] = best_config.get("id", "")
                 mark_cell_complete(state, eval_key, metrics)
-                cleanup(model)
+
+            cleanup(model)  # single unload after all 3 seeds
 
             mark_cell_complete(state, stage_key, {
                 "model": model_tag,
@@ -182,16 +187,19 @@ def main():
             logger.info(f"\n--- PEAT Scaling: {model_tag} ---")
             checkpoints = run_peat_scaling(model_tag, scaling_config, device="cuda")
 
+            # Load model ONCE, hot-swap weights for each seed
+            model, tokenizer, _ = load_model(model_tag, device="cuda")
+            model = attach_lora(model, model_tag)
+            model.eval()
+
             for seed in SEEDS:
                 eval_key = cell_key("peat_scaling_eval", model_tag, seed)
                 if is_cell_complete(state, eval_key):
                     continue
 
-                model, tokenizer, _ = load_model(model_tag, device="cuda")
-                model = attach_lora(model, model_tag)
                 if seed in checkpoints:
                     model.load_state_dict(checkpoints[seed]["model_state"])
-                model.eval()
+                    model.eval()
 
                 csv_dir = RAW_DIR / "peat" / model_tag / f"seed_{seed}"
                 csv_dir.mkdir(parents=True, exist_ok=True)
@@ -201,7 +209,8 @@ def main():
                 metrics["seed"] = seed
                 metrics["config_source"] = "qwen2.5-1.5b (transferred)"
                 mark_cell_complete(state, eval_key, metrics)
-                cleanup(model)
+
+            cleanup(model)  # single unload after all 3 seeds
 
             mark_cell_complete(state, stage_key, {
                 "model": model_tag,
