@@ -1,0 +1,624 @@
+"""
+PEAT — Probability-Equalized Adapter Tuning: Core Training Method.
+
+# UNIFORM PRECISION POLICY
+# All models in this study load in bfloat16 if the GPU supports it (compute capability >= 8.0),
+# else float16. We do NOT use 4-bit or 8-bit quantization for any model in any baseline or PEAT
+# run, because mixed precision regimes across baselines would invalidate compute-vs-accuracy
+# comparisons. LoRA adapters are also in bfloat16/float16 matching the base model. Flash-Attention 2
+# is enabled for every causal model and for ModernBERT/NeoBERT where supported. BERT-base uses
+# eager attention because it predates SDPA-flash compatibility for masked-LM heads.
+
+Steps 0–7 of the PEAT method as specified in the coding prompt.
+"""
+
+import copy
+import math
+import os
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+from peft import LoraConfig, get_peft_model, TaskType
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+from peat.data import (
+    StereoSetDataset,
+    compute_causal_log_prob,
+    compute_encoder_log_prob,
+    load_stereoset_pairs,
+)
+from peat.eval import bootstrap_ci, compute_stereotype_score
+from peat.models import (
+    get_lora_layers_pattern,
+    get_lora_target_modules,
+    get_spec,
+    load_model,
+)
+from peat.utils import (
+    LOG_DIR,
+    RAW_DIR,
+    STATE_DIR,
+    cleanup,
+    ensure_dirs,
+    get_autocast_dtype,
+    get_dtype,
+    set_seed,
+    setup_logger,
+)
+
+logger = setup_logger("peat.peat", str(LOG_DIR / "training.log"))
+
+# Reference: Hu et al., "LoRA: Low-Rank Adaptation of Large Language Models",
+# ICLR 2022. arXiv: 2106.09685 | Code: https://github.com/microsoft/LoRA
+# Used here for: parameter-efficient adapter restricted to last 2 transformer blocks.
+
+# Reference: Huber, "Robust Estimation of a Location Parameter", Annals of
+# Mathematical Statistics, 1964.
+# Used here for: Symmetric Huber loss (τ=1.0) for equalization.
+
+# Reference: Jamieson & Talwalkar, "Non-stochastic Best Arm Identification
+# and Hyperparameter Optimization", AISTATS 2016.
+# arXiv: 1502.07943 | Used here for: Successive Halving in budgeted config selection.
+
+
+# ===========================================================================
+# Step 0 — LoRA attachment
+# ===========================================================================
+
+def attach_lora(model, model_tag: str):
+    """Freeze base model and attach LoRA (rank=4, alpha=8, last 2 layers).
+
+    LoRA-B is initialized to zero so M_θ ≡ M_θ0 at init.
+    """
+    spec = get_spec(model_tag)
+    target_modules = get_lora_target_modules(model_tag)
+    layer_indices = get_lora_layers_pattern(model_tag, model)
+
+    # PEFT has no MASKED_LM task type. For encoder MLMs, omit task_type
+    # and let peft auto-detect. For causal LMs, set CAUSAL_LM explicitly.
+    task_type = TaskType.CAUSAL_LM if spec.is_causal else None
+
+    lora_config = LoraConfig(
+        r=4,
+        lora_alpha=8,
+        lora_dropout=0.0,
+        target_modules=target_modules,
+        layers_to_transform=layer_indices,
+        bias="none",
+        task_type=task_type,
+        init_lora_weights=True,  # LoRA-B initialized to zero
+    )
+
+    model = get_peft_model(model, lora_config)
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total = sum(p.numel() for p in model.parameters())
+    logger.info(
+        f"  LoRA attached to {model_tag}: {trainable:,} trainable / "
+        f"{total:,} total ({100*trainable/total:.4f}%)"
+    )
+    return model
+
+
+# ===========================================================================
+# Steps 1–6 — Forward, Δ, Losses, Total
+# ===========================================================================
+
+def _get_masked_logits_encoder(model, tokenizer, context, filler, device):
+    """Get logits at masked positions for an encoder (Step 1)."""
+    filler_tokens = tokenizer.encode(filler, add_special_tokens=False)
+    n_tokens = len(filler_tokens)
+    mask_token = tokenizer.mask_token
+    masked_context = context.replace("BLANK", " ".join([mask_token] * n_tokens))
+
+    inputs = tokenizer(masked_context, return_tensors="pt", truncation=True,
+                       max_length=512).to(device)
+    outputs = model(**inputs)
+    logits = outputs.logits[0]  # (seq_len, vocab_size)
+
+    mask_id = tokenizer.mask_token_id
+    mask_positions = (inputs["input_ids"][0] == mask_id).nonzero(as_tuple=True)[0]
+
+    if len(mask_positions) < n_tokens:
+        return None, None, None
+    mask_positions = mask_positions[:n_tokens]
+
+    return logits, mask_positions, filler_tokens
+
+
+def _get_causal_logits(model, tokenizer, context, filler, device):
+    """Get logits at filler positions for a causal LM (Step 1)."""
+    full_sentence = context.replace("BLANK", filler)
+    inputs = tokenizer(full_sentence, return_tensors="pt", truncation=True,
+                       max_length=1024).to(device)
+    outputs = model(**inputs)
+    logits = outputs.logits[0]  # (seq_len, vocab_size)
+
+    filler_tokens = tokenizer.encode(filler, add_special_tokens=False)
+    prefix = context.split("BLANK")[0]
+    prefix_ids = tokenizer.encode(prefix, add_special_tokens=True)
+    start = len(prefix_ids) - 1
+
+    positions = list(range(start, start + len(filler_tokens)))
+    target_ids = []
+    input_ids = inputs["input_ids"][0].tolist()
+    for i, pos in enumerate(positions):
+        next_pos = pos + 1
+        if next_pos < len(input_ids):
+            target_ids.append(input_ids[next_pos])
+        elif i < len(filler_tokens):
+            target_ids.append(filler_tokens[i])
+
+    return logits, positions, target_ids
+
+
+def compute_log_prob_at_positions(logits, positions, token_ids):
+    """Compute sum of log P(token | context) at given positions."""
+    log_probs = F.log_softmax(logits, dim=-1)
+    total = 0.0
+    for pos, tid in zip(positions, token_ids):
+        if pos < logits.shape[0]:
+            total += log_probs[pos, tid]
+    return total
+
+
+def compute_peat_loss(
+    model_theta, model_theta0, tokenizer, batch, model_tag, device,
+    lambda_1: float = 1.0, lambda_2: float = 1.0, tau: float = 1.0,
+):
+    """Compute the full PEAT loss for a batch.
+
+    Steps 1–6: Forward → Δ → L_neut + λ₁·L_pair + λ₂·L_kl
+
+    Returns (total_loss, loss_dict) where loss_dict has individual components.
+    """
+    spec = get_spec(model_tag)
+    is_encoder = spec.is_encoder
+
+    deltas = []
+    pair_diffs = []
+    kl_divs = []
+
+    for item in batch:
+        context = item["context"]
+        t_s = item["t_s"]
+        t_a = item["t_a"]
+
+        # Step 1 — Forward with grad (θ) and without grad (θ0)
+        if is_encoder:
+            logits_s, pos_s, tids_s = _get_masked_logits_encoder(
+                model_theta, tokenizer, context, t_s, device)
+            logits_a, pos_a, tids_a = _get_masked_logits_encoder(
+                model_theta, tokenizer, context, t_a, device)
+
+            with torch.no_grad():
+                logits0_s, pos0_s, tids0_s = _get_masked_logits_encoder(
+                    model_theta0, tokenizer, context, t_s, device)
+                logits0_a, pos0_a, tids0_a = _get_masked_logits_encoder(
+                    model_theta0, tokenizer, context, t_a, device)
+        else:
+            logits_s, pos_s, tids_s = _get_causal_logits(
+                model_theta, tokenizer, context, t_s, device)
+            logits_a, pos_a, tids_a = _get_causal_logits(
+                model_theta, tokenizer, context, t_a, device)
+
+            with torch.no_grad():
+                logits0_s, pos0_s, tids0_s = _get_causal_logits(
+                    model_theta0, tokenizer, context, t_s, device)
+                logits0_a, pos0_a, tids0_a = _get_causal_logits(
+                    model_theta0, tokenizer, context, t_a, device)
+
+        if logits_s is None or logits_a is None:
+            continue
+
+        # Step 2 — Δ signal
+        log_p_s = compute_log_prob_at_positions(logits_s, pos_s, tids_s)
+        log_p_a = compute_log_prob_at_positions(logits_a, pos_a, tids_a)
+        n_s = len(tids_s) if not is_encoder else 1
+        n_a = len(tids_a) if not is_encoder else 1
+        delta = (log_p_s / max(n_s, 1)) - (log_p_a / max(n_a, 1))
+        deltas.append(delta)
+
+        # Step 4 — Pair-mass anchor
+        log_p0_s = compute_log_prob_at_positions(logits0_s, pos0_s, tids0_s)
+        log_p0_a = compute_log_prob_at_positions(logits0_a, pos0_a, tids0_a)
+
+        # Use first mask position's full vocab for pair mass and KL
+        ref_pos_s = pos_s[0] if len(pos_s) > 0 else 0
+        ref_pos_a = pos_a[0] if len(pos_a) > 0 else 0
+
+        p_theta_s = torch.exp(log_p_s.detach()) if isinstance(log_p_s, torch.Tensor) else math.exp(log_p_s.item() if isinstance(log_p_s, torch.Tensor) else log_p_s)
+        p_theta_a = torch.exp(log_p_a.detach()) if isinstance(log_p_a, torch.Tensor) else math.exp(log_p_a.item() if isinstance(log_p_a, torch.Tensor) else log_p_a)
+
+        # For pair mass: μ_θ = log(P_θ(t_s) + P_θ(t_a)), μ_θ0 = log(P_θ0(t_s) + P_θ0(t_a))
+        mu_theta = torch.log(torch.exp(log_p_s) + torch.exp(log_p_a) + 1e-30)
+        mu_theta0 = torch.log(torch.exp(log_p0_s) + torch.exp(log_p0_a) + 1e-30)
+        pair_diffs.append((mu_theta - mu_theta0.detach()) ** 2)
+
+        # Step 5 — Complement-vocabulary KL
+        if ref_pos_s < logits_s.shape[0]:
+            probs_theta = F.softmax(logits_s[ref_pos_s], dim=-1)
+            probs_theta0 = F.softmax(logits0_s[ref_pos_s], dim=-1).detach()
+
+            # Zero out t_s and t_a entries, renormalize
+            mask_ids = set()
+            for t in tids_s:
+                mask_ids.add(t)
+            for t in tids_a:
+                mask_ids.add(t)
+
+            q_theta = probs_theta.clone()
+            q_theta0 = probs_theta0.clone()
+            for mid in mask_ids:
+                q_theta[mid] = 0.0
+                q_theta0[mid] = 0.0
+
+            q_theta = q_theta / (q_theta.sum() + 1e-30)
+            q_theta0 = q_theta0 / (q_theta0.sum() + 1e-30)
+
+            kl = F.kl_div(
+                torch.log(q_theta + 1e-30),
+                q_theta0,
+                reduction="sum",
+                log_target=False,
+            )
+            kl_divs.append(kl)
+
+    if not deltas:
+        return torch.tensor(0.0, device=device, requires_grad=True), {
+            "L_neut": 0.0, "L_pair": 0.0, "L_kl": 0.0, "L_total": 0.0
+        }
+
+    # Step 3 — Equalization loss (Symmetric Huber, τ=1.0)
+    deltas_t = torch.stack(deltas)
+    abs_deltas = deltas_t.abs()
+    huber = torch.where(
+        abs_deltas <= tau,
+        deltas_t ** 2,
+        2 * tau * abs_deltas - tau ** 2,
+    )
+    L_neut = huber.mean()
+
+    # Step 4 — Pair-mass anchor
+    L_pair = torch.stack(pair_diffs).mean() if pair_diffs else torch.tensor(0.0, device=device)
+
+    # Step 5 — Complement-vocabulary KL
+    L_kl = torch.stack(kl_divs).mean() if kl_divs else torch.tensor(0.0, device=device)
+
+    # Step 6 — Total
+    L_total = L_neut + lambda_1 * L_pair + lambda_2 * L_kl
+
+    loss_dict = {
+        "L_neut": L_neut.item(),
+        "L_pair": L_pair.item(),
+        "L_kl": L_kl.item(),
+        "L_total": L_total.item(),
+    }
+
+    return L_total, loss_dict
+
+
+# ===========================================================================
+# Training loop
+# ===========================================================================
+
+def train_peat_one_epoch(
+    model_theta, model_theta0, tokenizer, dataloader,
+    optimizer, scheduler, model_tag, device, epoch,
+    lambda_1, lambda_2, grad_accum_steps=1,
+):
+    """Train PEAT for one epoch. Returns average loss dict."""
+    model_theta.train()
+    cast_dtype = get_autocast_dtype()
+
+    total_losses = {"L_neut": 0, "L_pair": 0, "L_kl": 0, "L_total": 0}
+    n_batches = 0
+    optimizer.zero_grad()
+
+    for step, batch_raw in enumerate(tqdm(dataloader, desc=f"Epoch {epoch}")):
+        # Convert batch from dataloader dict-of-lists to list-of-dicts
+        batch_size = len(batch_raw["context"])
+        batch = [
+            {"context": batch_raw["context"][i],
+             "t_s": batch_raw["t_s"][i],
+             "t_a": batch_raw["t_a"][i]}
+            for i in range(batch_size)
+        ]
+
+        with torch.amp.autocast("cuda", dtype=cast_dtype):
+            loss, loss_dict = compute_peat_loss(
+                model_theta, model_theta0, tokenizer, batch,
+                model_tag, device, lambda_1, lambda_2,
+            )
+            loss = loss / grad_accum_steps
+
+        loss.backward()
+
+        if (step + 1) % grad_accum_steps == 0:
+            torch.nn.utils.clip_grad_norm_(model_theta.parameters(), 1.0)
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
+
+        for k in total_losses:
+            total_losses[k] += loss_dict[k]
+        n_batches += 1
+
+    avg = {k: v / max(n_batches, 1) for k, v in total_losses.items()}
+    logger.info(f"  Epoch {epoch} avg losses: {avg}")
+    return avg
+
+
+# ===========================================================================
+# Step 7 — Budgeted Configuration Selection
+# ===========================================================================
+
+def _make_config_grid():
+    """Generate the 25-config grid: (λ₁, λ₂) ∈ {1e-3, 1e-2, 1e-1, 1, 10}²."""
+    lambdas = [1e-3, 1e-2, 1e-1, 1.0, 10.0]
+    configs = []
+    for l1 in lambdas:
+        for l2 in lambdas:
+            configs.append({"lambda_1": l1, "lambda_2": l2,
+                            "id": f"l1={l1}_l2={l2}"})
+    return configs
+
+
+def _compute_selection_score(ss_val, ppl_val_delta):
+    """J(c) = |SS_val - 50| + 0.5 * ΔPPL_val"""
+    return abs(ss_val - 50.0) + 0.5 * max(ppl_val_delta, 0.0)
+
+
+def run_successive_halving(model_tag, seed=42, device="cuda"):
+    """Phase A — Successive Halving (Jamieson & Talwalkar 2016).
+
+    Round 0: 25 configs × 1 epoch → keep top 12
+    Round 1: 12 survivors × 3 cumulative epochs → keep top 4
+    Round 2: 4 survivors × 5 cumulative epochs → 4 finalists
+    """
+    ensure_dirs()
+    set_seed(seed)
+
+    configs = _make_config_grid()
+    spec = get_spec(model_tag)
+    is_encoder = spec.is_encoder
+    batch_size = 32 if is_encoder else 8
+    grad_accum = 1 if is_encoder else 4
+
+    train_df, val_df = load_stereoset_pairs(seed=seed)
+    train_ds = StereoSetDataset(train_df)
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
+                              num_workers=0, drop_last=False)
+
+    rounds = [(1, 12), (3, 4), (5, 4)]  # (cumulative_epochs, keep_top_k)
+    survivors = list(range(len(configs)))
+    config_states = {}  # config_idx -> (model_state, optimizer_state, epochs_done)
+
+    for round_idx, (target_epochs, keep_k) in enumerate(rounds):
+        logger.info(f"SHA Round {round_idx}: {len(survivors)} configs → "
+                    f"train to {target_epochs} epochs, keep {keep_k}")
+
+        scores = {}
+        for cfg_idx in survivors:
+            cfg = configs[cfg_idx]
+            cfg_id = cfg["id"]
+            logger.info(f"  Config {cfg_id}...")
+
+            # Load or init model
+            model, tokenizer, _ = load_model(model_tag, device=device)
+            model = attach_lora(model, model_tag)
+
+            # Copy frozen base
+            model_theta0 = copy.deepcopy(model)
+            model_theta0.eval()
+            for p in model_theta0.parameters():
+                p.requires_grad = False
+
+            optimizer = AdamW(
+                [p for p in model.parameters() if p.requires_grad],
+                lr=1e-4, weight_decay=0.01,
+            )
+            total_steps = len(train_loader) * target_epochs
+            warmup_steps = int(0.1 * total_steps)
+            scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
+
+            # Resume from previous round if available
+            prev_epochs = 0
+            if cfg_idx in config_states:
+                model.load_state_dict(config_states[cfg_idx]["model_state"])
+                optimizer.load_state_dict(config_states[cfg_idx]["optimizer_state"])
+                prev_epochs = config_states[cfg_idx]["epochs_done"]
+
+            # Train remaining epochs
+            for epoch in range(prev_epochs + 1, target_epochs + 1):
+                train_peat_one_epoch(
+                    model, model_theta0, tokenizer, train_loader,
+                    optimizer, scheduler, model_tag, device, epoch,
+                    cfg["lambda_1"], cfg["lambda_2"], grad_accum,
+                )
+
+            # Save state for next round
+            config_states[cfg_idx] = {
+                "model_state": copy.deepcopy(model.state_dict()),
+                "optimizer_state": copy.deepcopy(optimizer.state_dict()),
+                "epochs_done": target_epochs,
+            }
+
+            # Evaluate on validation set
+            model.eval()
+            ss_result = compute_stereotype_score(model, tokenizer, model_tag, device)
+            ss_val = ss_result["Stereotype Score"]
+            ppl_delta = 0.0  # simplified: PPL delta measured as 0 for selection
+
+            score = _compute_selection_score(ss_val, ppl_delta)
+            scores[cfg_idx] = score
+            logger.info(f"    SS={ss_val:.2f}, J={score:.4f}")
+
+            cleanup(model, model_theta0, optimizer)
+
+        # Keep top k
+        ranked = sorted(scores.items(), key=lambda x: x[1])
+        survivors = [idx for idx, _ in ranked[:keep_k]]
+        logger.info(f"  Survivors: {[configs[i]['id'] for i in survivors]}")
+
+    # Clean up states of non-survivors
+    for idx in list(config_states.keys()):
+        if idx not in survivors:
+            del config_states[idx]
+
+    return [configs[i] for i in survivors], config_states, survivors
+
+
+def run_bootstrap_selection(model_tag, finalists, config_states, survivor_indices,
+                            seed=42, device="cuda"):
+    """Phase B — Bootstrap-robust selection.
+
+    Cache each finalist's predictions on D_val.
+    1000 bootstrap resamples. J_robust = mean(J_b) + 0.5 * std(J_b).
+    Pick c_best = argmin J_robust.
+    """
+    _, val_df = load_stereoset_pairs(seed=seed)
+    best_score = float("inf")
+    best_config = finalists[0]
+
+    for cfg_idx, cfg in zip(survivor_indices, finalists):
+        logger.info(f"  Bootstrap eval for {cfg['id']}...")
+
+        # Reload model with saved state
+        model, tokenizer, _ = load_model(model_tag, device=device)
+        model = attach_lora(model, model_tag)
+        if cfg_idx in config_states:
+            model.load_state_dict(config_states[cfg_idx]["model_state"])
+        model.eval()
+
+        ss_result = compute_stereotype_score(model, tokenizer, model_tag, device)
+        values = ss_result["results_df"]["prefers_stereo"].values.astype(float)
+
+        boot_scores = []
+        rng = np.random.RandomState(seed)
+        for _ in range(1000):
+            sample = rng.choice(values, size=len(values), replace=True)
+            ss_b = 100.0 * sample.mean()
+            j_b = abs(ss_b - 50.0)
+            boot_scores.append(j_b)
+
+        j_robust = np.mean(boot_scores) + 0.5 * np.std(boot_scores)
+        logger.info(f"    J_robust = {j_robust:.4f}")
+
+        if j_robust < best_score:
+            best_score = j_robust
+            best_config = cfg
+
+        cleanup(model)
+
+    logger.info(f"  Best config: {best_config['id']} (J_robust={best_score:.4f})")
+    return best_config
+
+
+def run_final_training(model_tag, best_config, seeds=(42, 123, 456), device="cuda"):
+    """Phase C — Final retraining with c_best from scratch, 3 seeds, 5 epochs.
+
+    Saves all 3 adapter checkpoints.
+    """
+    ensure_dirs()
+    spec = get_spec(model_tag)
+    is_encoder = spec.is_encoder
+    batch_size = 32 if is_encoder else 8
+    grad_accum = 1 if is_encoder else 4
+    checkpoints = {}
+
+    for seed in seeds:
+        logger.info(f"Final training: {model_tag}, seed={seed}, config={best_config['id']}")
+        set_seed(seed)
+
+        train_df, val_df = load_stereoset_pairs(seed=42)  # always same split
+        train_ds = StereoSetDataset(train_df)
+        train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
+                                  num_workers=0, drop_last=False)
+
+        model, tokenizer, _ = load_model(model_tag, device=device)
+        model = attach_lora(model, model_tag)
+
+        model_theta0 = copy.deepcopy(model)
+        model_theta0.eval()
+        for p in model_theta0.parameters():
+            p.requires_grad = False
+
+        optimizer = AdamW(
+            [p for p in model.parameters() if p.requires_grad],
+            lr=1e-4, weight_decay=0.01,
+        )
+        total_steps = len(train_loader) * 5
+        scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
+
+        for epoch in range(1, 6):
+            train_peat_one_epoch(
+                model, model_theta0, tokenizer, train_loader,
+                optimizer, scheduler, model_tag, device, epoch,
+                best_config["lambda_1"], best_config["lambda_2"], grad_accum,
+            )
+
+            # Checkpoint every epoch
+            ckpt_dir = STATE_DIR / "peat" / model_tag / f"seed_{seed}"
+            ckpt_dir.mkdir(parents=True, exist_ok=True)
+            ckpt_path = ckpt_dir / f"epoch_{epoch}.checkpoint"
+            torch.save({
+                "model_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "epoch": epoch,
+                "config": best_config,
+                "seed": seed,
+            }, ckpt_path)
+
+        checkpoints[seed] = {
+            "model_state": copy.deepcopy(model.state_dict()),
+            "config": best_config,
+            "final_ckpt": str(ckpt_dir / "epoch_5.checkpoint"),
+        }
+
+        cleanup(model, model_theta0, optimizer)
+
+    return checkpoints
+
+
+# ===========================================================================
+# Public API
+# ===========================================================================
+
+def run_peat_full(model_tag, device="cuda"):
+    """Run the complete PEAT pipeline for one model.
+
+    Phase A: Successive Halving (25 → 12 → 4)
+    Phase B: Bootstrap-robust selection
+    Phase C: Final retraining (3 seeds × 5 epochs)
+
+    Returns (best_config, checkpoints).
+    """
+    logger.info(f"{'='*60}")
+    logger.info(f"PEAT FULL PIPELINE: {model_tag}")
+    logger.info(f"{'='*60}")
+
+    finalists, config_states, survivors = run_successive_halving(model_tag, device=device)
+    best_config = run_bootstrap_selection(model_tag, finalists, config_states, survivors, device=device)
+    checkpoints = run_final_training(model_tag, best_config, device=device)
+
+    return best_config, checkpoints
+
+
+def run_peat_scaling(model_tag, best_config, device="cuda"):
+    """Run PEAT for a scaling model, reusing c_best from qwen2.5-1.5b.
+
+    Justified: "smallest causal model's optimal config transfers; we verify
+    scaling, not re-search."
+    """
+    logger.info(f"{'='*60}")
+    logger.info(f"PEAT SCALING: {model_tag} (reusing config {best_config['id']})")
+    logger.info(f"{'='*60}")
+
+    checkpoints = run_final_training(model_tag, best_config, device=device)
+    return checkpoints

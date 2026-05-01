@@ -1,0 +1,10 @@
+# Normalise line endings: store as LF, checkout as-is
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+*.env.template text eol=lf

@@ -1,0 +1,63 @@
+# =============================================================================
+# PEAT_Debias — .gitignore
+# =============================================================================
+
+# ── Secrets (NEVER commit) ────────────────────────────────────────────────
+.env
+*.env
+secrets.json
+*.pem
+*.key
+
+# ── Python artefacts ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Data cache (large HuggingFace downloads) ─────────────────────────────
+data/
+*.parquet
+*.arrow
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# ── Model checkpoints ────────────────────────────────────────────────────
+state/
+*.ckpt
+
+# ── Logs ─────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Results (pushed separately once generated) ───────────────────────────
+# Uncomment to temporarily exclude while running:
+# results/
+
+# ── OS / Editor noise ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
