@@ -50,6 +50,8 @@ from peat.utils import (
     llm_judge_extract,
     parse_json_safely,
     setup_logger,
+    SMOKE_TEST,
+    SMOKE_TEST_SIZE,
 )
 
 logger = setup_logger("peat.eval", str(LOG_DIR / "evaluation.log"))
@@ -582,6 +584,9 @@ def evaluate_glue(model, tokenizer, model_tag: str,
 
     Returns dict mapping task_name → metric_value.
     """
+    import peat.utils as _pu
+    if _pu.SMOKE_TEST:
+        max_samples = _pu.SMOKE_TEST_SIZE
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import accuracy_score, matthews_corrcoef
     from scipy.stats import pearsonr
