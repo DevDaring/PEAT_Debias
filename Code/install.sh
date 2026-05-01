@@ -77,6 +77,7 @@ python3 -m pip install \
     evaluate==0.4.2 \
     google-generativeai==0.8.3 \
     xformers==0.0.28.post3 \
+    einops \
     huggingface_hub
 
 # ── Step 4: Flash-Attention 2.8.3 ─────────────────────────────────────────

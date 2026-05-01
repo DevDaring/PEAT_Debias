@@ -72,12 +72,13 @@ MODERNBERT_BASE = ModelSpec(
     attn_impl="sdpa",
 )
 
-# Reference: Chandar Lab, "NeoBERT", 2025.
-# Used here for: latest encoder MLM. NeoBERT does not yet support flash_attention_2;
-# use eager attention (still runs on A100 via standard SDPA kernels).
-NEOBERT = ModelSpec(
-    tag="neobert",
-    hf_id="chandar-lab/NeoBERT",
+# Reference: Nussbaum et al., "Nomic Embed", 2024 (NomicBERT backbone).
+# Used here for: modern 137M encoder MLM with RoPE and 2048-token context.
+# Requires trust_remote_code and einops. Ignores torch_dtype at load time;
+# we manually cast to bfloat16 after loading. Use eager attention.
+NOMICBERT = ModelSpec(
+    tag="nomicbert",
+    hf_id="nomic-ai/nomic-bert-2048",
     model_type="encoder",
     attn_impl="eager",
     trust_remote_code=True,
@@ -119,11 +120,11 @@ LLAMA_31_8B = ModelSpec(
 # Full registry
 MODEL_REGISTRY: dict[str, ModelSpec] = {
     spec.tag: spec
-    for spec in [BERT_BASE, MODERNBERT_BASE, NEOBERT, QWEN_25_15B, GEMMA_3_4B, LLAMA_31_8B]
+    for spec in [BERT_BASE, MODERNBERT_BASE, NOMICBERT, QWEN_25_15B, GEMMA_3_4B, LLAMA_31_8B]
 }
 
 # Core models (hyperparameter search + full baselines)
-CORE_MODELS = ["bert-base", "modernbert-base", "neobert", "qwen2.5-1.5b"]
+CORE_MODELS = ["bert-base", "modernbert-base", "nomicbert", "qwen2.5-1.5b"]
 
 # Scaling models (reuse c_best from qwen2.5-1.5b)
 SCALING_MODELS = ["gemma-3-4b", "llama-3.1-8b"]
@@ -167,10 +168,10 @@ def get_lora_target_modules(tag: str) -> list[str]:
             # and FFN layers ("Wi", "Wo"). Deduplicate since "Wo" appears in
             # both attention and FFN but peft matches by name globally.
             return ["Wqkv", "Wo", "Wi"]
-        elif tag == "neobert":
-            # NeoBERT (trust_remote_code) uses fused QKV projection 'qkv',
-            # output projection 'wo', and gated FFN 'w12'/'w3'.
-            return ["qkv", "wo", "w12", "w3"]
+        elif tag == "nomicbert":
+            # NomicBERT uses fused QKV ('Wqkv'), output projection ('out_proj'),
+            # and gated FFN layers ('fc11', 'fc12', 'fc2').
+            return ["Wqkv", "out_proj", "fc11", "fc12", "fc2"]
     else:
         # Causal LMs (Qwen, Gemma, Llama) all use the same projection names
         return [
@@ -254,7 +255,9 @@ def load_encoder(
         model_kwargs["attn_implementation"] = spec.attn_impl
 
     model = AutoModelForMaskedLM.from_pretrained(spec.hf_id, **model_kwargs)
-    model = model.to(device)
+    # Some custom loaders (e.g. NomicBERT) use torch.load internally and
+    # ignore torch_dtype. Explicitly cast to the target dtype after loading.
+    model = model.to(dtype=dtype, device=device)
     model.eval()
 
     config_dict = {
