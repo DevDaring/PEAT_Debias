@@ -351,7 +351,13 @@ def load_causal(
     # Tied weights (e.g. lm_head.weight) may remain as meta tensors; resolve
     # aliases before moving to device.
     model.tie_weights()
-    model = model.to(device)
+    # `from_pretrained` with low_cpu_mem_usage=False already loads to CPU.
+    # Calling .to("cpu") on a model with meta-tensor tied-weight aliases triggers
+    # "Cannot copy out of meta tensor".  Only move when the target differs from
+    # the current device (prefetch uses device="cpu" → skip; training uses "cuda").
+    _current = next(iter(model.parameters())).device
+    if str(_current) != str(torch.device(device)):
+        model = model.to(device)
     model.eval()
 
     # Gemma3Config nests per-layer settings under text_config; fall back gracefully.
