@@ -330,14 +330,18 @@ def load_causal(
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # device_map loads weights directly to the target device (GPU) via accelerate.
+    # This avoids: (a) CPU RAM occupation, (b) the slow CPU→GPU copy, and
+    # (c) meta-tensor errors in multimodal models (e.g. Gemma-3 vision tower)
+    # that persist even with low_cpu_mem_usage=False + tie_weights().
+    # For a single-GPU host "cuda:0" is always correct.
+    _device_map = "cuda:0" if str(device).startswith("cuda") else str(device)
     model_kwargs_c = {
         "torch_dtype": dtype,
         "attn_implementation": spec.attn_impl,
         "token": token,
         "trust_remote_code": spec.trust_remote_code,
-        # low_cpu_mem_usage=False forces real tensor materialisation on CPU so
-        # a subsequent .to(device) works without needing `accelerate`.
-        "low_cpu_mem_usage": False,
+        "device_map": _device_map,
     }
     # Try loading from local cache first; fall back to download.
     try:
@@ -348,16 +352,6 @@ def load_causal(
     except OSError:
         logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
         model = AutoModelForCausalLM.from_pretrained(spec.hf_id, **model_kwargs_c)
-    # Tied weights (e.g. lm_head.weight) may remain as meta tensors; resolve
-    # aliases before moving to device.
-    model.tie_weights()
-    # `from_pretrained` with low_cpu_mem_usage=False already loads to CPU.
-    # Calling .to("cpu") on a model with meta-tensor tied-weight aliases triggers
-    # "Cannot copy out of meta tensor".  Only move when the target differs from
-    # the current device (prefetch uses device="cpu" → skip; training uses "cuda").
-    _current = next(iter(model.parameters())).device
-    if str(_current) != str(torch.device(device)):
-        model = model.to(device)
     model.eval()
 
     # Gemma3Config nests per-layer settings under text_config; fall back gracefully.

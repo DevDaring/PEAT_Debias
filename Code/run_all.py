@@ -26,7 +26,6 @@ Resumes cleanly from interruption via state/run_state.json.
 import copy
 import json
 import sys
-import threading
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -122,46 +121,21 @@ def main():
     from peat.eval import evaluate_full
     from peft import set_peft_model_state_dict
 
-    # ── Prefetch helpers ───────────────────────────────────────────────────
-    # Background-loads the next model into CPU RAM while the current model
-    # trains/evaluates. .to("cuda") then takes ~0.5 s instead of 30–90 s.
-    _prefetch_cache: dict = {}
-    _prefetch_lock = threading.Lock()
-
-    def _start_prefetch(tag: str) -> None:
-        """Spawn a daemon thread that loads `tag` weights into CPU RAM."""
-        def _worker():
-            try:
-                logger.info(f"  [prefetch] loading {tag} to CPU RAM ...")
-                m, tok, _ = load_model(tag, device="cpu")
-                with _prefetch_lock:
-                    _prefetch_cache[tag] = (m, tok)
-                logger.info(f"  [prefetch] {tag} ready in CPU RAM")
-            except Exception as _e:
-                logger.warning(f"  [prefetch] {tag} failed: {_e}")
-        threading.Thread(target=_worker, daemon=True, name=f"prefetch-{tag}").start()
-
+    # ── Model loader ───────────────────────────────────────────────────────
+    # Load each model directly to GPU (device_map="cuda:0" in load_causal;
+    # .to(device) in load_encoder).  No CPU intermediate — avoids:
+    #   • meta-tensor errors in multimodal models (e.g. Gemma-3 vision tower)
+    #   • the slow CPU→GPU copy that leaves the GPU idle
+    #   • background-thread CUDA-fork DataLoader deadlocks
     def _get_model(tag: str, device: str = "cuda"):
-        """Return (model, tokenizer) — from prefetch cache or cold load."""
-        with _prefetch_lock:
-            cached = _prefetch_cache.pop(tag, None)
-        if cached is not None:
-            logger.info(f"  [prefetch] {tag}: CPU RAM → {device}")
-            m_cpu, tok = cached
-            return m_cpu.to(device), tok
+        """Load model directly to GPU and return (model, tokenizer)."""
         m, tok, _ = load_model(tag, device=device)
         return m, tok
 
     best_configs = {}
     SEEDS = [42, 123, 456]
 
-    # Kick off prefetch for the first model (overlaps with any remaining setup)
-    _start_prefetch(CORE_MODELS[0])
-
     for i, model_tag in enumerate(CORE_MODELS):
-        # Prefetch next model while this one trains — hides CPU I/O behind GPU work
-        if i + 1 < len(CORE_MODELS):
-            _start_prefetch(CORE_MODELS[i + 1])
 
         stage_key = cell_key("peat_training", model_tag, 0, "full_pipeline")
 
@@ -232,14 +206,7 @@ def main():
         logger.warning("No c_best from qwen2.5-1.5b — using default config for scaling")
         scaling_config = {"lambda_1": 0.1, "lambda_2": 0.1, "id": "l1=0.1_l2=0.1"}
 
-    # Prefetch first scaling model while the Stage 2 header is printed
-    if SCALING_MODELS:
-        _start_prefetch(SCALING_MODELS[0])
-
     for i, model_tag in enumerate(SCALING_MODELS):
-        if i + 1 < len(SCALING_MODELS):
-            _start_prefetch(SCALING_MODELS[i + 1])
-
         stage_key = cell_key("peat_scaling", model_tag, 0, "full_pipeline")
 
         if is_cell_complete(state, stage_key):

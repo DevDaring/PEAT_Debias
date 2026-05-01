@@ -139,6 +139,15 @@ def attach_lora(model, model_tag: str):
     )
 
     model = get_peft_model(model, lora_config)
+
+    # PEFT initialises LoRA A/B matrices in float32 regardless of base model
+    # dtype. Cast trainable params to match so mixed-dtype matmuls (e.g.
+    # float32 lora_A × bfloat16 input) don't crash at inference/eval time.
+    _model_dtype = get_dtype()
+    for param in model.parameters():
+        if param.requires_grad:
+            param.data = param.data.to(_model_dtype)
+
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
     logger.info(
