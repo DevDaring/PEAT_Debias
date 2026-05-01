@@ -67,12 +67,17 @@ def _identify_bias_neurons(model, tokenizer, train_df, model_tag, device,
     return top_indices
 
 
-def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
+def run(model_tag: str, seed: int = 42, device: str = "cuda",
+        _model=None, _tokenizer=None) -> dict:
     """Run KnowBias baseline."""
     logger.info(f"KnowBias: {model_tag}, seed={seed}")
     set_seed(seed)
 
-    model, tokenizer, _ = load_model(model_tag, device=device)
+    _owns = _model is None
+    if _owns:
+        model, tokenizer, _ = load_model(model_tag, device=device)
+    else:
+        model, tokenizer = _model, _tokenizer
 
     try:
         train_df, _ = load_stereoset_pairs(seed=seed)
@@ -99,4 +104,5 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
         return {"method": "KnowBias", "model": model_tag, "seed": seed,
                 "status": f"skipped: {e}"}
     finally:
-        cleanup(model)
+        if _owns:
+            cleanup(model)

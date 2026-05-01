@@ -38,16 +38,24 @@ class BiasEditor(nn.Module):
         return hidden_states + gate * edit
 
 
-def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
+def run(model_tag: str, seed: int = 42, device: str = "cuda",
+        _model=None, _tokenizer=None) -> dict:
     """Run BiasEdit baseline."""
     logger.info(f"BiasEdit: {model_tag}, seed={seed}")
     set_seed(seed)
     spec = get_spec(model_tag)
 
-    model, tokenizer, cfg = load_model(model_tag, device=device)
+    # Fine-tuning baseline: deepcopy so freeze+train never corrupts shared base
+    if _model is not None:
+        import copy
+        model = copy.deepcopy(_model)
+        tokenizer = _tokenizer
+        hidden_size = _model.config.hidden_size
+    else:
+        model, tokenizer, cfg = load_model(model_tag, device=device)
+        hidden_size = cfg["hidden_size"]
 
     try:
-        hidden_size = cfg["hidden_size"]
         editor = BiasEditor(hidden_size).to(device).to(get_dtype())
 
         # Freeze base model, only train editor

@@ -41,7 +41,8 @@ def _compute_js_divergence(p, q):
     return 0.5 * (kl_pm + kl_qm)
 
 
-def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
+def run(model_tag: str, seed: int = 42, device: str = "cuda",
+        _model=None, _tokenizer=None) -> dict:
     """Run Auto-Debias baseline."""
     logger.info(f"Auto-Debias: {model_tag}, seed={seed}")
     set_seed(seed)
@@ -50,7 +51,13 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
     if not spec.is_encoder:
         logger.warning(f"Auto-Debias designed for MLMs; adapting for causal {model_tag}")
 
-    model, tokenizer, _ = load_model(model_tag, device=device)
+    # Fine-tuning baseline: deepcopy so training never corrupts the shared base
+    if _model is not None:
+        import copy
+        model = copy.deepcopy(_model)
+        tokenizer = _tokenizer
+    else:
+        model, tokenizer, _ = load_model(model_tag, device=device)
 
     try:
         model = attach_lora(model, model_tag)

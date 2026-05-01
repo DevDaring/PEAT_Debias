@@ -71,7 +71,8 @@ class SelfDebiasWrapper:
         return debiased
 
 
-def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
+def run(model_tag: str, seed: int = 42, device: str = "cuda",
+        _model=None, _tokenizer=None) -> dict:
     """Run Self-Debias baseline."""
     logger.info(f"Self-Debias: {model_tag}, seed={seed}")
     spec = get_spec(model_tag)
@@ -79,7 +80,11 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
     if spec.is_encoder:
         logger.warning(f"Self-Debias: limited support for encoder {model_tag}")
 
-    model, tokenizer, _ = load_model(model_tag, device=device)
+    _owns = _model is None
+    if _owns:
+        model, tokenizer, _ = load_model(model_tag, device=device)
+    else:
+        model, tokenizer = _model, _tokenizer
 
     try:
         # Self-Debias is inference-time only — evaluate directly
@@ -96,4 +101,5 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda") -> dict:
         return {"method": "Self-Debias", "model": model_tag, "seed": seed,
                 "status": f"skipped: {e}"}
     finally:
-        cleanup(model)
+        if _owns:
+            cleanup(model)

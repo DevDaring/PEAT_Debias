@@ -21,7 +21,7 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.nn.functional as F
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, get_peft_model_state_dict, set_peft_model_state_dict, TaskType
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
@@ -65,6 +65,49 @@ logger = setup_logger("peat.peat", str(LOG_DIR / "training.log"))
 # Reference: Jamieson & Talwalkar, "Non-stochastic Best Arm Identification
 # and Hyperparameter Optimization", AISTATS 2016.
 # arXiv: 1502.07943 | Used here for: Successive Halving in budgeted config selection.
+
+
+# ===========================================================================
+# PEFT adapter-state helpers
+# Storing only the LoRA adapter weights (~6 MB at rank-4) instead of the full
+# model state dict (~3–16 GB) means we can keep 41 SHA config states in CPU
+# RAM without OOM risk, while frozen base weights stay on GPU.
+# ===========================================================================
+
+def _lora_state_to_cpu(model) -> dict:
+    """Extract LoRA adapter weights as CPU tensors (~6 MB for rank-4)."""
+    return {k: v.detach().cpu() for k, v in get_peft_model_state_dict(model).items()}
+
+
+def _restore_lora_state(model, cpu_state: dict, device: str) -> None:
+    """Restore LoRA adapter weights from a CPU-tensor dict onto `device`."""
+    set_peft_model_state_dict(model, {k: v.to(device) for k, v in cpu_state.items()})
+
+
+def _optim_to_cpu(optim_sd: dict) -> dict:
+    """Recursively move optimizer state tensors to CPU (preserves nested structure)."""
+    out = {}
+    for k, v in optim_sd.items():
+        if isinstance(v, torch.Tensor):
+            out[k] = v.detach().cpu()
+        elif isinstance(v, dict):
+            out[k] = _optim_to_cpu(v)
+        else:
+            out[k] = v
+    return out
+
+
+def _optim_to_device(optim_sd: dict, device: str) -> dict:
+    """Recursively move optimizer state tensors back to `device`."""
+    out = {}
+    for k, v in optim_sd.items():
+        if isinstance(v, torch.Tensor):
+            out[k] = v.to(device)
+        elif isinstance(v, dict):
+            out[k] = _optim_to_device(v, device)
+        else:
+            out[k] = v
+    return out
 
 
 # ===========================================================================
@@ -374,12 +417,18 @@ def _compute_selection_score(ss_val, ppl_val_delta):
     return abs(ss_val - 50.0) + 0.5 * max(ppl_val_delta, 0.0)
 
 
-def run_successive_halving(model_tag, seed=42, device="cuda"):
+def run_successive_halving(model, tokenizer, model_tag, seed=42, device="cuda"):
     """Phase A — Successive Halving (Jamieson & Talwalkar 2016).
 
     Round 0: 25 configs × 1 epoch → keep top 12
     Round 1: 12 survivors × 3 cumulative epochs → keep top 4
     Round 2: 4 survivors × 5 cumulative epochs → 4 finalists
+
+    model must be a LoRA-wrapped PEFT model already on `device`.
+    model_theta0 (frozen reference) is created ONCE and kept on GPU for all
+    41 configs — eliminates 41 deepcopy+unload cycles.
+    Config states are stored as CPU LoRA tensors (~6 MB each, not ~3 GB full).
+    Returns (finalists, config_states, survivors, initial_lora_state).
     """
     ensure_dirs()
     set_seed(seed)
@@ -399,90 +448,107 @@ def run_successive_halving(model_tag, seed=42, device="cuda"):
 
     rounds = [(1, 12), (3, 4), (5, 4)]  # (cumulative_epochs, keep_top_k)
     survivors = list(range(len(configs)))
-    config_states = {}  # config_idx -> (model_state, optimizer_state, epochs_done)
+    # config_states: CPU LoRA tensors only (~6 MB each vs ~3 GB full state)
+    config_states = {}
 
-    for round_idx, (target_epochs, keep_k) in enumerate(rounds):
-        logger.info(f"SHA Round {round_idx}: {len(survivors)} configs → "
-                    f"train to {target_epochs} epochs, keep {keep_k}")
+    # Save initial LoRA weights — used to reset model at the start of each
+    # new config (round 0) so every config trains from the same LoRA init.
+    initial_lora_state = _lora_state_to_cpu(model)
 
-        scores = {}
-        for cfg_idx in survivors:
-            cfg = configs[cfg_idx]
-            cfg_id = cfg["id"]
-            logger.info(f"  Config {cfg_id}...")
+    # Frozen reference: created ONCE and kept on GPU for all 41 configs.
+    # Stays at LoRA-init (≡ base model since LoRA-B = 0 at init).
+    model_theta0 = copy.deepcopy(model)
+    model_theta0.eval()
+    for p in model_theta0.parameters():
+        p.requires_grad = False
 
-            # Load or init model
-            model, tokenizer, _ = load_model(model_tag, device=device)
-            model = attach_lora(model, model_tag)
+    try:
+        for round_idx, (target_epochs, keep_k) in enumerate(rounds):
+            logger.info(f"SHA Round {round_idx}: {len(survivors)} configs → "
+                        f"train to {target_epochs} epochs, keep {keep_k}")
 
-            # Copy frozen base
-            model_theta0 = copy.deepcopy(model)
-            model_theta0.eval()
-            for p in model_theta0.parameters():
-                p.requires_grad = False
+            scores = {}
+            for cfg_idx in survivors:
+                cfg = configs[cfg_idx]
+                cfg_id = cfg["id"]
+                logger.info(f"  Config {cfg_id}...")
 
-            optimizer = AdamW(
-                [p for p in model.parameters() if p.requires_grad],
-                lr=1e-4, weight_decay=0.01,
-            )
-            total_steps = len(train_loader) * target_epochs
-            warmup_steps = int(0.1 * total_steps)
-            scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
+                # Restore adapter weights: from previous round or initial state
+                if cfg_idx in config_states:
+                    _restore_lora_state(model, config_states[cfg_idx]["lora_state"], device)
+                    prev_epochs = config_states[cfg_idx]["epochs_done"]
+                else:
+                    _restore_lora_state(model, initial_lora_state, device)
+                    prev_epochs = 0
 
-            # Resume from previous round if available
-            prev_epochs = 0
-            if cfg_idx in config_states:
-                model.load_state_dict(config_states[cfg_idx]["model_state"])
-                optimizer.load_state_dict(config_states[cfg_idx]["optimizer_state"])
-                prev_epochs = config_states[cfg_idx]["epochs_done"]
-
-            # Train remaining epochs
-            for epoch in range(prev_epochs + 1, target_epochs + 1):
-                train_peat_one_epoch(
-                    model, model_theta0, tokenizer, train_loader,
-                    optimizer, scheduler, model_tag, device, epoch,
-                    cfg["lambda_1"], cfg["lambda_2"], grad_accum,
+                optimizer = AdamW(
+                    [p for p in model.parameters() if p.requires_grad],
+                    lr=1e-4, weight_decay=0.01,
                 )
+                total_steps = len(train_loader) * target_epochs
+                scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
 
-            # Save state for next round
-            config_states[cfg_idx] = {
-                "model_state": copy.deepcopy(model.state_dict()),
-                "optimizer_state": copy.deepcopy(optimizer.state_dict()),
-                "epochs_done": target_epochs,
-            }
+                # Warm-resume optimizer state from previous round if available
+                if cfg_idx in config_states and "optimizer_state" in config_states[cfg_idx]:
+                    optimizer.load_state_dict(
+                        _optim_to_device(config_states[cfg_idx]["optimizer_state"], device)
+                    )
 
-            # Evaluate on validation set
-            model.eval()
-            ss_result = compute_stereotype_score(model, tokenizer, model_tag, device)
-            ss_val = ss_result["Stereotype Score"]
-            ppl_delta = 0.0  # simplified: PPL delta measured as 0 for selection
+                # Train remaining epochs
+                for epoch in range(prev_epochs + 1, target_epochs + 1):
+                    train_peat_one_epoch(
+                        model, model_theta0, tokenizer, train_loader,
+                        optimizer, scheduler, model_tag, device, epoch,
+                        cfg["lambda_1"], cfg["lambda_2"], grad_accum,
+                    )
 
-            score = _compute_selection_score(ss_val, ppl_delta)
-            scores[cfg_idx] = score
-            logger.info(f"    SS={ss_val:.2f}, J={score:.4f}")
+                # Save state for next round (CPU tensors — no GPU accumulation)
+                config_states[cfg_idx] = {
+                    "lora_state": _lora_state_to_cpu(model),
+                    "optimizer_state": _optim_to_cpu(optimizer.state_dict()),
+                    "epochs_done": target_epochs,
+                }
 
-            cleanup(model, model_theta0, optimizer)
+                # Evaluate on validation set
+                model.eval()
+                ss_result = compute_stereotype_score(model, tokenizer, model_tag, device)
+                ss_val = ss_result["Stereotype Score"]
+                ppl_delta = 0.0  # simplified: PPL delta measured as 0 for selection
 
-        # Keep top k
-        ranked = sorted(scores.items(), key=lambda x: x[1])
-        survivors = [idx for idx, _ in ranked[:keep_k]]
-        logger.info(f"  Survivors: {[configs[i]['id'] for i in survivors]}")
+                score = _compute_selection_score(ss_val, ppl_delta)
+                scores[cfg_idx] = score
+                logger.info(f"    SS={ss_val:.2f}, J={score:.4f}")
 
-    # Clean up states of non-survivors
-    for idx in list(config_states.keys()):
-        if idx not in survivors:
-            del config_states[idx]
+                # Free optimizer immediately; model stays on GPU for next config
+                del optimizer, scheduler
+                torch.cuda.empty_cache()
 
-    return [configs[i] for i in survivors], config_states, survivors
+            # Keep top k; prune CPU states for dropped configs
+            ranked = sorted(scores.items(), key=lambda x: x[1])
+            survivors = [idx for idx, _ in ranked[:keep_k]]
+            for idx in list(config_states.keys()):
+                if idx not in survivors:
+                    del config_states[idx]
+            logger.info(f"  Survivors: {[configs[i]['id'] for i in survivors]}")
+
+    finally:
+        # Release frozen reference; model (with last-trained weights) stays alive
+        del model_theta0
+        torch.cuda.empty_cache()
+
+    return [configs[i] for i in survivors], config_states, survivors, initial_lora_state
 
 
-def run_bootstrap_selection(model_tag, finalists, config_states, survivor_indices,
-                            seed=42, device="cuda"):
+def run_bootstrap_selection(model, tokenizer, model_tag, finalists, config_states,
+                            survivor_indices, seed=42, device="cuda"):
     """Phase B — Bootstrap-robust selection.
 
     Cache each finalist's predictions on D_val.
     1000 bootstrap resamples. J_robust = mean(J_b) + 0.5 * std(J_b).
     Pick c_best = argmin J_robust.
+
+    model must be the same LoRA-wrapped PEFT model used in SHA.
+    Hot-swaps adapter weights per finalist — no load/unload.
     """
     _, val_df = load_stereoset_pairs(seed=seed)
     best_score = float("inf")
@@ -491,11 +557,9 @@ def run_bootstrap_selection(model_tag, finalists, config_states, survivor_indice
     for cfg_idx, cfg in zip(survivor_indices, finalists):
         logger.info(f"  Bootstrap eval for {cfg['id']}...")
 
-        # Reload model with saved state
-        model, tokenizer, _ = load_model(model_tag, device=device)
-        model = attach_lora(model, model_tag)
+        # Hot-swap adapter weights for this finalist (no load/unload)
         if cfg_idx in config_states:
-            model.load_state_dict(config_states[cfg_idx]["model_state"])
+            _restore_lora_state(model, config_states[cfg_idx]["lora_state"], device)
         model.eval()
 
         ss_result = compute_stereotype_score(model, tokenizer, model_tag, device)
@@ -516,16 +580,19 @@ def run_bootstrap_selection(model_tag, finalists, config_states, survivor_indice
             best_score = j_robust
             best_config = cfg
 
-        cleanup(model)
-
     logger.info(f"  Best config: {best_config['id']} (J_robust={best_score:.4f})")
     return best_config
 
 
-def run_final_training(model_tag, best_config, seeds=(42, 123, 456), device="cuda"):
+def run_final_training(model, tokenizer, model_tag, best_config,
+                       seeds=(42, 123, 456), device="cuda"):
     """Phase C — Final retraining with c_best from scratch, 3 seeds, 5 epochs.
 
     Saves all 3 adapter checkpoints.
+
+    model must be a LoRA-wrapped PEFT model at LoRA-init state on `device`.
+    model_theta0 (frozen reference) is created ONCE for all 3 seeds.
+    DataLoader is created once — set_seed(seed) re-seeds RNG for shuffle order.
     """
     ensure_dirs()
     spec = get_spec(model_tag)
@@ -535,56 +602,68 @@ def run_final_training(model_tag, best_config, seeds=(42, 123, 456), device="cud
     grad_accum = 1
     checkpoints = {}
 
-    for seed in seeds:
-        logger.info(f"Final training: {model_tag}, seed={seed}, config={best_config['id']}")
-        set_seed(seed)
+    # Save clean LoRA-init state — caller must ensure model is at LoRA-init.
+    initial_lora_state = _lora_state_to_cpu(model)
 
-        train_df, val_df = load_stereoset_pairs(seed=42)  # always same split
-        train_ds = StereoSetDataset(train_df)
-        train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
-                                  num_workers=2, drop_last=False)
+    # DataLoader created once (same data split across all seeds).
+    # set_seed(seed) below re-seeds the global RNG so shuffle differs per seed.
+    train_df, _ = load_stereoset_pairs(seed=42)  # always same split
+    train_ds = StereoSetDataset(train_df)
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
+                              num_workers=2, drop_last=False)
 
-        model, tokenizer, _ = load_model(model_tag, device=device)
-        model = attach_lora(model, model_tag)
+    # Frozen reference: created ONCE at LoRA-init, stays on GPU for all 3 seeds
+    model_theta0 = copy.deepcopy(model)
+    model_theta0.eval()
+    for p in model_theta0.parameters():
+        p.requires_grad = False
 
-        model_theta0 = copy.deepcopy(model)
-        model_theta0.eval()
-        for p in model_theta0.parameters():
-            p.requires_grad = False
+    try:
+        for seed in seeds:
+            logger.info(f"Final training: {model_tag}, seed={seed}, config={best_config['id']}")
+            set_seed(seed)
 
-        optimizer = AdamW(
-            [p for p in model.parameters() if p.requires_grad],
-            lr=1e-4, weight_decay=0.01,
-        )
-        total_steps = len(train_loader) * 5
-        scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
+            # Reset adapter to LoRA-init for each seed (train from scratch)
+            _restore_lora_state(model, initial_lora_state, device)
 
-        for epoch in range(1, 6):
-            train_peat_one_epoch(
-                model, model_theta0, tokenizer, train_loader,
-                optimizer, scheduler, model_tag, device, epoch,
-                best_config["lambda_1"], best_config["lambda_2"], grad_accum,
+            optimizer = AdamW(
+                [p for p in model.parameters() if p.requires_grad],
+                lr=1e-4, weight_decay=0.01,
             )
+            total_steps = len(train_loader) * 5
+            scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
 
-            # Checkpoint every epoch
-            ckpt_dir = STATE_DIR / "peat" / model_tag / f"seed_{seed}"
-            ckpt_dir.mkdir(parents=True, exist_ok=True)
-            ckpt_path = ckpt_dir / f"epoch_{epoch}.checkpoint"
-            torch.save({
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-                "epoch": epoch,
+            for epoch in range(1, 6):
+                train_peat_one_epoch(
+                    model, model_theta0, tokenizer, train_loader,
+                    optimizer, scheduler, model_tag, device, epoch,
+                    best_config["lambda_1"], best_config["lambda_2"], grad_accum,
+                )
+
+                # Checkpoint every epoch
+                ckpt_dir = STATE_DIR / "peat" / model_tag / f"seed_{seed}"
+                ckpt_dir.mkdir(parents=True, exist_ok=True)
+                ckpt_path = ckpt_dir / f"epoch_{epoch}.checkpoint"
+                torch.save({
+                    "lora_state": _lora_state_to_cpu(model),
+                    "optimizer_state": _optim_to_cpu(optimizer.state_dict()),
+                    "epoch": epoch,
+                    "config": best_config,
+                    "seed": seed,
+                }, ckpt_path)
+
+            checkpoints[seed] = {
+                "lora_state": _lora_state_to_cpu(model),
                 "config": best_config,
-                "seed": seed,
-            }, ckpt_path)
+                "final_ckpt": str(ckpt_dir / "epoch_5.checkpoint"),
+            }
 
-        checkpoints[seed] = {
-            "model_state": copy.deepcopy(model.state_dict()),
-            "config": best_config,
-            "final_ckpt": str(ckpt_dir / "epoch_5.checkpoint"),
-        }
+            del optimizer, scheduler
+            torch.cuda.empty_cache()
 
-        cleanup(model, model_theta0, optimizer)
+    finally:
+        del model_theta0
+        torch.cuda.empty_cache()
 
     return checkpoints
 
@@ -593,35 +672,43 @@ def run_final_training(model_tag, best_config, seeds=(42, 123, 456), device="cud
 # Public API
 # ===========================================================================
 
-def run_peat_full(model_tag, device="cuda"):
+def run_peat_full(model, tokenizer, model_tag, device="cuda"):
     """Run the complete PEAT pipeline for one model.
 
     Phase A: Successive Halving (25 → 12 → 4)
     Phase B: Bootstrap-robust selection
     Phase C: Final retraining (3 seeds × 5 epochs)
 
+    model must be a LoRA-wrapped PEFT model already on `device`.
+    Caller attaches LoRA via attach_lora() before calling.
     Returns (best_config, checkpoints).
     """
     logger.info(f"{'='*60}")
     logger.info(f"PEAT FULL PIPELINE: {model_tag}")
     logger.info(f"{'='*60}")
 
-    finalists, config_states, survivors = run_successive_halving(model_tag, device=device)
-    best_config = run_bootstrap_selection(model_tag, finalists, config_states, survivors, device=device)
-    checkpoints = run_final_training(model_tag, best_config, device=device)
+    finalists, config_states, survivors, init_lora_state = run_successive_halving(
+        model, tokenizer, model_tag, device=device)
+    best_config = run_bootstrap_selection(
+        model, tokenizer, model_tag, finalists, config_states, survivors, device=device)
+    # Reset to LoRA-init before final training (SHA/bootstrap left model in a trained state)
+    _restore_lora_state(model, init_lora_state, device)
+    checkpoints = run_final_training(model, tokenizer, model_tag, best_config, device=device)
 
     return best_config, checkpoints
 
 
-def run_peat_scaling(model_tag, best_config, device="cuda"):
+def run_peat_scaling(model, tokenizer, model_tag, best_config, device="cuda"):
     """Run PEAT for a scaling model, reusing c_best from qwen2.5-1.5b.
 
     Justified: "smallest causal model's optimal config transfers; we verify
     scaling, not re-search."
+
+    model must be a LoRA-wrapped PEFT model at LoRA-init state on `device`.
     """
     logger.info(f"{'='*60}")
     logger.info(f"PEAT SCALING: {model_tag} (reusing config {best_config['id']})")
     logger.info(f"{'='*60}")
 
-    checkpoints = run_final_training(model_tag, best_config, device=device)
+    checkpoints = run_final_training(model, tokenizer, model_tag, best_config, device=device)
     return checkpoints

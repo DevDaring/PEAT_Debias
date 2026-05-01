@@ -26,6 +26,7 @@ Resumes cleanly from interruption via state/run_state.json.
 import copy
 import json
 import sys
+import threading
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -105,11 +106,49 @@ def main():
     from peat.models import CORE_MODELS, SCALING_MODELS, get_spec, load_model
     from peat.peat import attach_lora, run_peat_full, run_peat_scaling
     from peat.eval import evaluate_full
+    from peft import set_peft_model_state_dict
+
+    # ── Prefetch helpers ───────────────────────────────────────────────────
+    # Background-loads the next model into CPU RAM while the current model
+    # trains/evaluates. .to("cuda") then takes ~0.5 s instead of 30–90 s.
+    _prefetch_cache: dict = {}
+    _prefetch_lock = threading.Lock()
+
+    def _start_prefetch(tag: str) -> None:
+        """Spawn a daemon thread that loads `tag` weights into CPU RAM."""
+        def _worker():
+            try:
+                logger.info(f"  [prefetch] loading {tag} to CPU RAM ...")
+                m, tok, _ = load_model(tag, device="cpu")
+                with _prefetch_lock:
+                    _prefetch_cache[tag] = (m, tok)
+                logger.info(f"  [prefetch] {tag} ready in CPU RAM")
+            except Exception as _e:
+                logger.warning(f"  [prefetch] {tag} failed: {_e}")
+        threading.Thread(target=_worker, daemon=True, name=f"prefetch-{tag}").start()
+
+    def _get_model(tag: str, device: str = "cuda"):
+        """Return (model, tokenizer) — from prefetch cache or cold load."""
+        with _prefetch_lock:
+            cached = _prefetch_cache.pop(tag, None)
+        if cached is not None:
+            logger.info(f"  [prefetch] {tag}: CPU RAM → {device}")
+            m_cpu, tok = cached
+            return m_cpu.to(device), tok
+        m, tok, _ = load_model(tag, device=device)
+        return m, tok
 
     best_configs = {}
     SEEDS = [42, 123, 456]
 
-    for model_tag in CORE_MODELS:
+    # Kick off prefetch for the first model (overlaps with any remaining setup)
+    _start_prefetch(CORE_MODELS[0])
+
+    for i, model_tag in enumerate(CORE_MODELS):
+        # Prefetch next model while this one trains — hides CPU I/O behind GPU work
+        if i + 1 < len(CORE_MODELS):
+            _start_prefetch(CORE_MODELS[i + 1])
+
         stage_key = cell_key("peat_training", model_tag, 0, "full_pipeline")
 
         if is_cell_complete(state, stage_key):
@@ -123,23 +162,24 @@ def main():
 
         try:
             logger.info(f"\n--- PEAT Training: {model_tag} ---")
-            best_config, checkpoints = run_peat_full(model_tag, device="cuda")
+            # Load ONCE: model stays on GPU across SHA (41 configs), bootstrap,
+            # final training (3 seeds), and eval (3 seeds) — no redundant reloads.
+            model, tokenizer = _get_model(model_tag, device="cuda")
+            model = attach_lora(model, model_tag)
+            best_config, checkpoints = run_peat_full(model, tokenizer, model_tag, device="cuda")
             best_configs[model_tag] = best_config
 
-            # Load model ONCE, hot-swap weights for each seed (avoids 2 extra
-            # 16GB load/unload cycles per model on the 80GB A100)
-            model, tokenizer, _ = load_model(model_tag, device="cuda")
-            model = attach_lora(model, model_tag)
             model.eval()
-
-            # Evaluate with each seed's checkpoint
             for seed in SEEDS:
                 eval_key = cell_key("peat_eval", model_tag, seed)
                 if is_cell_complete(state, eval_key):
                     continue
 
                 if seed in checkpoints:
-                    model.load_state_dict(checkpoints[seed]["model_state"])
+                    set_peft_model_state_dict(
+                        model,
+                        {k: v.to("cuda") for k, v in checkpoints[seed]["lora_state"].items()},
+                    )
                     model.eval()
 
                 csv_dir = RAW_DIR / "peat" / model_tag / f"seed_{seed}"
@@ -151,7 +191,7 @@ def main():
                 metrics["best_config"] = best_config.get("id", "")
                 mark_cell_complete(state, eval_key, metrics)
 
-            cleanup(model)  # single unload after all 3 seeds
+            cleanup(model)  # single unload after full pipeline + eval
 
             mark_cell_complete(state, stage_key, {
                 "model": model_tag,
@@ -176,7 +216,14 @@ def main():
         logger.warning("No c_best from qwen2.5-1.5b — using default config for scaling")
         scaling_config = {"lambda_1": 0.1, "lambda_2": 0.1, "id": "l1=0.1_l2=0.1"}
 
-    for model_tag in SCALING_MODELS:
+    # Prefetch first scaling model while the Stage 2 header is printed
+    if SCALING_MODELS:
+        _start_prefetch(SCALING_MODELS[0])
+
+    for i, model_tag in enumerate(SCALING_MODELS):
+        if i + 1 < len(SCALING_MODELS):
+            _start_prefetch(SCALING_MODELS[i + 1])
+
         stage_key = cell_key("peat_scaling", model_tag, 0, "full_pipeline")
 
         if is_cell_complete(state, stage_key):
@@ -185,20 +232,21 @@ def main():
 
         try:
             logger.info(f"\n--- PEAT Scaling: {model_tag} ---")
-            checkpoints = run_peat_scaling(model_tag, scaling_config, device="cuda")
-
-            # Load model ONCE, hot-swap weights for each seed
-            model, tokenizer, _ = load_model(model_tag, device="cuda")
+            # Load ONCE: model stays on GPU across final training (3 seeds) + eval (3 seeds)
+            model, tokenizer = _get_model(model_tag, device="cuda")
             model = attach_lora(model, model_tag)
+            checkpoints = run_peat_scaling(model, tokenizer, model_tag, scaling_config, device="cuda")
             model.eval()
-
             for seed in SEEDS:
                 eval_key = cell_key("peat_scaling_eval", model_tag, seed)
                 if is_cell_complete(state, eval_key):
                     continue
 
                 if seed in checkpoints:
-                    model.load_state_dict(checkpoints[seed]["model_state"])
+                    set_peft_model_state_dict(
+                        model,
+                        {k: v.to("cuda") for k, v in checkpoints[seed]["lora_state"].items()},
+                    )
                     model.eval()
 
                 csv_dir = RAW_DIR / "peat" / model_tag / f"seed_{seed}"
@@ -210,7 +258,7 @@ def main():
                 metrics["config_source"] = "qwen2.5-1.5b (transferred)"
                 mark_cell_complete(state, eval_key, metrics)
 
-            cleanup(model)  # single unload after all 3 seeds
+            cleanup(model)  # single unload after full pipeline + eval
 
             mark_cell_complete(state, stage_key, {
                 "model": model_tag,
@@ -230,29 +278,54 @@ def main():
 
     from peat.baselines import BASELINE_REGISTRY
 
-    for baseline_name, baseline_fn in BASELINE_REGISTRY.items():
-        for model_tag in CORE_MODELS:
-            for seed in SEEDS:
-                key = cell_key("baseline", f"{baseline_name}_{model_tag}", seed)
+    # Prefetch first core model for baselines
+    if CORE_MODELS:
+        _start_prefetch(CORE_MODELS[0])
 
-                if is_cell_complete(state, key):
-                    logger.info(f"  {baseline_name}/{model_tag}/seed{seed} — already done")
-                    continue
+    for i, model_tag in enumerate(CORE_MODELS):
+        # Prefetch next model while current runs all 9 baselines × 3 seeds
+        if i + 1 < len(CORE_MODELS):
+            _start_prefetch(CORE_MODELS[i + 1])
 
-                try:
-                    logger.info(f"\n--- Baseline: {baseline_name} | {model_tag} | seed={seed} ---")
-                    metrics = baseline_fn(model_tag, seed=seed, device="cuda")
+        # Skip model load entirely if every baseline for this model_tag is done
+        all_done = all(
+            is_cell_complete(state, cell_key("baseline", f"{bn}_{model_tag}", s))
+            for bn in BASELINE_REGISTRY
+            for s in SEEDS
+        )
+        if all_done:
+            logger.info(f"All baselines for {model_tag} already complete — skipping")
+            continue
 
-                    if "status" in metrics and "skipped" in str(metrics.get("status", "")):
-                        mark_cell_skipped(state, key, metrics["status"])
-                        logger.warning(f"  {baseline_name}/{model_tag}: {metrics['status']}")
-                    else:
-                        mark_cell_complete(state, key, metrics)
+        # Load base model ONCE (no LoRA). Inference-only baselines share it
+        # read-only; fine-tuning baselines deepcopy it internally.
+        logger.info(f"\n--- Loading {model_tag} for all baselines ---")
+        _base_model, _base_tokenizer = _get_model(model_tag, device="cuda")
+        try:
+            for baseline_name, baseline_fn in BASELINE_REGISTRY.items():
+                for seed in SEEDS:
+                    key = cell_key("baseline", f"{baseline_name}_{model_tag}", seed)
 
-                except Exception as e:
-                    logger.error(f"  {baseline_name}/{model_tag} FAILED: {e}")
-                    logger.error(traceback.format_exc())
-                    mark_cell_failed(state, key, str(e))
+                    if is_cell_complete(state, key):
+                        logger.info(f"  {baseline_name}/{model_tag}/seed{seed} — already done")
+                        continue
+
+                    try:
+                        logger.info(f"\n--- Baseline: {baseline_name} | {model_tag} | seed={seed} ---")
+                        metrics = baseline_fn(model_tag, seed=seed, device="cuda",
+                                              _model=_base_model, _tokenizer=_base_tokenizer)
+                        if "status" in metrics and "skipped" in str(metrics.get("status", "")):
+                            mark_cell_skipped(state, key, metrics["status"])
+                            logger.warning(f"  {baseline_name}/{model_tag}: {metrics['status']}")
+                        else:
+                            mark_cell_complete(state, key, metrics)
+
+                    except Exception as e:
+                        logger.error(f"  {baseline_name}/{model_tag} FAILED: {e}")
+                        logger.error(traceback.format_exc())
+                        mark_cell_failed(state, key, str(e))
+        finally:
+            cleanup(_base_model)
 
     # ── Stage 4: Aggregation ──────────────────────────────────────────────
     logger.info("\n" + "=" * 70)
