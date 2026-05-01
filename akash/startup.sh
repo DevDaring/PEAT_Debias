@@ -48,15 +48,15 @@ apt-get install -y \
     tmux htop vim nano lsb-release gnupg || true
 echo "  System packages OK."
 
-# ── 2. Python 3.12 (deadsnakes PPA) ──────────────────────────────────────
-echo "[2/7] Installing Python 3.12..."
-add-apt-repository -y ppa:deadsnakes/ppa 2>/dev/null || true
-apt-get update -q 2>/dev/null || true
-apt-get install -y python3.12 python3.12-dev python3.12-venv 2>/dev/null || true
-update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100 || true
-update-alternatives --install /usr/bin/python  python  /usr/bin/python3.12 100 || true
-curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 2>/dev/null || true
-echo "  Python: $(python3 --version 2>/dev/null || echo 'not yet')"
+# ── 2. Python pip (use system Python 3.10 already in the CUDA image) ───────
+echo "[2/7] Setting up Python pip..."
+# The nvidia/cuda image ships Python 3.10 — no PPA needed.
+# Install pip for it directly.
+curl -sS https://bootstrap.pypa.io/get-pip.py | python3 2>/dev/null || \
+    apt-get install -y python3-pip 2>/dev/null || true
+# Ensure 'python' -> 'python3'
+update-alternatives --install /usr/bin/python python /usr/bin/python3 100 2>/dev/null || true
+echo "  Python: $(python3 --version 2>/dev/null)"
 
 # ── 3. (SSH already running — write MOTD) ────────────────────────────────
 echo "[3/7] Writing MOTD..."

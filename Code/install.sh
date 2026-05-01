@@ -18,10 +18,13 @@ echo "============================================================"
 echo "[1/5] Checking Python version..."
 PYTHON_VERSION=$(python3 --version 2>&1)
 echo "  Python: $PYTHON_VERSION"
-if ! python3 -c "import sys; assert sys.version_info[:2] == (3,12), f'Need 3.12, got {sys.version_info[:2]}'"; then
-    echo "ERROR: Python 3.12 is required. Aborting."
+# Accept Python 3.10 or 3.12 — both have prebuilt flash_attn wheels for CUDA 12
+if ! python3 -c "import sys; assert sys.version_info[:2] >= (3,10), f'Need 3.10+, got {sys.version_info[:2]}'"; then
+    echo "ERROR: Python 3.10+ is required. Aborting."
     exit 1
 fi
+PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+echo "  Python minor tag: cp${PY_VER}"
 
 echo "[1/5] Checking OS..."
 if [[ "$(uname -s)" != "Linux" ]]; then
@@ -73,10 +76,16 @@ python3 -m pip install \
 
 # ── Step 4: Flash-Attention 2.8.3 ─────────────────────────────────────────
 echo ""
-echo "[5/5] Installing Flash-Attention 2.8.3 (cu12/torch2.5/cp312)..."
-wget -q https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.5cxx11abiFALSE-cp312-cp312-linux_x86_64.whl \
+echo "[5/5] Installing Flash-Attention 2.8.3 (cu12/torch2.5/cp${PY_VER})..."
+FLASH_WHL="flash_attn-2.8.3+cu12torch2.5cxx11abiFALSE-cp${PY_VER}-cp${PY_VER}-linux_x86_64.whl"
+wget -q "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/${FLASH_WHL}" \
     -O /tmp/flash_attn.whl
-python3 -m pip install --no-deps /tmp/flash_attn.whl
+if [ -s /tmp/flash_attn.whl ]; then
+    python3 -m pip install --no-deps /tmp/flash_attn.whl
+else
+    echo "  WARNING: flash_attn wheel not found for cp${PY_VER}, building from source (slow)..."
+    python3 -m pip install flash-attn==2.8.3 --no-build-isolation
+fi
 
 # ── Verification ───────────────────────────────────────────────────────────
 echo ""
