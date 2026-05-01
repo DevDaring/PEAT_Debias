@@ -28,8 +28,6 @@ from tqdm import tqdm
 
 from peat.data import (
     StereoSetDataset,
-    compute_causal_log_prob,
-    compute_encoder_log_prob,
     load_stereoset_pairs,
 )
 from peat.eval import bootstrap_ci, compute_stereotype_score
@@ -47,6 +45,7 @@ from peat.utils import (
     ensure_dirs,
     get_autocast_dtype,
     get_dtype,
+    log_vram,
     set_seed,
     setup_logger,
 )
@@ -183,7 +182,10 @@ def _get_causal_logits(model, tokenizer, context, filler, device):
     logits = outputs.logits[0]  # (seq_len, vocab_size)
 
     filler_tokens = tokenizer.encode(filler, add_special_tokens=False)
-    prefix = context.split("BLANK")[0]
+    # rstrip() strips any trailing space so it is never tokenized as an extra
+    # token — BPE tokenizers (Qwen, Llama, Gemma) attach leading space to the
+    # next word, so keeping the trailing space would inflate prefix length by 1.
+    prefix = context.split("BLANK")[0].rstrip()
     prefix_ids = tokenizer.encode(prefix, add_special_tokens=True)
     start = len(prefix_ids) - 1
 
@@ -488,6 +490,7 @@ def run_successive_halving(model, tokenizer, model_tag, seed=42, device="cuda"):
     model_theta0.eval()
     for p in model_theta0.parameters():
         p.requires_grad = False
+    log_vram(f"SHA start ({model_tag}): active model + frozen theta0 on GPU", logger)
 
     try:
         for round_idx, (target_epochs, keep_k) in enumerate(rounds):
@@ -562,6 +565,7 @@ def run_successive_halving(model, tokenizer, model_tag, seed=42, device="cuda"):
         # Release frozen reference; model (with last-trained weights) stays alive
         del model_theta0
         torch.cuda.empty_cache()
+        log_vram(f"SHA end ({model_tag}): theta0 released", logger)
 
     return [configs[i] for i in survivors], config_states, survivors, initial_lora_state
 
@@ -644,6 +648,7 @@ def run_final_training(model, tokenizer, model_tag, best_config,
     model_theta0.eval()
     for p in model_theta0.parameters():
         p.requires_grad = False
+    log_vram(f"FinalTrain start ({model_tag}): active model + frozen theta0 on GPU", logger)
 
     try:
         for seed in seeds:
@@ -691,6 +696,7 @@ def run_final_training(model, tokenizer, model_tag, best_config,
     finally:
         del model_theta0
         torch.cuda.empty_cache()
+        log_vram(f"FinalTrain end ({model_tag}): theta0 released", logger)
 
     return checkpoints
 

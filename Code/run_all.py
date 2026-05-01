@@ -45,6 +45,7 @@ from peat.utils import (
     ensure_dirs,
     is_cell_complete,
     load_run_state,
+    log_vram,
     mark_cell_complete,
     mark_cell_failed,
     mark_cell_skipped,
@@ -204,7 +205,9 @@ def main():
                 metrics["best_config"] = best_config.get("id", "")
                 mark_cell_complete(state, eval_key, metrics)
 
+            log_vram(f"before cleanup ({model_tag})", logger)
             cleanup(model)  # single unload after full pipeline + eval
+            log_vram(f"after cleanup ({model_tag})", logger)
 
             mark_cell_complete(state, stage_key, {
                 "model": model_tag,
@@ -271,7 +274,9 @@ def main():
                 metrics["config_source"] = "qwen2.5-1.5b (transferred)"
                 mark_cell_complete(state, eval_key, metrics)
 
+            log_vram(f"before cleanup ({model_tag})", logger)
             cleanup(model)  # single unload after full pipeline + eval
+            log_vram(f"after cleanup ({model_tag})", logger)
 
             mark_cell_complete(state, stage_key, {
                 "model": model_tag,

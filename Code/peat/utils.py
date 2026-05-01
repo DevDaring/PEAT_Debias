@@ -84,12 +84,19 @@ def send_sms(message: str) -> None:
             "authorization":  api_key,
             "Content-Type":   "application/x-www-form-urlencoded",
         }
-        _req.post(
+        resp = _req.post(
             "https://www.fast2sms.com/dev/bulkV2",
             data=payload,
             headers=headers,
             timeout=15,
         )
+        if resp.status_code != 200:
+            import logging as _log
+            _log.getLogger("peat").warning(
+                "Fast2SMS returned HTTP %s: %s",
+                resp.status_code,
+                resp.text[:200],
+            )
     except Exception:
         pass  # SMS failure must never crash the pipeline
 
@@ -137,6 +144,46 @@ def cleanup(*objects: Any) -> None:
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
+
+
+def log_vram(
+    tag: str = "",
+    logger: Optional[logging.Logger] = None,
+) -> dict:
+    """Log current VRAM usage and return stats dict.
+
+    Call at model-load and model-cleanup boundaries to detect memory leaks and
+    confirm the GPU is not approaching capacity before a heavy training phase.
+
+    Args:
+        tag: Short label printed next to the numbers (e.g. "after model load").
+        logger: Logger to use; falls back to print if None.
+
+    Returns:
+        dict with keys alloc_gb, reserved_gb, free_gb, total_gb.
+    """
+    if not torch.cuda.is_available():
+        return {}
+    alloc_gb    = torch.cuda.memory_allocated()  / 1e9
+    reserved_gb = torch.cuda.memory_reserved()   / 1e9
+    total_gb    = torch.cuda.get_device_properties(0).total_memory / 1e9
+    free_gb     = total_gb - reserved_gb
+    msg = (
+        f"VRAM [{tag}]: alloc={alloc_gb:.2f} GB  "
+        f"reserved={reserved_gb:.2f} GB  "
+        f"free={free_gb:.2f} GB  "
+        f"total={total_gb:.2f} GB"
+    )
+    if logger:
+        logger.info(msg)
+    else:
+        print(msg)
+    return {
+        "alloc_gb":    alloc_gb,
+        "reserved_gb": reserved_gb,
+        "free_gb":     free_gb,
+        "total_gb":    total_gb,
+    }
 
 
 # ---------------------------------------------------------------------------

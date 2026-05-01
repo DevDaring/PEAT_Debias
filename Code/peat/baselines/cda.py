@@ -79,10 +79,10 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
                     text = ctx.replace("BLANK", filler)
                     inputs = tokenizer(text, return_tensors="pt", truncation=True,
                                        max_length=512, padding="max_length").to(device)
-                    if spec.is_encoder:
-                        inputs["labels"] = inputs["input_ids"].clone()
-                    else:
-                        inputs["labels"] = inputs["input_ids"].clone()
+                    inputs["labels"] = inputs["input_ids"].clone()
+                    # Mask padding tokens: -100 is ignored by all HF loss functions
+                    if tokenizer.pad_token_id is not None:
+                        inputs["labels"][inputs["labels"] == tokenizer.pad_token_id] = -100
 
                     with torch.amp.autocast("cuda", dtype=cast_dtype):
                         outputs = model(**inputs)
@@ -103,10 +103,10 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
                     text = ctx.replace("BLANK", filler)
                     inputs = tokenizer(text, return_tensors="pt", truncation=True,
                                        max_length=512, padding="max_length").to(device)
-                    if spec.is_encoder:
-                        inputs["labels"] = inputs["input_ids"].clone()
-                    else:
-                        inputs["labels"] = inputs["input_ids"].clone()
+                    inputs["labels"] = inputs["input_ids"].clone()
+                    # Mask padding tokens: -100 is ignored by all HF loss functions
+                    if tokenizer.pad_token_id is not None:
+                        inputs["labels"][inputs["labels"] == tokenizer.pad_token_id] = -100
 
                     with torch.amp.autocast("cuda", dtype=cast_dtype):
                         outputs = model(**inputs)

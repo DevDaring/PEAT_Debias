@@ -275,13 +275,12 @@ def compute_causal_log_prob(model, tokenizer, sentence: str,
         outputs = model(**inputs)
         logits = outputs.logits  # (1, seq_len, vocab_size)
 
-    # Find where filler tokens appear in the full sequence
-    input_ids = inputs["input_ids"][0].tolist()
-
-    # Locate filler position by encoding prefix
-    prefix = context.split("BLANK")[0]
+    # rstrip() strips any trailing space so it is never tokenized as a
+    # separate token — BPE tokenizers attach the leading space to the next word,
+    # so keeping the trailing space would make len(prefix_tokens) off by 1.
+    prefix = context.split("BLANK")[0].rstrip()
     prefix_tokens = tokenizer.encode(prefix, add_special_tokens=True)
-    filler_start = len(prefix_tokens) - 1  # -1 because we want the position in logits
+    filler_start = len(prefix_tokens) - 1  # logits[filler_start] predicts filler_tokens[0]
 
     log_probs = torch.nn.functional.log_softmax(logits[0], dim=-1)
     total_log_prob = 0.0
