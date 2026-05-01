@@ -132,7 +132,8 @@ def attach_lora(model, model_tag: str):
         lora_alpha=8,
         lora_dropout=0.0,
         target_modules=target_modules,
-        layers_to_transform=layer_indices,
+        # layers_to_transform is incompatible with string target_modules (e.g. "all-linear")
+        layers_to_transform=layer_indices if not isinstance(target_modules, str) else None,
         bias="none",
         task_type=task_type,
         init_lora_weights=True,  # LoRA-B initialized to zero
