@@ -95,14 +95,23 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
                             h_s = out_s.hidden_states[-1][:, 0, :]  # CLS or first token
                             h_a = out_a.hidden_states[-1][:, 0, :]
                         except TypeError:
-                            # NomicBERT (NomicBertForPreTraining) doesn't accept
-                            # output_hidden_states — fall back to last_hidden_state
-                            out_s = model(**inp_s)
-                            out_a = model(**inp_a)
+                            # NomicBertForPreTraining doesn't accept output_hidden_states
+                            # and its output has no last_hidden_state — access inner encoder.
+                            _enc = getattr(model, "bert", getattr(model, "encoder", None))
+                            _kw_s = {k: v for k, v in inp_s.items()
+                                     if k in ("input_ids", "attention_mask", "token_type_ids")}
+                            _kw_a = {k: v for k, v in inp_a.items()
+                                     if k in ("input_ids", "attention_mask", "token_type_ids")}
+                            if _enc is not None:
+                                out_s = _enc(**_kw_s)
+                                out_a = _enc(**_kw_a)
+                            else:
+                                out_s = model(**_kw_s)
+                                out_a = model(**_kw_a)
                             def _cls(out):
                                 if hasattr(out, "last_hidden_state"):
                                     return out.last_hidden_state[:, 0, :]
-                                return out.logits[:, 0, :]
+                                return out[0][:, 0, :]
                             h_s = _cls(out_s)
                             h_a = _cls(out_a)
 
