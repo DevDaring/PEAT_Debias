@@ -530,6 +530,29 @@ def llm_judge_extract(
 
 
 # ---------------------------------------------------------------------------
+# Smoke-test mode — limits all datasets to N rows for quick pipeline checks
+# ---------------------------------------------------------------------------
+SMOKE_TEST: bool = False
+SMOKE_TEST_SIZE: int = 4
+
+
+def set_smoke_test(enabled: bool, size: int = 4) -> None:
+    """Enable or disable smoke-test mode globally.
+
+    When enabled every dataset loader caps its output to ``size`` rows,
+    evaluation loops exit after ``size`` rows, and training runs for a
+    single epoch over ``size`` samples.  Use for rapid integration checks
+    before committing to a full run.
+    """
+    global SMOKE_TEST, SMOKE_TEST_SIZE
+    SMOKE_TEST = enabled
+    SMOKE_TEST_SIZE = size
+    if enabled:
+        _logger = logging.getLogger("peat")
+        _logger.info(f"SMOKE TEST MODE enabled: datasets capped to {size} rows per split")
+
+
+# ---------------------------------------------------------------------------
 # Timer context manager
 # ---------------------------------------------------------------------------
 class Timer:

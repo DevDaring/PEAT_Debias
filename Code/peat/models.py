@@ -85,7 +85,7 @@ NOMICBERT = ModelSpec(
 )
 
 # Reference: Qwen Team, "Qwen2.5 Technical Report", 2024.
-# Used here for: smallest causal LM (1.5B); hyperparameter search base.
+# Used here for: causal LM (1.5B); hyperparameter search base.
 # Note: sdpa (PyTorch scaled dot product attention) uses FlashAttention kernel
 # on CUDA automatically; avoids transformers-5.x/flash_attn-2.8.x API conflict.
 QWEN_25_15B = ModelSpec(
@@ -236,11 +236,12 @@ def load_encoder(
 
     logger.info(f"Loading encoder: {spec.hf_id} (dtype={dtype}, attn={spec.attn_impl})")
 
-    # Tokenizer
+    # Tokenizer — try local cache first; download only if missing.
     tokenizer = AutoTokenizer.from_pretrained(
         spec.hf_id,
         token=token,
         trust_remote_code=spec.trust_remote_code,
+        local_files_only=False,  # HF hub caches automatically
     )
 
     # Model
@@ -254,7 +255,15 @@ def load_encoder(
     if spec.attn_impl != "eager":
         model_kwargs["attn_implementation"] = spec.attn_impl
 
-    model = AutoModelForMaskedLM.from_pretrained(spec.hf_id, **model_kwargs)
+    # Try loading from local cache first (no network), fall back to download.
+    try:
+        model = AutoModelForMaskedLM.from_pretrained(
+            spec.hf_id, local_files_only=True, **model_kwargs
+        )
+        logger.info(f"  Loaded {spec.tag} from local cache")
+    except OSError:
+        logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
+        model = AutoModelForMaskedLM.from_pretrained(spec.hf_id, **model_kwargs)
     # Some custom loaders (e.g. NomicBERT) use torch.load internally and
     # ignore torch_dtype. Explicitly cast to the target dtype after loading.
     model = model.to(dtype=dtype, device=device)
@@ -303,7 +312,7 @@ def load_causal(
 
     logger.info(f"Loading causal: {spec.hf_id} (dtype={dtype}, attn={spec.attn_impl})")
 
-    # Tokenizer
+    # Tokenizer — HF hub caches automatically; no extra local_files_only needed.
     tokenizer = AutoTokenizer.from_pretrained(
         spec.hf_id,
         token=token,
@@ -313,14 +322,21 @@ def load_causal(
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    # Model
-    model = AutoModelForCausalLM.from_pretrained(
-        spec.hf_id,
-        torch_dtype=dtype,
-        attn_implementation=spec.attn_impl,
-        token=token,
-        trust_remote_code=spec.trust_remote_code,
-    )
+    model_kwargs_c = {
+        "torch_dtype": dtype,
+        "attn_implementation": spec.attn_impl,
+        "token": token,
+        "trust_remote_code": spec.trust_remote_code,
+    }
+    # Try loading from local cache first; fall back to download.
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            spec.hf_id, local_files_only=True, **model_kwargs_c
+        )
+        logger.info(f"  Loaded {spec.tag} from local cache")
+    except OSError:
+        logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
+        model = AutoModelForCausalLM.from_pretrained(spec.hf_id, **model_kwargs_c)
     model = model.to(device)
     model.eval()
 

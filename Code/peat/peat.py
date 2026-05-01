@@ -13,7 +13,6 @@ Steps 0–7 of the PEAT method as specified in the coding prompt.
 """
 
 import copy
-import math
 import os
 from pathlib import Path
 from typing import Optional
@@ -202,12 +201,18 @@ def _get_causal_logits(model, tokenizer, context, filler, device):
 
 
 def compute_log_prob_at_positions(logits, positions, token_ids):
-    """Compute sum of log P(token | context) at given positions."""
+    """Compute sum of log P(token | context) at given positions.
+
+    Always returns a tensor so callers can safely call .backward() on the
+    result even when no positions are within sequence bounds.
+    """
     log_probs = F.log_softmax(logits, dim=-1)
-    total = 0.0
+    # Start with a zero tensor on the same device/dtype so the result always
+    # has a grad_fn when logits requires grad.
+    total = torch.zeros(1, device=logits.device, dtype=logits.dtype).squeeze()
     for pos, tid in zip(positions, token_ids):
         if pos < logits.shape[0]:
-            total += log_probs[pos, tid]
+            total = total + log_probs[pos, tid]
     return total
 
 
@@ -229,89 +234,94 @@ def compute_peat_loss(
     kl_divs = []
 
     for item in batch:
-        context = item["context"]
-        t_s = item["t_s"]
-        t_a = item["t_a"]
+        try:
+            context = item["context"]
+            t_s = item["t_s"]
+            t_a = item["t_a"]
 
-        # Step 1 — Forward with grad (θ) and without grad (θ0)
-        if is_encoder:
-            logits_s, pos_s, tids_s = _get_masked_logits_encoder(
-                model_theta, tokenizer, context, t_s, device)
-            logits_a, pos_a, tids_a = _get_masked_logits_encoder(
-                model_theta, tokenizer, context, t_a, device)
+            # Step 1 — Forward with grad (θ) and without grad (θ0)
+            if is_encoder:
+                logits_s, pos_s, tids_s = _get_masked_logits_encoder(
+                    model_theta, tokenizer, context, t_s, device)
+                logits_a, pos_a, tids_a = _get_masked_logits_encoder(
+                    model_theta, tokenizer, context, t_a, device)
 
-            with torch.no_grad():
-                logits0_s, pos0_s, tids0_s = _get_masked_logits_encoder(
-                    model_theta0, tokenizer, context, t_s, device)
-                logits0_a, pos0_a, tids0_a = _get_masked_logits_encoder(
-                    model_theta0, tokenizer, context, t_a, device)
-        else:
-            logits_s, pos_s, tids_s = _get_causal_logits(
-                model_theta, tokenizer, context, t_s, device)
-            logits_a, pos_a, tids_a = _get_causal_logits(
-                model_theta, tokenizer, context, t_a, device)
+                with torch.no_grad():
+                    logits0_s, pos0_s, tids0_s = _get_masked_logits_encoder(
+                        model_theta0, tokenizer, context, t_s, device)
+                    logits0_a, pos0_a, tids0_a = _get_masked_logits_encoder(
+                        model_theta0, tokenizer, context, t_a, device)
+            else:
+                logits_s, pos_s, tids_s = _get_causal_logits(
+                    model_theta, tokenizer, context, t_s, device)
+                logits_a, pos_a, tids_a = _get_causal_logits(
+                    model_theta, tokenizer, context, t_a, device)
 
-            with torch.no_grad():
-                logits0_s, pos0_s, tids0_s = _get_causal_logits(
-                    model_theta0, tokenizer, context, t_s, device)
-                logits0_a, pos0_a, tids0_a = _get_causal_logits(
-                    model_theta0, tokenizer, context, t_a, device)
+                with torch.no_grad():
+                    logits0_s, pos0_s, tids0_s = _get_causal_logits(
+                        model_theta0, tokenizer, context, t_s, device)
+                    logits0_a, pos0_a, tids0_a = _get_causal_logits(
+                        model_theta0, tokenizer, context, t_a, device)
 
-        if logits_s is None or logits_a is None:
-            continue
+            if logits_s is None or logits_a is None:
+                continue
 
-        # Step 2 — Δ signal
-        log_p_s = compute_log_prob_at_positions(logits_s, pos_s, tids_s)
-        log_p_a = compute_log_prob_at_positions(logits_a, pos_a, tids_a)
-        n_s = len(tids_s) if not is_encoder else 1
-        n_a = len(tids_a) if not is_encoder else 1
-        delta = (log_p_s / max(n_s, 1)) - (log_p_a / max(n_a, 1))
-        deltas.append(delta)
+            # Step 2 — Δ signal (length-normalised for both encoder and causal)
+            log_p_s = compute_log_prob_at_positions(logits_s, pos_s, tids_s)
+            log_p_a = compute_log_prob_at_positions(logits_a, pos_a, tids_a)
+            n_s = max(len(tids_s), 1)
+            n_a = max(len(tids_a), 1)
+            delta = (log_p_s / n_s) - (log_p_a / n_a)
+            deltas.append(delta)
 
-        # Step 4 — Pair-mass anchor
-        log_p0_s = compute_log_prob_at_positions(logits0_s, pos0_s, tids0_s)
-        log_p0_a = compute_log_prob_at_positions(logits0_a, pos0_a, tids0_a)
+            # Step 4 — Pair-mass anchor
+            log_p0_s = compute_log_prob_at_positions(logits0_s, pos0_s, tids0_s)
+            log_p0_a = compute_log_prob_at_positions(logits0_a, pos0_a, tids0_a)
 
-        # Use first mask position's full vocab for pair mass and KL
-        ref_pos_s = pos_s[0] if len(pos_s) > 0 else 0
-        ref_pos_a = pos_a[0] if len(pos_a) > 0 else 0
+            # Use first mask position's full vocab for pair mass and KL
+            ref_pos_s = pos_s[0] if len(pos_s) > 0 else 0
+            ref_pos_a = pos_a[0] if len(pos_a) > 0 else 0
 
-        p_theta_s = torch.exp(log_p_s.detach()) if isinstance(log_p_s, torch.Tensor) else math.exp(log_p_s.item() if isinstance(log_p_s, torch.Tensor) else log_p_s)
-        p_theta_a = torch.exp(log_p_a.detach()) if isinstance(log_p_a, torch.Tensor) else math.exp(log_p_a.item() if isinstance(log_p_a, torch.Tensor) else log_p_a)
+            # For pair mass: μ_θ = log(P_θ(t_s) + P_θ(t_a)), μ_θ0 = log(P_θ0(t_s) + P_θ0(t_a))
+            mu_theta = torch.log(torch.exp(log_p_s) + torch.exp(log_p_a) + 1e-30)
+            mu_theta0 = torch.log(torch.exp(log_p0_s) + torch.exp(log_p0_a) + 1e-30)
+            pair_diffs.append((mu_theta - mu_theta0.detach()) ** 2)
 
-        # For pair mass: μ_θ = log(P_θ(t_s) + P_θ(t_a)), μ_θ0 = log(P_θ0(t_s) + P_θ0(t_a))
-        mu_theta = torch.log(torch.exp(log_p_s) + torch.exp(log_p_a) + 1e-30)
-        mu_theta0 = torch.log(torch.exp(log_p0_s) + torch.exp(log_p0_a) + 1e-30)
-        pair_diffs.append((mu_theta - mu_theta0.detach()) ** 2)
+            # Step 5 — Complement-vocabulary KL
+            if ref_pos_s < logits_s.shape[0]:
+                probs_theta = F.softmax(logits_s[ref_pos_s], dim=-1)
+                probs_theta0 = F.softmax(logits0_s[ref_pos_s], dim=-1).detach()
 
-        # Step 5 — Complement-vocabulary KL
-        if ref_pos_s < logits_s.shape[0]:
-            probs_theta = F.softmax(logits_s[ref_pos_s], dim=-1)
-            probs_theta0 = F.softmax(logits0_s[ref_pos_s], dim=-1).detach()
+                # Zero out t_s and t_a entries, renormalize
+                mask_ids = set()
+                for t in tids_s:
+                    mask_ids.add(t)
+                for t in tids_a:
+                    mask_ids.add(t)
 
-            # Zero out t_s and t_a entries, renormalize
-            mask_ids = set()
-            for t in tids_s:
-                mask_ids.add(t)
-            for t in tids_a:
-                mask_ids.add(t)
+                q_theta = probs_theta.clone()
+                q_theta0 = probs_theta0.clone()
+                for mid in mask_ids:
+                    q_theta[mid] = 0.0
+                    q_theta0[mid] = 0.0
 
-            q_theta = probs_theta.clone()
-            q_theta0 = probs_theta0.clone()
-            for mid in mask_ids:
-                q_theta[mid] = 0.0
-                q_theta0[mid] = 0.0
+                q_theta = q_theta / (q_theta.sum() + 1e-30)
+                q_theta0 = q_theta0 / (q_theta0.sum() + 1e-30)
 
-            q_theta = q_theta / (q_theta.sum() + 1e-30)
-            q_theta0 = q_theta0 / (q_theta0.sum() + 1e-30)
+                kl = F.kl_div(
+                    torch.log(q_theta + 1e-30),
+                    q_theta0,
+                    reduction="sum",
+                    log_target=False,
+                )
+                kl_divs.append(kl)
 
-            kl = F.kl_div(
-                torch.log(q_theta + 1e-30),
-                q_theta0,
-                reduction="sum",
-                log_target=False,
+        except Exception as _item_err:
+            logger.warning(
+                f"  compute_peat_loss: skipping item (context={item.get('context','')[:60]!r}) "
+                f"due to error: {_item_err}"
             )
-            kl_divs.append(kl)
+            continue
 
     if not deltas:
         return torch.tensor(0.0, device=device, requires_grad=True), {
@@ -374,24 +384,40 @@ def train_peat_one_epoch(
             for i in range(batch_size)
         ]
 
-        with torch.amp.autocast("cuda", dtype=cast_dtype):
-            loss, loss_dict = compute_peat_loss(
-                model_theta, model_theta0, tokenizer, batch,
-                model_tag, device, lambda_1, lambda_2,
+        try:
+            with torch.amp.autocast("cuda", dtype=cast_dtype):
+                loss, loss_dict = compute_peat_loss(
+                    model_theta, model_theta0, tokenizer, batch,
+                    model_tag, device, lambda_1, lambda_2,
+                )
+                loss = loss / grad_accum_steps
+
+            loss.backward()
+
+            if (step + 1) % grad_accum_steps == 0:
+                torch.nn.utils.clip_grad_norm_(model_theta.parameters(), 1.0)
+                optimizer.step()
+                scheduler.step()
+                optimizer.zero_grad()
+
+            for k in total_losses:
+                total_losses[k] += loss_dict[k]
+            n_batches += 1
+
+        except torch.cuda.OutOfMemoryError:
+            logger.warning(
+                f"  CUDA OOM at step {step} (epoch {epoch}); skipping step and clearing cache"
             )
-            loss = loss / grad_accum_steps
-
-        loss.backward()
-
-        if (step + 1) % grad_accum_steps == 0:
-            torch.nn.utils.clip_grad_norm_(model_theta.parameters(), 1.0)
-            optimizer.step()
-            scheduler.step()
+            torch.cuda.empty_cache()
             optimizer.zero_grad()
-
-        for k in total_losses:
-            total_losses[k] += loss_dict[k]
-        n_batches += 1
+            n_batches += 1  # avoid division by zero in avg
+            continue
+        except Exception as _step_err:
+            logger.error(f"  Unexpected error at step {step}: {_step_err}; skipping step")
+            torch.cuda.empty_cache()
+            optimizer.zero_grad()
+            n_batches += 1
+            continue
 
     avg = {k: v / max(n_batches, 1) for k, v in total_losses.items()}
     logger.info(f"  Epoch {epoch} avg losses: {avg}")

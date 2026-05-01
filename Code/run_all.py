@@ -51,6 +51,7 @@ from peat.utils import (
     save_run_state,
     send_sms,
     set_seed,
+    set_smoke_test,
     setup_logger,
 )
 
@@ -58,6 +59,18 @@ logger = setup_logger("peat.launcher", str(LOG_DIR / "training.log"))
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="PEAT full pipeline")
+    parser.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Run pipeline on 4 random rows — quick integration/sanity check",
+    )
+    args, _ = parser.parse_known_args()
+
+    if args.smoke_test:
+        set_smoke_test(True, size=4)
+
     ensure_dirs()
     logger.info("=" * 70)
     logger.info(f"PEAT LAUNCHER — {datetime.now(timezone.utc).isoformat()}")

@@ -28,7 +28,7 @@ import torch
 from datasets import load_dataset
 from torch.utils.data import Dataset
 
-from peat.utils import DATA_DIR, LOG_DIR, ensure_dirs, setup_logger
+from peat.utils import DATA_DIR, LOG_DIR, SMOKE_TEST, SMOKE_TEST_SIZE, ensure_dirs, setup_logger
 
 logger = setup_logger("peat.data", str(LOG_DIR / "dataset_preflight.log"))
 
@@ -141,7 +141,13 @@ def load_stereoset_pairs(seed: int = 42, force_rebuild: bool = False):
 
     if train_path.exists() and val_path.exists() and not force_rebuild:
         logger.info("Loading cached StereoSet pairs from Parquet")
-        return pd.read_parquet(train_path), pd.read_parquet(val_path)
+        train_df = pd.read_parquet(train_path)
+        val_df = pd.read_parquet(val_path)
+        if SMOKE_TEST:
+            train_df = train_df.head(SMOKE_TEST_SIZE).reset_index(drop=True)
+            val_df = val_df.head(SMOKE_TEST_SIZE).reset_index(drop=True)
+            logger.info(f"  [smoke-test] truncated to train={len(train_df)}, val={len(val_df)}")
+        return train_df, val_df
 
     logger.info("Building StereoSet pairs from HuggingFace...")
     ds = load_dataset("McGill-NLP/stereoset", "intrasentence", split="validation")
@@ -167,6 +173,11 @@ def load_stereoset_pairs(seed: int = 42, force_rebuild: bool = False):
     train_df.to_parquet(train_path, index=False)
     val_df.to_parquet(val_path, index=False)
     logger.info(f"  Cached: train={len(train_df)}, val={len(val_df)}")
+
+    if SMOKE_TEST:
+        train_df = train_df.head(SMOKE_TEST_SIZE).reset_index(drop=True)
+        val_df = val_df.head(SMOKE_TEST_SIZE).reset_index(drop=True)
+        logger.info(f"  [smoke-test] truncated to train={len(train_df)}, val={len(val_df)}")
 
     return train_df, val_df
 
@@ -311,6 +322,10 @@ def load_crows_pairs():
     df["bias_type"] = df["bias_type"].map(lambda x: bias_type_names[x] if 0 <= x < len(bias_type_names) else str(x))
     df["stereo_antistereo"] = df["stereo_antistereo"].map(lambda x: stereo_names[x] if 0 <= x < len(stereo_names) else str(x))
 
+    if SMOKE_TEST:
+        df = df.head(SMOKE_TEST_SIZE).reset_index(drop=True)
+        logger.info(f"  [smoke-test] truncated CrowS-Pairs to {len(df)} rows")
+
     logger.info(f"Loaded CrowS-Pairs: {len(df)} rows, columns: {list(df.columns)}")
     logger.info(f"  bias_type values: {sorted(df['bias_type'].unique())}")
     logger.info(f"  stereo_antistereo values: {sorted(df['stereo_antistereo'].unique())}")
@@ -322,11 +337,18 @@ def get_crows_token_diff(sent_more: str, sent_less: str, tokenizer) -> dict:
 
     Returns dict with 'shared_tokens', 'diff_more', 'diff_less' indices.
 
+    IMPORTANT: uses add_special_tokens=True so that diff position indices
+    are in the same coordinate system as the encoding used in
+    _encoder_sentence_score (which also calls tokenizer.encode with
+    add_special_tokens=True).  CLS is always common prefix and SEP always
+    common suffix so they never appear in the diff lists; the special-token
+    filter in _encoder_sentence_score excludes them from scoring anyway.
+
     Reference: Nangia et al. 2020, metric.py — verbatim from
     https://github.com/nyu-mll/crows-pairs/blob/master/metric.py
     """
-    tokens_more = tokenizer.encode(sent_more, add_special_tokens=False)
-    tokens_less = tokenizer.encode(sent_less, add_special_tokens=False)
+    tokens_more = tokenizer.encode(sent_more, add_special_tokens=True)
+    tokens_less = tokenizer.encode(sent_less, add_special_tokens=True)
 
     # Find common prefix and suffix
     common_prefix = 0
@@ -409,6 +431,10 @@ def load_bbq_ambiguous():
     else:
         # If no explicit column, log warning and use all rows
         logger.warning("BBQ: no context_condition column found, using all rows")
+
+    if SMOKE_TEST:
+        df = df.head(SMOKE_TEST_SIZE).reset_index(drop=True)
+        logger.info(f"  [smoke-test] truncated BBQ to {len(df)} rows")
 
     logger.info(f"Loaded BBQ ambiguous: {len(df)} rows from {len(all_dfs)} categories")
     return df
