@@ -168,10 +168,9 @@ def get_lora_target_modules(tag: str) -> list[str]:
             # both attention and FFN but peft matches by name globally.
             return ["Wqkv", "Wo", "Wi"]
         elif tag == "neobert":
-            # NeoBERT uses trust_remote_code with custom attention names that don't
-            # match any standard pattern. Use PEFT's "all-linear" sentinel which
-            # targets every nn.Linear in the specified layers_to_transform indices.
-            return "all-linear"
+            # NeoBERT (trust_remote_code) uses fused QKV projection 'qkv',
+            # output projection 'wo', and gated FFN 'w12'/'w3'.
+            return ["qkv", "wo", "w12", "w3"]
     else:
         # Causal LMs (Qwen, Gemma, Llama) all use the same projection names
         return [
