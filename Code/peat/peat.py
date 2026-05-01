@@ -474,7 +474,7 @@ def run_successive_halving(model, tokenizer, model_tag, seed=42, device="cuda"):
     train_df, val_df = load_stereoset_pairs(seed=seed)
     train_ds = StereoSetDataset(train_df)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
-                              num_workers=2, drop_last=False)
+                              num_workers=0, drop_last=False)
 
     rounds = [(1, 12), (3, 4), (5, 4)]  # (cumulative_epochs, keep_top_k)
     survivors = list(range(len(configs)))
@@ -649,7 +649,7 @@ def run_final_training(model, tokenizer, model_tag, best_config,
     train_df, _ = load_stereoset_pairs(seed=42)  # always same split
     train_ds = StereoSetDataset(train_df)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
-                              num_workers=2, drop_last=False)
+                              num_workers=0, drop_last=False)
 
     # Frozen reference: created ONCE at LoRA-init, stays on GPU for all 3 seeds
     model_theta0 = copy.deepcopy(model)

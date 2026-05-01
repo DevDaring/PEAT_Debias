@@ -629,7 +629,7 @@ def evaluate_glue(model, tokenizer, model_tag: str,
                                 cls_hidden = outputs.last_hidden_state[:, 0, :]
                             else:
                                 cls_hidden = outputs.logits[:, 0, :]
-                    features_list.append(cls_hidden.cpu().numpy().flatten())
+                    features_list.append(cls_hidden.cpu().float().numpy().flatten())
                     labels.append(ex["label"])
                 return np.array(features_list), np.array(labels)
 
