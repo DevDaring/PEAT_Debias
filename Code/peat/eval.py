@@ -583,8 +583,18 @@ def evaluate_glue(model, tokenizer, model_tag: str,
                     inputs = tokenizer(text, return_tensors="pt", truncation=True,
                                        max_length=512, padding="max_length").to(device)
                     with torch.no_grad():
-                        outputs = model(**inputs, output_hidden_states=True)
-                        cls_hidden = outputs.hidden_states[-1][:, 0, :]
+                        try:
+                            outputs = model(**inputs, output_hidden_states=True)
+                            cls_hidden = outputs.hidden_states[-1][:, 0, :]
+                        except TypeError:
+                            # Some custom models (e.g. NomicBERT) don't accept
+                            # output_hidden_states; fall back to last_hidden_state
+                            # or the first token of the logits.
+                            outputs = model(**inputs)
+                            if hasattr(outputs, "last_hidden_state"):
+                                cls_hidden = outputs.last_hidden_state[:, 0, :]
+                            else:
+                                cls_hidden = outputs.logits[:, 0, :]
                     features_list.append(cls_hidden.cpu().numpy().flatten())
                     labels.append(ex["label"])
                 return np.array(features_list), np.array(labels)
@@ -656,9 +666,14 @@ def evaluate_wikitext_perplexity(model, tokenizer, model_tag: str,
             outputs = model(input_chunk)
             logits = outputs.logits
 
-        # Only compute loss on the new tokens (stride window)
-        shift_logits = logits[:, -target_len - 1:-1, :]
-        shift_labels = input_chunk[:, -target_len:]
+        # Standard causal LM: logits[i] predicts token[i+1].
+        # Only score the `target_len` new (right-side) tokens of this window.
+        all_shift_logits = logits[:, :-1, :]       # [1, seq-1, vocab]
+        all_shift_labels = input_chunk[:, 1:]       # [1, seq-1]
+        # Trim to at most target_len — guards against first-window over-count
+        actual = min(target_len, all_shift_logits.size(1))
+        shift_logits = all_shift_logits[:, -actual:, :]
+        shift_labels = all_shift_labels[:, -actual:]
 
         loss = F.cross_entropy(
             shift_logits.reshape(-1, shift_logits.size(-1)),
