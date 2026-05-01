@@ -63,31 +63,35 @@ BERT_BASE = ModelSpec(
 )
 
 # Reference: Warner et al., "ModernBERT", 2024.
-# Used here for: modern encoder MLM with Flash-Attention 2 support.
+# Used here for: modern encoder MLM. Use sdpa to avoid transformers-5.x/flash_attn-2.8.x
+# API conflict (TypeError: the first argument must be callable).
 MODERNBERT_BASE = ModelSpec(
     tag="modernbert-base",
     hf_id="answerdotai/ModernBERT-base",
     model_type="encoder",
-    attn_impl="flash_attention_2",
+    attn_impl="sdpa",
 )
 
 # Reference: Chandar Lab, "NeoBERT", 2025.
-# Used here for: latest encoder MLM with Flash-Attention 2 and trust_remote_code.
+# Used here for: latest encoder MLM. NeoBERT does not yet support flash_attention_2;
+# use eager attention (still runs on A100 via standard SDPA kernels).
 NEOBERT = ModelSpec(
     tag="neobert",
     hf_id="chandar-lab/NeoBERT",
     model_type="encoder",
-    attn_impl="flash_attention_2",
+    attn_impl="eager",
     trust_remote_code=True,
 )
 
 # Reference: Qwen Team, "Qwen2.5 Technical Report", 2024.
 # Used here for: smallest causal LM (1.5B); hyperparameter search base.
+# Note: sdpa (PyTorch scaled dot product attention) uses FlashAttention kernel
+# on CUDA automatically; avoids transformers-5.x/flash_attn-2.8.x API conflict.
 QWEN_25_15B = ModelSpec(
     tag="qwen2.5-1.5b",
     hf_id="Qwen/Qwen2.5-1.5B-Instruct",
     model_type="causal",
-    attn_impl="flash_attention_2",
+    attn_impl="sdpa",
 )
 
 # Reference: Google DeepMind, "Gemma 3 Technical Report", 2025.
@@ -96,7 +100,7 @@ GEMMA_3_4B = ModelSpec(
     tag="gemma-3-4b",
     hf_id="google/gemma-3-4b-it",
     model_type="causal",
-    attn_impl="flash_attention_2",
+    attn_impl="sdpa",
     gated=True,
 )
 
@@ -107,7 +111,7 @@ LLAMA_31_8B = ModelSpec(
     tag="llama-3.1-8b",
     hf_id="meta-llama/Meta-Llama-3.1-8B-Instruct",
     model_type="causal",
-    attn_impl="flash_attention_2",
+    attn_impl="sdpa",
     gated=True,
 )
 
@@ -318,14 +322,17 @@ def load_causal(
     model = model.to(device)
     model.eval()
 
+    # Gemma3Config nests per-layer settings under text_config; fall back gracefully.
+    _cfg = model.config
+    _text_cfg = getattr(_cfg, "text_config", _cfg)
     config_dict = {
         "tag": spec.tag,
         "hf_id": spec.hf_id,
         "model_type": spec.model_type,
         "attn_impl": spec.attn_impl,
         "dtype": str(dtype),
-        "num_hidden_layers": model.config.num_hidden_layers,
-        "hidden_size": model.config.hidden_size,
+        "num_hidden_layers": getattr(_cfg, "num_hidden_layers", getattr(_text_cfg, "num_hidden_layers", 0)),
+        "hidden_size": getattr(_cfg, "hidden_size", getattr(_text_cfg, "hidden_size", 0)),
         "num_params": sum(p.numel() for p in model.parameters()),
     }
 
