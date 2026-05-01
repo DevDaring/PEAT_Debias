@@ -51,51 +51,38 @@ def ensure_dirs() -> None:
 
 
 # ---------------------------------------------------------------------------
-# SMS Notifications (Fast2SMS)
+# SMS Notifications (TextBelt)
 # ---------------------------------------------------------------------------
 def send_sms(message: str) -> None:
-    """Send an SMS via Fast2SMS using credentials from .env.
+    """Send an SMS via TextBelt using credentials from .env.
 
-    Reads PHONE_NO and FAST2SMS_API_KEY from the environment.
+    Reads PHONE_NO and TextBelt_API_KEY from the environment.
     Silently swallows all errors so it never interrupts the pipeline.
-    Phone number: strips leading '+' and whitespace (Fast2SMS wants digits only).
     """
     try:
         import requests as _req
         from peat.secrets import _get_key  # type: ignore
 
-        api_key  = _get_key("FAST2SMS_API_KEY", required=False)
+        api_key  = _get_key("TextBelt_API_KEY", required=False)
         phone_no = _get_key("PHONE_NO", required=False)
 
         if not api_key or not phone_no:
             return  # not configured — skip silently
 
-        # Fast2SMS expects digits only, no '+' or spaces
-        phone_digits = phone_no.replace("+", "").replace(" ", "").strip()
-
-        payload = {
-            "sender_id": "FSTSMS",
-            "message":   message[:160],   # SMS length limit
-            "language":  "english",
-            "route":     "q",
-            "numbers":   phone_digits,
-        }
-        headers = {
-            "authorization":  api_key,
-            "Content-Type":   "application/x-www-form-urlencoded",
-        }
         resp = _req.post(
-            "https://www.fast2sms.com/dev/bulkV2",
-            data=payload,
-            headers=headers,
-            timeout=15,
+            "https://textbelt.com/text",
+            data={
+                "phone":   phone_no.strip(),
+                "message": message[:160],   # SMS length limit
+                "key":     api_key,
+            },
+            timeout=20,
         )
-        if resp.status_code != 200:
+        data = resp.json()
+        if not data.get("success"):
             import logging as _log
             _log.getLogger("peat").warning(
-                "Fast2SMS returned HTTP %s: %s",
-                resp.status_code,
-                resp.text[:200],
+                "TextBelt error: %s", data.get("error", resp.text[:200])
             )
     except Exception:
         pass  # SMS failure must never crash the pipeline

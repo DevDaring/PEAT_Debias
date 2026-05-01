@@ -25,6 +25,7 @@ Resumes cleanly from interruption via state/run_state.json.
 
 import copy
 import json
+import signal
 import sys
 import traceback
 from datetime import datetime, timezone
@@ -390,6 +391,19 @@ def main():
 
 
 if __name__ == "__main__":
+    import atexit
+
+    # Notify on normal exit or unexpected crash (catches sys.exit too)
+    atexit.register(send_sms, "PEAT pipeline exited (completed or stopped).")
+
+    # Notify on SIGTERM (kill / container stop) and SIGINT (Ctrl+C)
+    def _on_signal(signum, frame):
+        send_sms("PEAT pipeline was interrupted (SIGTERM/SIGINT).")
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, _on_signal)
+    signal.signal(signal.SIGINT, _on_signal)
+
     try:
         main()
     except Exception as _exc:
