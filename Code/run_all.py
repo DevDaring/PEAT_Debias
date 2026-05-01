@@ -273,6 +273,29 @@ def main():
         logger.error(f"Figures failed: {e}")
         logger.error(traceback.format_exc())
 
+    # ── Stage 6: Push Results to GitHub ──────────────────────────────────
+    logger.info("\n" + "=" * 70)
+    logger.info("STAGE 6: PUSH RESULTS TO GITHUB")
+    logger.info("=" * 70)
+
+    try:
+        import subprocess
+        _repo_root = PROJECT_ROOT.parent  # D:\PhD\PEAT_Debias
+        _res_dir = _repo_root / "results"
+        if _res_dir.exists() and any(_res_dir.rglob("*")):
+            subprocess.run(["git", "add", "results/"], check=True, cwd=_repo_root)
+            subprocess.run(
+                ["git", "commit", "--allow-empty", "-m",
+                 f"Add results [{datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}]"],
+                check=True, cwd=_repo_root,
+            )
+            subprocess.run(["git", "push"], check=True, cwd=_repo_root)
+            logger.info("Results pushed to GitHub.")
+        else:
+            logger.info("No results directory found — skipping GitHub push.")
+    except Exception as e:
+        logger.warning(f"GitHub push failed (non-fatal): {e}")
+
     # ── Final Summary ─────────────────────────────────────────────────────
     logger.info("\n" + "=" * 70)
     logger.info("FINAL SUMMARY")
