@@ -278,7 +278,17 @@ def main():
         # Load base model ONCE (no LoRA). Inference-only baselines share it
         # read-only; fine-tuning baselines deepcopy it internally.
         logger.info(f"\n--- Loading {model_tag} for all baselines ---")
-        _base_model, _base_tokenizer = _get_model(model_tag, device="cuda")
+        try:
+            _base_model, _base_tokenizer = _get_model(model_tag, device="cuda")
+        except Exception as e:
+            logger.error(f"  Failed to load {model_tag} for baselines: {e}")
+            logger.error(traceback.format_exc())
+            for baseline_name in BASELINE_REGISTRY:
+                for seed in SEEDS:
+                    key = cell_key("baseline", f"{baseline_name}_{model_tag}", seed)
+                    if not is_cell_complete(state, key):
+                        mark_cell_failed(state, key, f"model load failed: {e}")
+            continue
         try:
             for baseline_name, baseline_fn in BASELINE_REGISTRY.items():
                 for seed in SEEDS:
