@@ -594,7 +594,14 @@ def run_bootstrap_selection(model, tokenizer, model_tag, finalists, config_state
         model.eval()
 
         ss_result = compute_stereotype_score(model, tokenizer, model_tag, device)
-        values = ss_result["results_df"]["prefers_stereo"].values.astype(float)
+        rdf = ss_result.get("results_df", pd.DataFrame()) if ss_result else pd.DataFrame()
+        if rdf.empty or "prefers_stereo" not in rdf.columns:
+            logger.warning(
+                f"  Bootstrap eval {cfg['id']}: SS returned no usable rows — J_robust=nan"
+            )
+            config_states[cfg_idx]["J_robust"] = float("nan")
+            continue
+        values = rdf["prefers_stereo"].values.astype(float)
 
         boot_scores = []
         rng = np.random.RandomState(seed)

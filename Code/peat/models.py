@@ -249,11 +249,11 @@ def load_encoder(
         "torch_dtype": dtype,
         "token": token,
         "trust_remote_code": spec.trust_remote_code,
-        # device_map places weights directly on the target device during loading,
-        # avoiding the meta-tensor issue introduced by transformers' default
-        # low_cpu_mem_usage=True (tied weights like lm_head stay as meta tensors
-        # and cannot be moved with a subsequent .to(device) call).
-        "device_map": {"": device},
+        # low_cpu_mem_usage=False forces all weights to be materialised as real
+        # tensors on CPU during loading (skips the meta-tensor optimisation).
+        # This avoids the tied-weight meta-tensor crash that occurs when
+        # calling .to(device) after loading, without needing `accelerate`.
+        "low_cpu_mem_usage": False,
     }
 
     # Only set attn_implementation if not eager (some older models don't support the kwarg)
@@ -270,9 +270,8 @@ def load_encoder(
         logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
         model = AutoModelForMaskedLM.from_pretrained(spec.hf_id, **model_kwargs)
     # Some custom loaders (e.g. NomicBERT) use torch.load internally and may
-    # ignore torch_dtype. Cast dtype explicitly; device placement already done
-    # by device_map so we only cast — no .to(device) needed.
-    model = model.to(dtype=dtype)
+    # ignore torch_dtype / device. Cast dtype and move to target device.
+    model = model.to(dtype=dtype, device=device)
     model.eval()
 
     config_dict = {
@@ -333,9 +332,9 @@ def load_causal(
         "attn_implementation": spec.attn_impl,
         "token": token,
         "trust_remote_code": spec.trust_remote_code,
-        # device_map avoids the meta-tensor issue for tied weights (lm_head)
-        # that would crash a subsequent .to(device) call in transformers 5.x.
-        "device_map": {"": device},
+        # low_cpu_mem_usage=False forces real tensor materialisation on CPU so
+        # a subsequent .to(device) works without needing `accelerate`.
+        "low_cpu_mem_usage": False,
     }
     # Try loading from local cache first; fall back to download.
     try:
@@ -346,7 +345,7 @@ def load_causal(
     except OSError:
         logger.info(f"  {spec.tag} not in local cache; downloading from HuggingFace Hub...")
         model = AutoModelForCausalLM.from_pretrained(spec.hf_id, **model_kwargs_c)
-    # device placement done by device_map; no extra .to(device) needed.
+    model = model.to(device)
     model.eval()
 
     # Gemma3Config nests per-layer settings under text_config; fall back gracefully.

@@ -509,6 +509,16 @@ def compute_ss_with_ci(
     csv_path = csv_dir / f"ss_{model_tag}.csv" if csv_dir else None
     ss_result = compute_stereotype_score(model, tokenizer, model_tag, device, csv_path)
     results_df = ss_result["results_df"]
+    if results_df.empty or "prefers_stereo" not in results_df.columns:
+        return {
+            "Stereotype Score": float("nan"),
+            "mean": float("nan"),
+            "ci_lo": float("nan"),
+            "ci_hi": float("nan"),
+            "formatted": "nan [nan, nan]",
+            "ss_per_category": {},
+            "results_df": results_df,
+        }
     values = results_df["prefers_stereo"].values.astype(float)
 
     # Multi-seed bootstrap
