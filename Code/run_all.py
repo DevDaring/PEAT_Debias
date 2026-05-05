@@ -148,6 +148,47 @@ def main():
             bc = cell_data.get("metrics", {}).get("best_config", {})
             if bc:
                 best_configs[model_tag] = bc
+            # Resume any eval seeds that were interrupted after training completed
+            incomplete_seeds = [
+                s for s in SEEDS
+                if not is_cell_complete(state, cell_key("peat_eval", model_tag, s))
+            ]
+            if incomplete_seeds:
+                import torch
+                logger.info(
+                    f"  Resuming {len(incomplete_seeds)} incomplete eval seed(s) "
+                    f"from disk checkpoint: {incomplete_seeds}"
+                )
+                model, tokenizer = _get_model(model_tag, device="cuda")
+                model = attach_lora(model, model_tag)
+                model.eval()
+                for seed in incomplete_seeds:
+                    eval_key = cell_key("peat_eval", model_tag, seed)
+                    ckpt_path = (
+                        STATE_DIR / "peat" / model_tag / f"seed_{seed}" / "epoch_5.checkpoint"
+                    )
+                    if not ckpt_path.exists():
+                        logger.warning(
+                            f"  No checkpoint at {ckpt_path} — cannot resume seed {seed}"
+                        )
+                        continue
+                    ckpt = torch.load(str(ckpt_path), map_location="cuda", weights_only=False)
+                    set_peft_model_state_dict(
+                        model,
+                        {k: v.to("cuda") for k, v in ckpt["lora_state"].items()},
+                    )
+                    model.eval()
+                    csv_dir = RAW_DIR / "peat" / model_tag / f"seed_{seed}"
+                    csv_dir.mkdir(parents=True, exist_ok=True)
+                    metrics = evaluate_full(
+                        model, tokenizer, model_tag,
+                        seeds=[seed], device="cuda", csv_dir=csv_dir,
+                    )
+                    metrics["method"] = "PEAT"
+                    metrics["seed"] = seed
+                    metrics["best_config"] = bc.get("id", "") if isinstance(bc, dict) else str(bc)
+                    mark_cell_complete(state, eval_key, metrics)
+                cleanup(model)
             continue
 
         try:

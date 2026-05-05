@@ -1,0 +1,5 @@
+Model,Stereotype Score,95% CI,WikiText-103 Perplexity,Config Source
+gemma-3-4b,100.0,"100.00 [100.00, 100.00]",13.065883560524258,qwen2.5-1.5b (transferred)
+gemma-3-4b,,,,qwen2.5-1.5b (transferred)
+llama-3.1-8b,100.0,"100.00 [100.00, 100.00]",6.773022174898476,qwen2.5-1.5b (transferred)
+llama-3.1-8b,,,,qwen2.5-1.5b (transferred)

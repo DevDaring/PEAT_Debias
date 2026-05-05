@@ -1,0 +1,17 @@
+Method,Model,Stereotype Score,GLUE Average,WikiText-103 Perplexity
+PEAT,bert-base,50.0,0.0,
+PEAT,bert-base,,,
+PEAT,modernbert-base,100.0,1.0,
+PEAT,modernbert-base,,,
+PEAT,nomicbert,50.0,1.0,
+PEAT,nomicbert,,,
+PEAT,qwen2.5-1.5b,100.0,,9.157150771747148
+PEAT,qwen2.5-1.5b,,,
+PEAT,gemma-3-4b,100.0,,13.065883560524258
+PEAT,gemma-3-4b,,,
+PEAT,llama-3.1-8b,100.0,,6.773022174898476
+PEAT,llama-3.1-8b,,,
+LoRA-Vanilla-SFT,lora_vanilla_sft_bert-base,50.0,0.0,
+LoRA-Vanilla-SFT,lora_vanilla_sft_modernbert-base,100.0,1.0,
+LoRA-Vanilla-SFT,lora_vanilla_sft_nomicbert,50.0,1.0,
+LoRA-Vanilla-SFT,lora_vanilla_sft_qwen2.5-1.5b,100.0,,9.1572120365004
