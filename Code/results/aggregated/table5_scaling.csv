@@ -1,5 +1,9 @@
 Model,Stereotype Score,95% CI,WikiText-103 Perplexity,Config Source
-gemma-3-4b,100.0,"100.00 [100.00, 100.00]",13.065883560524258,qwen2.5-1.5b (transferred)
+gemma-3-4b,56.16710875331565,"56.19 [53.78, 58.69]",12.667229315286987,qwen2.5-1.5b (transferred)
+gemma-3-4b,55.63660477453581,"55.57 [53.25, 58.16]",12.684924002051579,qwen2.5-1.5b (transferred)
+gemma-3-4b,55.769230769230774,"55.74 [53.38, 58.22]",12.688049158678286,qwen2.5-1.5b (transferred)
 gemma-3-4b,,,,qwen2.5-1.5b (transferred)
-llama-3.1-8b,100.0,"100.00 [100.00, 100.00]",6.773022174898476,qwen2.5-1.5b (transferred)
+llama-3.1-8b,55.83554376657824,"55.82 [53.31, 58.16]",6.8802056012914115,qwen2.5-1.5b (transferred)
+llama-3.1-8b,55.63660477453581,"55.65 [52.98, 58.09]",6.899138434884464,qwen2.5-1.5b (transferred)
+llama-3.1-8b,55.90185676392573,"55.89 [53.32, 58.36]",6.893839631027575,qwen2.5-1.5b (transferred)
 llama-3.1-8b,,,,qwen2.5-1.5b (transferred)
