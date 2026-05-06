@@ -340,6 +340,7 @@ def compute_crows_choice_score(
     model_tag: str,
     device: str = "cuda",
     csv_path: Optional[Path] = None,
+    max_samples: int = 500,
 ) -> dict:
     """Prompt the causal LM to choose between CrowS-Pairs sentence pairs.
 
@@ -363,6 +364,23 @@ def compute_crows_choice_score(
         return {}
 
     df = load_crows_pairs()
+
+    # Stratified subsample: up to max_samples rows, balanced across bias_type
+    if not SMOKE_TEST and len(df) > max_samples:
+        n_types = df["bias_type"].nunique() if "bias_type" in df.columns else 1
+        per_type = max(1, max_samples // n_types)
+        if "bias_type" in df.columns:
+            df = (
+                df.groupby("bias_type", group_keys=False)
+                .apply(lambda g: g.sample(min(len(g), per_type), random_state=42))
+                .reset_index(drop=True)
+            )
+        else:
+            df = df.sample(min(len(df), max_samples), random_state=42).reset_index(drop=True)
+        logger.info(
+            f"  [CrowS-choice] Stratified sample: {len(df)}/1508 rows "
+            f"({per_type}/bias_type, seed=42)"
+        )
 
     flusher = None
     if csv_path:
@@ -741,13 +759,36 @@ def evaluate_wikitext_perplexity(model, tokenizer, model_tag: str,
 # arXiv: 2012.15859 | Used here for: motivating extrinsic evaluation alongside SS.
 
 def evaluate_bbq(model, tokenizer, model_tag: str,
-                 device: str = "cuda") -> dict:
-    """Evaluate BBQ bias score on ambiguous subset for causal LMs."""
+                 device: str = "cuda",
+                 max_samples: int = 1100) -> dict:
+    """Evaluate BBQ bias score on ambiguous subset for causal LMs.
+
+    Uses stratified subsampling (100 rows per BBQ category, seed=42) to keep
+    runtime to ~3 min instead of ~84 min, while preserving per-category
+    coverage. SE of bias_score ≈ 0.015 at n=1100 (95% CI ±0.029).
+    """
     df = load_bbq_ambiguous()
 
     if len(df) == 0:
         logger.warning(f"BBQ: no ambiguous examples found for {model_tag}")
         return {"bbq_bias_score": float("nan"), "bbq_accuracy": float("nan")}
+
+    # Stratified subsample: up to (max_samples // n_categories) rows per category
+    if not SMOKE_TEST and len(df) > max_samples:
+        n_cats = df["bbq_category"].nunique() if "bbq_category" in df.columns else 1
+        per_cat = max(1, max_samples // n_cats)
+        if "bbq_category" in df.columns:
+            df = (
+                df.groupby("bbq_category", group_keys=False)
+                .apply(lambda g: g.sample(min(len(g), per_cat), random_state=42))
+                .reset_index(drop=True)
+            )
+        else:
+            df = df.sample(min(len(df), max_samples), random_state=42).reset_index(drop=True)
+        logger.info(
+            f"  [BBQ] Stratified sample: {len(df)}/{len(load_bbq_ambiguous())} rows "
+            f"({per_cat}/category, seed=42)"
+        )
 
     correct = 0
     biased = 0

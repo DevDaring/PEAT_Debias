@@ -1,0 +1,5 @@
+Model,Selection Method,Best Config,Stereotype Score
+bert-base,Successive Halving + Bootstrap,"{'lambda_1': 1.0, 'lambda_2': 0.001, 'id': 'l1=1.0_l2=0.001'}",
+modernbert-base,Successive Halving + Bootstrap,"{'lambda_1': 1.0, 'lambda_2': 10.0, 'id': 'l1=1.0_l2=10.0'}",
+nomicbert,Successive Halving + Bootstrap,"{'lambda_1': 10.0, 'lambda_2': 0.01, 'id': 'l1=10.0_l2=0.01'}",
+qwen2.5-1.5b,Successive Halving + Bootstrap,"{'lambda_1': 0.01, 'lambda_2': 10.0, 'id': 'l1=0.01_l2=10.0'}",
