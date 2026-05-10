@@ -52,8 +52,14 @@ logs/
 # Uncomment to temporarily exclude while running:
 # results/
 
-# ── Akash deployment state (auto-generated, may contain host/port) ───────
-akash/last_dseq.txt
+# ── Akash deployment (not part of public release) ─────────────────────────
+akash/
+Akash_Deployment.md
+
+# ── Miscellaneous local files ──────────────────────────────────────────────
+execution_progress.md
+patch_state.py
+Data_Model_Load_Error_Solved.md
 
 # ── OS / Editor noise ────────────────────────────────────────────────────
 .DS_Store
@@ -64,3 +70,6 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# -- Submission (paper writing) --
+Submission/
