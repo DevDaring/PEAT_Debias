@@ -347,6 +347,55 @@
         "seed": 789,
         "best_config": "l1=1.0_l2=10.0"
       }
+    },
+    "peat_eval|modernbert-base|1011|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T19:19:10.362123+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 58.48806366047745,
+        "ss_mean": 58.49847480106101,
+        "ss_ci": "58.50 [56.10, 60.94]",
+        "ss_per_category": {
+          "race-color": 53.48837209302325,
+          "gender": 49.61832061068702,
+          "religion": 73.33333333333333,
+          "age": 55.172413793103445,
+          "nationality": 66.0377358490566,
+          "disability": 73.33333333333333,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 71.42857142857143
+        },
+        "glue": {
+          "cola": 0.16738134369314867,
+          "sst2": 0.7121559633027523,
+          "mrpc": 0.6936274509803921,
+          "stsb": 0.6084141186248238,
+          "qqp": 0.762,
+          "mnli": 0.415,
+          "qnli": 0.7,
+          "rte": 0.5090252707581228,
+          "average": 0.570950518419905
+        },
+        "GLUE Average": 0.570950518419905,
+        "method": "PEAT",
+        "seed": 1011,
+        "best_config": "l1=1.0_l2=10.0"
+      }
+    },
+    "peat_training|modernbert-base|0|full_pipeline": {
+      "status": "completed",
+      "completed_at": "2026-07-19T19:19:10.693823+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "best_config": {
+          "lambda_1": 1.0,
+          "lambda_2": 10.0,
+          "id": "l1=1.0_l2=10.0"
+        },
+        "method": "PEAT"
+      }
     }
   }
 }
