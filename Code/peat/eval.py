@@ -664,33 +664,43 @@ def evaluate_glue(model, tokenizer, model_tag: str,
                     return f"{example.get(key1, '')} [SEP] {example.get(key2, '')}"
                 return str(example)
 
-            def extract_features(dataset):
-                features_list = []
-                labels = []
+            def extract_features(dataset, batch_size: int = 32):
+                # Batched, dynamically-padded feature extraction. One-at-a-time
+                # forwards with padding="max_length" (512) made this 10-30x
+                # slower than necessary — pathologically so for NomicBERT
+                # (eager attention, 2048 context). Batching + dynamic padding
+                # keeps the GPU busy and the tokens short.
+                texts = [get_text(ex) for ex in dataset]
+                labels = [ex["label"] for ex in dataset]
+                feats = []
                 model.eval()
-                for ex in dataset:
-                    text = get_text(ex)
-                    inputs = tokenizer(text, return_tensors="pt", truncation=True,
-                                       max_length=512, padding="max_length").to(device)
+                for i in range(0, len(texts), batch_size):
+                    chunk = texts[i:i + batch_size]
+                    inputs = tokenizer(chunk, return_tensors="pt", truncation=True,
+                                       max_length=256, padding=True).to(device)
                     with torch.no_grad():
                         try:
                             outputs = model(**inputs, output_hidden_states=True)
                             cls_hidden = outputs.hidden_states[-1][:, 0, :]
                         except TypeError:
-                            # Some custom models (e.g. NomicBERT) don't accept
-                            # output_hidden_states; fall back to last_hidden_state
-                            # or the first token of the logits.
                             outputs = model(**inputs)
                             if hasattr(outputs, "last_hidden_state"):
                                 cls_hidden = outputs.last_hidden_state[:, 0, :]
                             else:
                                 cls_hidden = outputs.logits[:, 0, :]
-                    features_list.append(cls_hidden.cpu().float().numpy().flatten())
-                    labels.append(ex["label"])
-                return np.array(features_list), np.array(labels)
+                    feats.append(cls_hidden.cpu().float().numpy())
+                return np.concatenate(feats, axis=0), np.array(labels)
 
             train_X, train_y = extract_features(train_ds)
             val_X, val_y = extract_features(val_ds)
+
+            # Standardise features: the linear probe's LogisticRegression fails
+            # to converge on unscaled embeddings (e.g. NomicBERT), running the
+            # full max_iter every task. Scaling makes it converge in <100 iters.
+            from sklearn.preprocessing import StandardScaler
+            _scaler = StandardScaler()
+            train_X = _scaler.fit_transform(train_X)
+            val_X = _scaler.transform(val_X)
 
             if task == "stsb":
                 # Regression task — use correlation
@@ -701,12 +711,12 @@ def evaluate_glue(model, tokenizer, model_tag: str,
                 corr, _ = pearsonr(preds, val_y)
                 results[task] = corr
             elif task == "cola":
-                clf = LogisticRegression(max_iter=1000, C=1.0)
+                clf = LogisticRegression(max_iter=200, C=1.0)
                 clf.fit(train_X, train_y)
                 preds = clf.predict(val_X)
                 results[task] = matthews_corrcoef(val_y, preds)
             else:
-                clf = LogisticRegression(max_iter=1000, C=1.0)
+                clf = LogisticRegression(max_iter=200, C=1.0)
                 clf.fit(train_X, train_y)
                 preds = clf.predict(val_X)
                 results[task] = accuracy_score(val_y, preds)

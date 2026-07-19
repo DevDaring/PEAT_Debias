@@ -51,8 +51,11 @@ secret_scan() {
 }
 
 push_once() {
-  # Stage only results + the small resumable state file (force, since state/ is gitignored).
-  git add -A -- results Code/results 2>/dev/null || true
+  # Stage all tracked/untracked changes (.gitignore already excludes .env,
+  # logs, data, state/, checkpoints, etc.) plus the small resumable state file.
+  # NOTE: a two-pathspec `git add -A -- results Code/results` aborts entirely
+  # when top-level results/ is absent, silently staging nothing — hence -A.
+  git add -A 2>/dev/null || true
   [ -f state/run_state.json ]      && git add -f state/run_state.json 2>/dev/null || true
   [ -f Code/state/run_state.json ] && git add -f Code/state/run_state.json 2>/dev/null || true
 
