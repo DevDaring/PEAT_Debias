@@ -46,6 +46,42 @@
         "seed": 42,
         "best_config": "l1=1.0_l2=0.001"
       }
+    },
+    "peat_eval|bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T15:14:11.657191+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.48806366047745,
+        "ss_mean": 58.48514588859417,
+        "ss_ci": "58.49 [56.03, 60.81]",
+        "ss_per_category": {
+          "race-color": 57.94573643410853,
+          "gender": 49.23664122137404,
+          "religion": 69.52380952380952,
+          "age": 64.36781609195403,
+          "nationality": 60.37735849056604,
+          "disability": 63.33333333333333,
+          "physical-appearance": 53.96825396825397,
+          "socioeconomic": 60.46511627906976,
+          "sexual-orientation": 63.095238095238095
+        },
+        "glue": {
+          "cola": 0.34371973992321175,
+          "sst2": 0.8245412844036697,
+          "mrpc": 0.6740196078431373,
+          "stsb": 0.6294225289852996,
+          "qqp": 0.752,
+          "mnli": 0.45,
+          "qnli": 0.62,
+          "rte": 0.5379061371841155,
+          "average": 0.6039511622924292
+        },
+        "GLUE Average": 0.6039511622924292,
+        "method": "PEAT",
+        "seed": 123,
+        "best_config": "l1=1.0_l2=0.001"
+      }
     }
   }
 }
