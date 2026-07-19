@@ -943,8 +943,11 @@ def evaluate_full(model, tokenizer, model_tag: str,
     else:
         ppl = evaluate_wikitext_perplexity(model, tokenizer, model_tag, device)
         metrics["WikiText-103 Perplexity"] = ppl
-        bbq = evaluate_bbq(model, tokenizer, model_tag, device)
-        metrics.update(bbq)
+        try:
+            metrics.update(evaluate_bbq(model, tokenizer, model_tag, device))
+        except Exception as _bbq_err:
+            logger.warning(f"BBQ skipped for {model_tag}: {_bbq_err}")
+            metrics.update({"bbq_bias_score": float("nan"), "bbq_accuracy": float("nan")})
 
         # Generation-based choice metric (AUXILIARY; not a main-paper result,
         # Supplement §6). Needs a cloud LLM judge and is slow/quota-limited, so
