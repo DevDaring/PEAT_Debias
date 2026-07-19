@@ -71,7 +71,7 @@ python3 -m pip install \
     "numpy<2.0" \
     "transformers>=5.0.0" \
     "accelerate>=1.1.0" \
-    "datasets>=2.16.0" \
+    "datasets>=2.16.0,<4.0.0" \
     "bitsandbytes>=0.46.1" \
     "pandas>=2.2.0" \
     "tqdm>=4.65.0" \

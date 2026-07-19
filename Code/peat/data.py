@@ -150,7 +150,8 @@ def load_stereoset_pairs(seed: int = 42, force_rebuild: bool = False):
         return train_df, val_df
 
     logger.info("Building StereoSet pairs from HuggingFace...")
-    ds = load_dataset("McGill-NLP/stereoset", "intrasentence", split="validation")
+    ds = load_dataset("McGill-NLP/stereoset", "intrasentence", split="validation",
+                      trust_remote_code=True)
 
     pairs = []
     skipped = 0
@@ -308,7 +309,7 @@ def load_crows_pairs():
     IMPORTANT: bias_type and stereo_antistereo are HF ClassLabel features
     (stored as integers). We convert them to human-readable strings here.
     """
-    ds = load_dataset("nyu-mll/crows_pairs", split="test")
+    ds = load_dataset("nyu-mll/crows_pairs", split="test", trust_remote_code=True)
 
     # Get ClassLabel mappings before converting to pandas
     features = ds.features
@@ -409,7 +410,7 @@ def load_bbq_ambiguous():
     all_dfs = []
     for config in BBQ_CONFIGS:
         try:
-            ds = load_dataset("heegyu/bbq", config, split="test")
+            ds = load_dataset("heegyu/bbq", config, split="test", trust_remote_code=True)
             sub_df = pd.DataFrame(ds)
             sub_df["bbq_category"] = config
             all_dfs.append(sub_df)
@@ -453,7 +454,7 @@ def load_glue_task(task_name: str, split: str = "validation"):
     """Load a single GLUE task dataset."""
     if task_name == "mnli" and split == "validation":
         split = "validation_matched"
-    ds = load_dataset("nyu-mll/glue", task_name, split=split)
+    ds = load_dataset("nyu-mll/glue", task_name, split=split, trust_remote_code=True)
     return ds
 
 
@@ -488,7 +489,8 @@ def validate_dataset_structure() -> bool:
     logger.info("PREFLIGHT: StereoSet")
     logger.info("=" * 60)
     try:
-        ds = load_dataset("McGill-NLP/stereoset", "intrasentence", split="validation")
+        ds = load_dataset("McGill-NLP/stereoset", "intrasentence", split="validation",
+                      trust_remote_code=True)
         logger.info(f"  Rows: {len(ds)}")
         logger.info(f"  Columns: {ds.column_names}")
         logger.info(f"  Features: {ds.features}")
