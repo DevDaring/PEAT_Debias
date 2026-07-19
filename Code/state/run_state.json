@@ -1,0 +1,15 @@
+{
+  "start_time": "2026-07-19T13:56:51.205303+00:00",
+  "cells": {
+    "dryrun": {
+      "status": "completed",
+      "completed_at": "2026-07-19T13:56:51.206059+00:00",
+      "metrics": {}
+    },
+    "dataset_preflight": {
+      "status": "completed",
+      "completed_at": "2026-07-19T13:57:11.277609+00:00",
+      "metrics": {}
+    }
+  }
+}
