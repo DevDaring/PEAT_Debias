@@ -10,9 +10,13 @@ Baseline: Self-Debias — Inference-time decoding modification.
 import torch
 import torch.nn.functional as F
 
-from peat.eval import evaluate_full
+from peat.eval import compute_stereotype_score, evaluate_full
+from peat.interventions import assert_intervention_active, make_self_debias_scorer
 from peat.models import get_spec, load_model
-from peat.utils import LOG_DIR, cleanup, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, setup_logger
+
+PROBE_ROWS = 40
+SELF_DEBIAS_ALPHA = 50.0   # Schick et al. (2021) decay strength
 
 logger = setup_logger("peat.baselines.self_debias", str(LOG_DIR / "baselines.log"))
 
@@ -87,14 +91,28 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         model, tokenizer = _model, _tokenizer
 
     try:
-        # Self-Debias is inference-time only — evaluate directly
-        # For SS evaluation, the model itself is used as-is since Self-Debias
-        # modifies decoding, not the model weights. The effect is captured
-        # through the modified probability computation.
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+        # WP-A fix: Self-Debias reshapes the scored token distribution via a
+        # self-diagnosis prefix (Schick et al. 2021). This is applied through a
+        # sentence_scorer override so the reweighting is active during SS
+        # computation. Previously the unmodified model was scored (Base-identical).
+        scorer = make_self_debias_scorer(alpha=SELF_DEBIAS_ALPHA)
+
+        base_probe = compute_stereotype_score(
+            model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        method_probe = compute_stereotype_score(
+            model, tokenizer, model_tag, device, max_rows=PROBE_ROWS,
+            sentence_scorer=scorer)["results_df"]
+        assert_intervention_active(base_probe, method_probe, "Self-Debias")
+
+        _csv = RAW_DIR / "baselines" / "self_debias" / model_tag / f"seed_{seed}"
+        _csv.mkdir(parents=True, exist_ok=True)
+        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed],
+                                device=device, sentence_scorer=scorer,
+                                csv_dir=_csv)
         metrics["method"] = "Self-Debias"
         metrics["seed"] = seed
-        metrics["note"] = "Inference-time decoding modification applied"
+        metrics["self_debias_alpha"] = SELF_DEBIAS_ALPHA
+        metrics["note"] = "Schick et al. reweighting active in SS scoring path"
         return metrics
     except Exception as e:
         logger.error(f"Self-Debias failed for {model_tag}: {e}")

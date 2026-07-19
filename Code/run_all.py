@@ -135,7 +135,20 @@ def main():
 
     best_configs = {}
     from peat.utils import SMOKE_TEST as _SMOKE
-    SEEDS = [42] if _SMOKE else [42, 123, 456]
+    # WP-B (APIN revision): 5 seeds for the headline PEAT vs LoRA-Vanilla-SFT
+    # comparison (inside Reviewer #3's requested 5-10 range); other trained
+    # baselines keep 3 seeds (their per-seed SD <= 0.07, so extra seeds add
+    # nothing). Instance-level permutation/McNemar over 1,508 pairs carry the
+    # statistical power. See Submission/proposed_improvement.md, Section 5.
+    SEEDS = [42] if _SMOKE else [42, 123, 456, 789, 1011]
+    SCALING_SEEDS = [42] if _SMOKE else [42, 123, 456]          # scaling models: 3 seeds
+    FIVE_SEED_BASELINES = {"lora_vanilla_sft"}
+
+    def seeds_for(baseline_name: str) -> list:
+        """5 seeds for LoRA-Vanilla-SFT (paired against PEAT); 3 for the rest."""
+        if _SMOKE:
+            return [42]
+        return SEEDS if baseline_name in FIVE_SEED_BASELINES else SEEDS[:3]
 
     for i, model_tag in enumerate(CORE_MODELS):
 
@@ -197,7 +210,8 @@ def main():
             # final training (3 seeds), and eval (3 seeds) — no redundant reloads.
             model, tokenizer = _get_model(model_tag, device="cuda")
             model = attach_lora(model, model_tag)
-            best_config, checkpoints = run_peat_full(model, tokenizer, model_tag, device="cuda")
+            best_config, checkpoints = run_peat_full(
+                model, tokenizer, model_tag, device="cuda", seeds=tuple(SEEDS))
             best_configs[model_tag] = best_config
 
             model.eval()
@@ -261,9 +275,10 @@ def main():
             # Load ONCE: model stays on GPU across final training (3 seeds) + eval (3 seeds)
             model, tokenizer = _get_model(model_tag, device="cuda")
             model = attach_lora(model, model_tag)
-            checkpoints = run_peat_scaling(model, tokenizer, model_tag, scaling_config, device="cuda")
+            checkpoints = run_peat_scaling(model, tokenizer, model_tag, scaling_config,
+                                           device="cuda", seeds=tuple(SCALING_SEEDS))
             model.eval()
-            for seed in SEEDS:
+            for seed in SCALING_SEEDS:
                 eval_key = cell_key("peat_scaling_eval", model_tag, seed)
                 if is_cell_complete(state, eval_key):
                     continue
@@ -311,7 +326,7 @@ def main():
         all_done = all(
             is_cell_complete(state, cell_key("baseline", f"{bn}_{model_tag}", s))
             for bn in BASELINE_REGISTRY
-            for s in SEEDS
+            for s in seeds_for(bn)
         )
         if all_done:
             logger.info(f"All baselines for {model_tag} already complete — skipping")
@@ -333,7 +348,7 @@ def main():
             continue
         try:
             for baseline_name, baseline_fn in BASELINE_REGISTRY.items():
-                for seed in SEEDS:
+                for seed in seeds_for(baseline_name):
                     key = cell_key("baseline", f"{baseline_name}_{model_tag}", seed)
 
                     if is_cell_complete(state, key):
@@ -356,6 +371,99 @@ def main():
                         mark_cell_failed(state, key, str(e))
         finally:
             cleanup(_base_model)
+
+    # ── Stage 3b: Revision ablations (WP-C) ───────────────────────────────
+    logger.info("\n" + "=" * 70)
+    logger.info("STAGE 3b: ABLATIONS (loss terms + placement factorial)")
+    logger.info("=" * 70)
+    try:
+        from peat.ablation import run_loss_ablation, run_placement_factorial
+        run_loss_ablation(state, device="cuda")
+        run_placement_factorial(state, device="cuda")
+    except Exception as e:
+        logger.error(f"Ablation stage failed: {e}")
+        logger.error(traceback.format_exc())
+
+    # ── Stage 3c: PEAT-CB (WP-G coverage-balanced training) ───────────────
+    logger.info("\n" + "=" * 70)
+    logger.info("STAGE 3c: PEAT-CB")
+    logger.info("=" * 70)
+    try:
+        from peat.ablation import run_peat_cb
+        run_peat_cb(state, device="cuda")
+    except Exception as e:
+        logger.error(f"PEAT-CB stage failed: {e}")
+        logger.error(traceback.format_exc())
+
+    # ── Stage 3d: Extrinsic evaluation (WP-E) ─────────────────────────────
+    logger.info("\n" + "=" * 70)
+    logger.info("STAGE 3d: EXTRINSIC (Bias-in-Bios / HONEST / StereoSet-heldout)")
+    logger.info("=" * 70)
+    try:
+        import torch as _torch
+        from peat.extrinsic import evaluate_extrinsic
+        from peat.peat import _restore_lora_state
+
+        def _latest_ckpt(dir_path):
+            cks = sorted(dir_path.glob("epoch_*.checkpoint"),
+                         key=lambda p: int(p.stem.split("_")[1]))
+            return cks[-1] if cks else None
+
+        for model_tag in CORE_MODELS:
+            jobs = [("Base", 0)]
+            jobs += [("PEAT", s) for s in SEEDS]
+            jobs += [("LoRA-Vanilla-SFT", s) for s in SEEDS]
+            if all(is_cell_complete(state, cell_key("extrinsic", f"{m}_{model_tag}", s))
+                   for m, s in jobs):
+                logger.info(f"Extrinsic for {model_tag} already complete — skipping")
+                continue
+
+            model, tokenizer = _get_model(model_tag, device="cuda")
+            try:
+                # Base first (before LoRA wrapping)
+                key = cell_key("extrinsic", f"Base_{model_tag}", 0)
+                if not is_cell_complete(state, key):
+                    m = evaluate_extrinsic(model, tokenizer, model_tag, device="cuda")
+                    m.update({"method": "Base", "model": model_tag, "seed": 0})
+                    mark_cell_complete(state, key, m)
+
+                # Wrap once; hot-swap adapters (identical rank-4/last-2 structure)
+                model = attach_lora(model, model_tag)
+                for seed in SEEDS:
+                    key = cell_key("extrinsic", f"PEAT_{model_tag}", seed)
+                    if not is_cell_complete(state, key):
+                        ck = _latest_ckpt(STATE_DIR / "peat" / model_tag / f"seed_{seed}")
+                        if ck is None:
+                            logger.warning(f"  extrinsic: no PEAT ckpt for {model_tag}/s{seed}")
+                        else:
+                            ckpt = _torch.load(str(ck), map_location="cuda", weights_only=False)
+                            _restore_lora_state(model, ckpt["lora_state"], "cuda")
+                            model.eval()
+                            m = evaluate_extrinsic(model, tokenizer, model_tag, device="cuda")
+                            m.update({"method": "PEAT", "model": model_tag, "seed": seed})
+                            mark_cell_complete(state, key, m)
+
+                    key = cell_key("extrinsic", f"LoRA-Vanilla-SFT_{model_tag}", seed)
+                    if not is_cell_complete(state, key):
+                        lv = STATE_DIR / "lora_vanilla" / model_tag / f"seed_{seed}.pt"
+                        if not lv.exists():
+                            logger.warning(f"  extrinsic: no LoRA-Vanilla ckpt for {model_tag}/s{seed}")
+                        else:
+                            sd = _torch.load(str(lv), map_location="cuda", weights_only=False)
+                            _restore_lora_state(model, sd, "cuda")
+                            model.eval()
+                            m = evaluate_extrinsic(model, tokenizer, model_tag, device="cuda")
+                            m.update({"method": "LoRA-Vanilla-SFT", "model": model_tag,
+                                      "seed": seed})
+                            mark_cell_complete(state, key, m)
+            except Exception as e:
+                logger.error(f"Extrinsic failed for {model_tag}: {e}")
+                logger.error(traceback.format_exc())
+            finally:
+                cleanup(model)
+    except Exception as e:
+        logger.error(f"Extrinsic stage failed: {e}")
+        logger.error(traceback.format_exc())
 
     # ── Stage 4: Aggregation ──────────────────────────────────────────────
     logger.info("\n" + "=" * 70)

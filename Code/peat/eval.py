@@ -201,17 +201,32 @@ def compute_stereotype_score(
     model_tag: str,
     device: str = "cuda",
     csv_path: Optional[Path] = None,
+    sentence_scorer=None,
+    max_rows: Optional[int] = None,
 ) -> dict:
     """Compute Stereotype Score on CrowS-Pairs for a given model.
 
     SS = 100 × (# pairs where model prefers stereotyping sentence) / total.
     Optimal = 50%.
 
+    Args:
+        sentence_scorer: optional callable
+            ``(model, tokenizer, sentence, diff_positions, is_encoder, device) -> float``
+            that overrides the default log-probability scorer. Used by
+            inference-time baselines (e.g. Self-Debias) whose intervention
+            reshapes the scored distribution and therefore cannot be expressed
+            as a plain forward hook. When None, the built-in encoder/causal
+            scorers are used (Base, PEAT, and hook-based baselines).
+        max_rows: if set, score only the first ``max_rows`` pairs (used by the
+            intervention sanity probe).
+
     Returns:
-        dict with 'ss_overall' and 'ss_per_category' keys.
+        dict with 'Stereotype Score', 'ss_per_category', 'results_df' keys.
     """
     spec = get_spec(model_tag)
     df = load_crows_pairs()
+    if max_rows is not None:
+        df = df.head(max_rows).reset_index(drop=True)
     is_encoder = spec.is_encoder
 
     flusher = None
@@ -232,15 +247,27 @@ def compute_stereotype_score(
 
             if is_encoder:
                 diff_info = get_crows_token_diff(sent_more, sent_less, tokenizer)
-                score_more = _encoder_sentence_score(
-                    model, tokenizer, sent_more, diff_info["diff_more"], device
-                )
-                score_less = _encoder_sentence_score(
-                    model, tokenizer, sent_less, diff_info["diff_less"], device
-                )
+                if sentence_scorer is not None:
+                    score_more = sentence_scorer(
+                        model, tokenizer, sent_more, diff_info["diff_more"], True, device
+                    )
+                    score_less = sentence_scorer(
+                        model, tokenizer, sent_less, diff_info["diff_less"], True, device
+                    )
+                else:
+                    score_more = _encoder_sentence_score(
+                        model, tokenizer, sent_more, diff_info["diff_more"], device
+                    )
+                    score_less = _encoder_sentence_score(
+                        model, tokenizer, sent_less, diff_info["diff_less"], device
+                    )
             else:
-                score_more = _causal_sentence_score(model, tokenizer, sent_more, device)
-                score_less = _causal_sentence_score(model, tokenizer, sent_less, device)
+                if sentence_scorer is not None:
+                    score_more = sentence_scorer(model, tokenizer, sent_more, None, False, device)
+                    score_less = sentence_scorer(model, tokenizer, sent_less, None, False, device)
+                else:
+                    score_more = _causal_sentence_score(model, tokenizer, sent_more, device)
+                    score_less = _causal_sentence_score(model, tokenizer, sent_less, device)
 
             # "prefers stereo" depends on direction:
             # stereo_antistereo="stereo" → sent_more is stereotyping
@@ -543,15 +570,21 @@ def compute_ss_with_ci(
     n_bootstrap: int = 1000,
     device: str = "cuda",
     csv_dir: Optional[Path] = None,
+    sentence_scorer=None,
 ) -> dict:
     """Compute SS with bootstrap CIs across multiple seeds.
 
     For each seed, we use the same model but different bootstrap resamples.
     3 seeds × 1000 resamples → report mean and 95% CI.
+
+    ``sentence_scorer`` is forwarded to :func:`compute_stereotype_score` for
+    inference-time baselines that reshape the scored distribution.
     """
     # Compute SS once (deterministic)
     csv_path = csv_dir / f"ss_{model_tag}.csv" if csv_dir else None
-    ss_result = compute_stereotype_score(model, tokenizer, model_tag, device, csv_path)
+    ss_result = compute_stereotype_score(
+        model, tokenizer, model_tag, device, csv_path, sentence_scorer=sentence_scorer
+    )
     results_df = ss_result["results_df"]
     if results_df.empty or "prefers_stereo" not in results_df.columns:
         return {
@@ -877,8 +910,15 @@ def evaluate_bbq(model, tokenizer, model_tag: str,
 def evaluate_full(model, tokenizer, model_tag: str,
                   seeds: list[int] = [42, 123, 456],
                   device: str = "cuda",
-                  csv_dir: Optional[Path] = None) -> dict:
+                  csv_dir: Optional[Path] = None,
+                  sentence_scorer=None) -> dict:
     """Run the complete evaluation suite for a model.
+
+    ``sentence_scorer`` (optional) overrides the SS log-probability scorer for
+    inference-time baselines such as Self-Debias; it does not affect GLUE/PPL/
+    BBQ, which are reported on the model's own forward pass. Hook-based
+    baselines (FairSteer, KnowBias, BiasEdit) instead wrap this call in an
+    intervention context manager and need no override.
 
     Returns dict with all metrics.
     """
@@ -886,7 +926,8 @@ def evaluate_full(model, tokenizer, model_tag: str,
     metrics = {"model": model_tag}
 
     # SS with CIs
-    ss_result = compute_ss_with_ci(model, tokenizer, model_tag, seeds, 1000, device, csv_dir)
+    ss_result = compute_ss_with_ci(model, tokenizer, model_tag, seeds, 1000, device, csv_dir,
+                                   sentence_scorer=sentence_scorer)
     metrics.update({
         "Stereotype Score": ss_result["Stereotype Score"],
         "ss_mean": ss_result["mean"],

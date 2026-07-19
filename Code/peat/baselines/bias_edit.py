@@ -14,10 +14,13 @@ from torch.optim import AdamW
 from tqdm import tqdm
 
 from peat.data import StereoSetDataset, load_stereoset_pairs
-from peat.eval import evaluate_full
+from peat.eval import compute_stereotype_score, evaluate_full
+from peat.interventions import assert_intervention_active, editor_intervention
 from peat.models import get_spec, load_model
-from peat.utils import LOG_DIR, cleanup, get_autocast_dtype, get_dtype, set_seed, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, get_autocast_dtype, get_dtype, set_seed, setup_logger
 from torch.utils.data import DataLoader
+
+PROBE_ROWS = 40
 
 logger = setup_logger("peat.baselines.bias_edit", str(LOG_DIR / "baselines.log"))
 
@@ -137,9 +140,23 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
 
             logger.info(f"  BiasEdit epoch {epoch+1}: avg_loss={total_loss/max(n,1):.6f}")
 
-        # Evaluate (using base model — editor effect is architectural)
+        # WP-A fix: apply the trained editor to the last block's hidden states
+        # via a forward hook so the edit is active during SS scoring. Previously
+        # the un-edited model was scored, yielding Base-identical SS.
         model.eval()
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+        editor.eval()
+
+        base_probe = compute_stereotype_score(
+            model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        with editor_intervention(model, editor):
+            method_probe = compute_stereotype_score(
+                model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        assert_intervention_active(base_probe, method_probe, "BiasEdit")
+
+        with editor_intervention(model, editor):
+            _csv = RAW_DIR / "baselines" / "bias_edit" / model_tag / f"seed_{seed}"
+            _csv.mkdir(parents=True, exist_ok=True)
+            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
         metrics["method"] = "BiasEdit"
         metrics["seed"] = seed
         return metrics

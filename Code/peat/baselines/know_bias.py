@@ -11,9 +11,13 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from peat.data import load_stereoset_pairs
-from peat.eval import evaluate_full
+from peat.eval import compute_stereotype_score, evaluate_full
+from peat.interventions import assert_intervention_active, neuron_damping_intervention
 from peat.models import get_spec, load_model
-from peat.utils import LOG_DIR, cleanup, set_seed, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, set_seed, setup_logger
+
+PROBE_ROWS = 40
+KNOWBIAS_GAMMA = 0.5   # damping factor applied to identified bias neurons
 
 logger = setup_logger("peat.baselines.know_bias", str(LOG_DIR / "baselines.log"))
 
@@ -111,12 +115,26 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
 
         logger.info(f"  Identified {len(bias_neurons)} bias neurons")
 
-        # Evaluate with bias neuron info logged
+        # WP-A fix: damp the identified bias neurons via forward hooks so the
+        # intervention is active during SS scoring. Previously the unmodified
+        # model was scored, yielding Base-identical SS.
         model.eval()
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+
+        base_probe = compute_stereotype_score(
+            model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        with neuron_damping_intervention(model, bias_neurons, gamma=KNOWBIAS_GAMMA):
+            method_probe = compute_stereotype_score(
+                model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        assert_intervention_active(base_probe, method_probe, "KnowBias")
+
+        with neuron_damping_intervention(model, bias_neurons, gamma=KNOWBIAS_GAMMA):
+            _csv = RAW_DIR / "baselines" / "know_bias" / model_tag / f"seed_{seed}"
+            _csv.mkdir(parents=True, exist_ok=True)
+            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
         metrics["method"] = "KnowBias"
         metrics["seed"] = seed
         metrics["n_bias_neurons"] = len(bias_neurons)
+        metrics["knowbias_gamma"] = KNOWBIAS_GAMMA
         return metrics
 
     except Exception as e:

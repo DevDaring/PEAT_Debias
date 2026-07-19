@@ -17,7 +17,7 @@ from tqdm import tqdm
 from peat.data import StereoSetDataset, load_stereoset_pairs
 from peat.eval import evaluate_full
 from peat.models import get_spec, load_model
-from peat.utils import LOG_DIR, cleanup, get_autocast_dtype, set_seed, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, get_autocast_dtype, set_seed, setup_logger
 
 logger = setup_logger("peat.baselines.cda", str(LOG_DIR / "baselines.log"))
 
@@ -123,7 +123,9 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
             logger.info(f"  CDA epoch {epoch+1}: avg_loss={avg:.4f}")
 
         model.eval()
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+        _csv = RAW_DIR / "baselines" / "cda" / model_tag / f"seed_{seed}"
+        _csv.mkdir(parents=True, exist_ok=True)
+        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
         metrics["method"] = "CDA"
         metrics["seed"] = seed
         return metrics

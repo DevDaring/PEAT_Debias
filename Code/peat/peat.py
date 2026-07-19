@@ -113,14 +113,26 @@ def _optim_to_device(optim_sd: dict, device: str) -> dict:
 # Step 0 — LoRA attachment
 # ===========================================================================
 
-def attach_lora(model, model_tag: str):
-    """Freeze base model and attach LoRA (rank=4, alpha=8, last 2 layers).
+def attach_lora(model, model_tag: str, placement: str = "last2"):
+    """Freeze base model and attach LoRA (rank=4, alpha=8).
 
     LoRA-B is initialized to zero so M_θ ≡ M_θ0 at init.
+
+    placement: which transformer blocks carry adapters —
+      "last2" (default, the published PEAT configuration),
+      "first2" or "all" (WP-C placement factorial; tests whether bias signal
+      is reachable only from late layers — Reviewers #1/#3/#4).
     """
     spec = get_spec(model_tag)
     target_modules = get_lora_target_modules(model_tag)
-    layer_indices = get_lora_layers_pattern(model_tag, model)
+    if placement == "last2":
+        layer_indices = get_lora_layers_pattern(model_tag, model)
+    elif placement == "first2":
+        layer_indices = [0, 1]
+    elif placement == "all":
+        layer_indices = None   # LoraConfig: no restriction → every matching module
+    else:
+        raise ValueError(f"Unknown placement '{placement}' (last2|first2|all)")
 
     # PEFT has no MASKED_LM task type. For encoder MLMs, omit task_type
     # and let peft auto-detect. For causal LMs, set CAUSAL_LM explicitly.
@@ -642,15 +654,58 @@ def run_bootstrap_selection(model, tokenizer, model_tag, finalists, config_state
     return best_config
 
 
-def run_final_training(model, tokenizer, model_tag, best_config,
-                       seeds=(42, 123, 456), device="cuda"):
-    """Phase C — Final retraining with c_best from scratch, 3 seeds, 5 epochs.
+def selection_split_ss(model, tokenizer, model_tag, val_df, device="cuda") -> float:
+    """SS on the held-out StereoSet selection split (WP-D surrogate tracking).
 
-    Saves all 3 adapter checkpoints.
+    Fraction of validation pairs with Δ_θ > 0 (length-normalised log-odds of
+    stereo vs anti-stereo filler), ×100. Logged per epoch alongside L_neut so
+    the revision can show empirically how the Huber surrogate tracks the
+    sign-based SS during training (Reviewer #2-W1 / #3-minor).
+    """
+    spec = get_spec(model_tag)
+    is_encoder = spec.is_encoder
+    model.eval()
+    prefers = []
+    with torch.no_grad():
+        for _, row in val_df.iterrows():
+            try:
+                ctx, t_s, t_a = row["context"], row["t_s"], row["t_a"]
+                if is_encoder:
+                    lg_s, pos_s, tid_s = _get_masked_logits_encoder(model, tokenizer, ctx, t_s, device)
+                    lg_a, pos_a, tid_a = _get_masked_logits_encoder(model, tokenizer, ctx, t_a, device)
+                else:
+                    lg_s, pos_s, tid_s = _get_causal_logits(model, tokenizer, ctx, t_s, device)
+                    lg_a, pos_a, tid_a = _get_causal_logits(model, tokenizer, ctx, t_a, device)
+                if lg_s is None or lg_a is None:
+                    continue
+                lp_s = compute_log_prob_at_positions(lg_s, pos_s, tid_s) / max(len(tid_s), 1)
+                lp_a = compute_log_prob_at_positions(lg_a, pos_a, tid_a) / max(len(tid_a), 1)
+                prefers.append(1.0 if (lp_s - lp_a).item() > 0 else 0.0)
+            except Exception:
+                continue
+    model.train()
+    return 100.0 * (sum(prefers) / len(prefers)) if prefers else float("nan")
+
+
+def run_final_training(model, tokenizer, model_tag, best_config,
+                       seeds=(42, 123, 456), device="cuda",
+                       train_df=None, ckpt_subdir="peat",
+                       track_selection_ss=True):
+    """Phase C — Final retraining with c_best from scratch, N seeds, 5 epochs.
+
+    Saves one adapter checkpoint per seed under state/<ckpt_subdir>/<model>/.
 
     model must be a LoRA-wrapped PEFT model at LoRA-init state on `device`.
-    model_theta0 (frozen reference) is created ONCE for all 3 seeds.
+    model_theta0 (frozen reference) is created ONCE for all seeds.
     DataLoader is created once — set_seed(seed) re-seeds RNG for shuffle order.
+
+    Revision additions (see Submission/proposed_improvement.md):
+      train_df           — override the training pairs (WP-G PEAT-CB augmentation);
+                           None loads the canonical StereoSet 90% split.
+      ckpt_subdir        — checkpoint namespace so ablation/PEAT-CB runs never
+                           collide with the main PEAT checkpoints.
+      track_selection_ss — log (per-epoch loss terms, selection-split SS) for
+                           the surrogate-tracking figure (WP-D).
     """
     ensure_dirs()
     spec = get_spec(model_tag)
@@ -665,7 +720,9 @@ def run_final_training(model, tokenizer, model_tag, best_config,
 
     # DataLoader created once (same data split across all seeds).
     # set_seed(seed) below re-seeds the global RNG so shuffle differs per seed.
-    train_df, _ = load_stereoset_pairs(seed=42)  # always same split
+    canonical_train, val_df = load_stereoset_pairs(seed=42)  # always same split
+    if train_df is None:
+        train_df = canonical_train
     train_ds = StereoSetDataset(train_df)
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
                               num_workers=0, drop_last=False)
@@ -694,15 +751,30 @@ def run_final_training(model, tokenizer, model_tag, best_config,
             total_steps = len(train_loader) * n_epochs
             scheduler = CosineAnnealingLR(optimizer, T_max=total_steps)
 
+            tracking = []
             for epoch in range(1, n_epochs + 1):
-                train_peat_one_epoch(
+                epoch_losses = train_peat_one_epoch(
                     model, model_theta0, tokenizer, train_loader,
                     optimizer, scheduler, model_tag, device, epoch,
                     best_config["lambda_1"], best_config["lambda_2"], grad_accum,
                 )
 
+                # WP-D: surrogate-tracking point (loss terms + selection-split SS)
+                track_pt = {"epoch": epoch}
+                if isinstance(epoch_losses, dict):
+                    track_pt.update(epoch_losses)
+                if track_selection_ss:
+                    track_pt["selection_ss"] = selection_split_ss(
+                        model, tokenizer, model_tag, val_df, device)
+                    logger.info(
+                        f"  [track] seed={seed} epoch={epoch} "
+                        f"L_neut={track_pt.get('L_neut', float('nan')):.4f} "
+                        f"selection_SS={track_pt['selection_ss']:.2f}"
+                    )
+                tracking.append(track_pt)
+
                 # Checkpoint every epoch
-                ckpt_dir = STATE_DIR / "peat" / model_tag / f"seed_{seed}"
+                ckpt_dir = STATE_DIR / ckpt_subdir / model_tag / f"seed_{seed}"
                 ckpt_dir.mkdir(parents=True, exist_ok=True)
                 ckpt_path = ckpt_dir / f"epoch_{epoch}.checkpoint"
                 torch.save({
@@ -711,12 +783,14 @@ def run_final_training(model, tokenizer, model_tag, best_config,
                     "epoch": epoch,
                     "config": best_config,
                     "seed": seed,
+                    "tracking": tracking,
                 }, ckpt_path)
 
             checkpoints[seed] = {
                 "lora_state": _lora_state_to_cpu(model),
                 "config": best_config,
-                "final_ckpt": str(ckpt_dir / "epoch_5.checkpoint"),
+                "final_ckpt": str(ckpt_dir / f"epoch_{n_epochs}.checkpoint"),
+                "tracking": tracking,
             }
 
             del optimizer, scheduler
@@ -734,12 +808,30 @@ def run_final_training(model, tokenizer, model_tag, best_config,
 # Public API
 # ===========================================================================
 
-def run_peat_full(model, tokenizer, model_tag, device="cuda"):
+# (λ1, λ2) selected by the published SHA + bootstrap procedure (paper Table 4,
+# APIN-D-26-06244). The revision reuses these instead of re-running the 25-config
+# SHA search: the selection procedure, data split, and models are unchanged, so
+# re-searching would reproduce the same selection at ~10 GPU-h cost — outside
+# the 50 GPU-h revision budget (Submission/proposed_improvement.md, Section 5).
+KNOWN_BEST_CONFIGS = {
+    "bert-base":       {"lambda_1": 1.0,  "lambda_2": 0.001, "id": "l1=1.0_l2=0.001"},
+    "modernbert-base": {"lambda_1": 1.0,  "lambda_2": 10.0,  "id": "l1=1.0_l2=10.0"},
+    "nomicbert":       {"lambda_1": 10.0, "lambda_2": 0.01,  "id": "l1=10.0_l2=0.01"},
+    "qwen2.5-1.5b":    {"lambda_1": 0.01, "lambda_2": 10.0,  "id": "l1=0.01_l2=10.0"},
+}
+
+
+def run_peat_full(model, tokenizer, model_tag, device="cuda",
+                  seeds=(42, 123, 456), reuse_known_config=True):
     """Run the complete PEAT pipeline for one model.
 
     Phase A: Successive Halving (25 → 12 → 4)
     Phase B: Bootstrap-robust selection
-    Phase C: Final retraining (3 seeds × 5 epochs)
+    Phase C: Final retraining (N seeds × 5 epochs)
+
+    When `reuse_known_config` and the model has a published SHA selection in
+    KNOWN_BEST_CONFIGS, Phases A/B are skipped and Phase C runs directly with
+    the published (λ1, λ2) — identical outcome, ~10 GPU-h saved.
 
     model must be a LoRA-wrapped PEFT model already on `device`.
     Caller attaches LoRA via attach_lora() before calling.
@@ -749,18 +841,30 @@ def run_peat_full(model, tokenizer, model_tag, device="cuda"):
     logger.info(f"PEAT FULL PIPELINE: {model_tag}")
     logger.info(f"{'='*60}")
 
+    if reuse_known_config and model_tag in KNOWN_BEST_CONFIGS:
+        best_config = dict(KNOWN_BEST_CONFIGS[model_tag])
+        logger.info(
+            f"  Reusing published SHA selection for {model_tag}: {best_config['id']} "
+            f"(SHA/bootstrap skipped — see KNOWN_BEST_CONFIGS)"
+        )
+        checkpoints = run_final_training(
+            model, tokenizer, model_tag, best_config, seeds=seeds, device=device)
+        return best_config, checkpoints
+
     finalists, config_states, survivors, init_lora_state = run_successive_halving(
         model, tokenizer, model_tag, device=device)
     best_config = run_bootstrap_selection(
         model, tokenizer, model_tag, finalists, config_states, survivors, device=device)
     # Reset to LoRA-init before final training (SHA/bootstrap left model in a trained state)
     _restore_lora_state(model, init_lora_state, device)
-    checkpoints = run_final_training(model, tokenizer, model_tag, best_config, device=device)
+    checkpoints = run_final_training(
+        model, tokenizer, model_tag, best_config, seeds=seeds, device=device)
 
     return best_config, checkpoints
 
 
-def run_peat_scaling(model, tokenizer, model_tag, best_config, device="cuda"):
+def run_peat_scaling(model, tokenizer, model_tag, best_config, device="cuda",
+                     seeds=(42, 123, 456)):
     """Run PEAT for a scaling model, reusing c_best from qwen2.5-1.5b.
 
     Justified: "smallest causal model's optimal config transfers; we verify
@@ -772,5 +876,6 @@ def run_peat_scaling(model, tokenizer, model_tag, best_config, device="cuda"):
     logger.info(f"PEAT SCALING: {model_tag} (reusing config {best_config['id']})")
     logger.info(f"{'='*60}")
 
-    checkpoints = run_final_training(model, tokenizer, model_tag, best_config, device=device)
+    checkpoints = run_final_training(
+        model, tokenizer, model_tag, best_config, seeds=seeds, device=device)
     return checkpoints

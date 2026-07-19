@@ -16,7 +16,7 @@ from peat.data import load_stereoset_pairs, StereoSetDataset
 from peat.eval import evaluate_full
 from peat.models import get_spec, load_model
 from peat.peat import attach_lora
-from peat.utils import LOG_DIR, cleanup, get_autocast_dtype, set_seed, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, get_autocast_dtype, set_seed, setup_logger
 
 logger = setup_logger("peat.baselines.auto_debias", str(LOG_DIR / "baselines.log"))
 
@@ -123,7 +123,9 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
             logger.info(f"  Auto-Debias epoch {epoch+1}: avg_loss={total_loss/max(n_steps,1):.4f}")
 
         model.eval()
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+        _csv = RAW_DIR / "baselines" / "auto_debias" / model_tag / f"seed_{seed}"
+        _csv.mkdir(parents=True, exist_ok=True)
+        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
         metrics["method"] = "Auto-Debias"
         metrics["seed"] = seed
         return metrics

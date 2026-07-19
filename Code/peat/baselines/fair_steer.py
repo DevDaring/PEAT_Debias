@@ -11,9 +11,17 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from peat.data import load_stereoset_pairs
-from peat.eval import evaluate_full
+from peat.eval import compute_stereotype_score, evaluate_full
+from peat.interventions import assert_intervention_active, steering_intervention
 from peat.models import get_spec, load_model
-from peat.utils import LOG_DIR, cleanup, set_seed, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, set_seed, setup_logger
+
+# Steering strength: projection of the bias direction is removed from the last
+# two blocks' residual stream. alpha=1.0 removes exactly the bias-direction
+# component; the value is reported (and could be swept on the selection split)
+# in the supplement. See WP-A in Submission/proposed_improvement.md.
+STEER_ALPHA = 1.0
+PROBE_ROWS = 40
 
 logger = setup_logger("peat.baselines.fair_steer", str(LOG_DIR / "baselines.log"))
 
@@ -100,14 +108,26 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
             return {"method": "FairSteer", "model": model_tag, "seed": seed,
                     "status": "skipped: empty steering vector"}
 
-        # Note: full FairSteer applies steering during inference via hooks.
-        # For evaluation, we use the base model since SS computation doesn't
-        # go through the steered generation path directly.
+        # WP-A fix: apply the steering vector via forward hooks so it is active
+        # during the log-probability scoring used to compute SS (and utility).
+        # Previously the unmodified model was scored, yielding Base-identical SS.
         model.eval()
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+
+        base_probe = compute_stereotype_score(
+            model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        with steering_intervention(model, steering_vec, alpha=STEER_ALPHA):
+            method_probe = compute_stereotype_score(
+                model, tokenizer, model_tag, device, max_rows=PROBE_ROWS)["results_df"]
+        assert_intervention_active(base_probe, method_probe, "FairSteer")
+
+        with steering_intervention(model, steering_vec, alpha=STEER_ALPHA):
+            _csv = RAW_DIR / "baselines" / "fair_steer" / model_tag / f"seed_{seed}"
+            _csv.mkdir(parents=True, exist_ok=True)
+            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
         metrics["method"] = "FairSteer"
         metrics["seed"] = seed
         metrics["steering_vec_norm"] = steering_vec.norm().item()
+        metrics["steer_alpha"] = STEER_ALPHA
         return metrics
 
     except Exception as e:

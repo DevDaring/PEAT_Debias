@@ -7,7 +7,7 @@ This serves as the floor/reference for all comparisons.
 
 from peat.eval import evaluate_full
 from peat.models import load_model
-from peat.utils import LOG_DIR, cleanup, setup_logger
+from peat.utils import LOG_DIR, RAW_DIR, cleanup, setup_logger
 
 logger = setup_logger("peat.baselines.base", str(LOG_DIR / "baselines.log"))
 
@@ -26,7 +26,9 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         model, tokenizer = _model, _tokenizer
 
     try:
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device)
+        _csv = RAW_DIR / "baselines" / "base" / model_tag / f"seed_{seed}"
+        _csv.mkdir(parents=True, exist_ok=True)
+        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
         metrics["method"] = "Base"
         metrics["seed"] = seed
         return metrics
