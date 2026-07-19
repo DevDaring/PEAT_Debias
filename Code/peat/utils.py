@@ -310,14 +310,16 @@ class CSVFlusher:
         # Create parent dirs
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
-        # If file already exists, count existing rows for resume
+        # Start each eval's CSV fresh: overwrite any pre-existing file so that a
+        # stale CSV (e.g. from a git clone of prior results) or a re-run after
+        # pre-emption can never append onto and contaminate the per-instance
+        # rows. Cell-level run_state is the resume unit, not CSV rows.
         if self.path.exists():
-            import pandas as pd
             try:
-                existing = pd.read_csv(self.path)
-                self._total_written = len(existing)
+                self.path.unlink()
             except Exception:
-                self._total_written = 0
+                pass
+        self._total_written = 0
 
     @property
     def total_written(self) -> int:
