@@ -946,11 +946,16 @@ def evaluate_full(model, tokenizer, model_tag: str,
         bbq = evaluate_bbq(model, tokenizer, model_tag, device)
         metrics.update(bbq)
 
-        # Generation-based choice metric: explicit A/B naturalness prompt
-        choice_csv = csv_dir / f"crows_choice_{model_tag}.csv" if csv_dir else None
-        choice_result = compute_crows_choice_score(
-            model, tokenizer, model_tag, device, choice_csv
-        )
-        metrics.update(choice_result)
+        # Generation-based choice metric (AUXILIARY; not a main-paper result,
+        # Supplement §6). Needs a cloud LLM judge and is slow/quota-limited, so
+        # it is opt-in via PEAT_RUN_CHOICE=1 and can never crash the core eval.
+        import os as _os
+        if _os.environ.get("PEAT_RUN_CHOICE", "0") == "1":
+            try:
+                choice_csv = csv_dir / f"crows_choice_{model_tag}.csv" if csv_dir else None
+                metrics.update(compute_crows_choice_score(
+                    model, tokenizer, model_tag, device, choice_csv))
+            except Exception as _choice_err:
+                logger.warning(f"crows_choice skipped for {model_tag}: {_choice_err}")
 
     return metrics

@@ -108,8 +108,17 @@ def mask(key: str) -> str:
 # ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
+# Only HuggingFace is truly required (gated model downloads). The cloud
+# LLM-as-judge keys (GCP/DeepSeek/Mistral) drive the auxiliary generation-based
+# CrowS choice score, which is explicitly NOT a main-paper result (see
+# Supplement §6). The APIN revision's metrics — SS via log-probability, GLUE,
+# WikiText PPL, BBQ, and the extrinsic suite — need none of them, so their
+# absence must not block the run.
 _REQUIRED_KEYS = [
     ("HF_KEY / HF_Classic_Token", hf_token),
+]
+
+_OPTIONAL_KEYS = [
     ("GCP_KEY_1 / GCP_Key1", lambda: gcp_key(1)),
     ("GCP_KEY_2 / GCP_Key2", lambda: gcp_key(2)),
     ("GCP_KEY_3 / GCP_Key3", lambda: gcp_key(3)),
@@ -120,20 +129,19 @@ _REQUIRED_KEYS = [
 
 
 def validate_all_keys() -> dict[str, str]:
-    """Validate that every required key is present and return them masked.
+    """Validate that every REQUIRED key is present; report optional ones.
 
     Returns:
-        dict mapping descriptive key name → masked value.
+        dict mapping descriptive key name → masked value (present keys only).
 
     Raises:
-        ValueError: if any required key is missing.
+        ValueError: if a truly-required key (HuggingFace) is missing.
     """
     results = {}
     missing = []
     for desc, accessor in _REQUIRED_KEYS:
         try:
-            val = accessor()
-            results[desc] = mask(val)
+            results[desc] = mask(accessor())
         except ValueError:
             missing.append(desc)
 
@@ -142,6 +150,12 @@ def validate_all_keys() -> dict[str, str]:
             f"Missing required secrets: {', '.join(missing)}. "
             f"Please set them in {_ENV_PATH}"
         )
+
+    for desc, accessor in _OPTIONAL_KEYS:
+        try:
+            results[desc] = mask(accessor())
+        except ValueError:
+            results[desc] = "(optional, absent)"
     return results
 
 
