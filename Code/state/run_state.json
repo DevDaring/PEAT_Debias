@@ -154,6 +154,55 @@
         "seed": 789,
         "best_config": "l1=1.0_l2=0.001"
       }
+    },
+    "peat_eval|bert-base|1011|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T15:53:18.761488+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.48806366047745,
+        "ss_mean": 58.44608753315649,
+        "ss_ci": "58.45 [56.10, 60.88]",
+        "ss_per_category": {
+          "race-color": 57.55813953488372,
+          "gender": 50.38167938931297,
+          "religion": 69.52380952380952,
+          "age": 63.2183908045977,
+          "nationality": 61.63522012578616,
+          "disability": 63.33333333333333,
+          "physical-appearance": 53.96825396825397,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 61.904761904761905
+        },
+        "glue": {
+          "cola": 0.34876761250623495,
+          "sst2": 0.8245412844036697,
+          "mrpc": 0.6740196078431373,
+          "stsb": 0.6311444601062568,
+          "qqp": 0.749,
+          "mnli": 0.447,
+          "qnli": 0.622,
+          "rte": 0.5379061371841155,
+          "average": 0.6042973877554267
+        },
+        "GLUE Average": 0.6042973877554267,
+        "method": "PEAT",
+        "seed": 1011,
+        "best_config": "l1=1.0_l2=0.001"
+      }
+    },
+    "peat_training|bert-base|0|full_pipeline": {
+      "status": "completed",
+      "completed_at": "2026-07-19T15:53:19.056918+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "best_config": {
+          "lambda_1": 1.0,
+          "lambda_2": 0.001,
+          "id": "l1=1.0_l2=0.001"
+        },
+        "method": "PEAT"
+      }
     }
   }
 }
