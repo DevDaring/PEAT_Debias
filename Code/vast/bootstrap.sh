@@ -35,6 +35,11 @@ export HF_TOKEN="${HF_Classic_Token:-${HF_TOKEN:-}}"
 export GH_TOKEN="${Github_Classic_Token:-${GH_TOKEN:-}}"
 export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
 
+# Clear stale datasets/modules cache: a prior datasets>=4.0 may have cached
+# dataset_info with the 'List' feature type, which the pinned datasets 3.x
+# cannot parse (StereoSet load then fails). Model weights (hub/) are kept.
+rm -rf "$HF_HOME/datasets" "$HF_HOME/modules" 2>/dev/null || true
+
 # ── 2. clone + install ─────────────────────────────────────────────────────
 command -v git >/dev/null || { apt-get update -qq && apt-get install -y -qq git; }
 [ -d "$ROOT/.git" ] || git clone --depth 1 "$REPO" "$ROOT"
