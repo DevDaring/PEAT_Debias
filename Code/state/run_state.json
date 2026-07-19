@@ -203,6 +203,42 @@
         },
         "method": "PEAT"
       }
+    },
+    "peat_eval|modernbert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T17:41:56.369688+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 57.824933687002655,
+        "ss_mean": 57.80629973474801,
+        "ss_ci": "57.81 [55.30, 60.28]",
+        "ss_per_category": {
+          "race-color": 53.68217054263565,
+          "gender": 49.23664122137404,
+          "religion": 71.42857142857143,
+          "age": 55.172413793103445,
+          "nationality": 64.15094339622641,
+          "disability": 71.66666666666667,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 58.139534883720934,
+          "sexual-orientation": 70.23809523809523
+        },
+        "glue": {
+          "cola": 0.16970354509486296,
+          "sst2": 0.7064220183486238,
+          "mrpc": 0.7009803921568627,
+          "stsb": 0.609059906165691,
+          "qqp": 0.758,
+          "mnli": 0.411,
+          "qnli": 0.698,
+          "rte": 0.516245487364621,
+          "average": 0.5711764186413327
+        },
+        "GLUE Average": 0.5711764186413327,
+        "method": "PEAT",
+        "seed": 42,
+        "best_config": "l1=1.0_l2=10.0"
+      }
     }
   }
 }
