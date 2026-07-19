@@ -32,6 +32,10 @@ ENV_FILE  = REPO_ROOT / "Code" / ".env"
 SLUG      = "DevDaring/PEAT_Debias"
 IMAGE     = "pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel"
 DISK_GB   = 80
+SSH_KEY   = os.path.expanduser("~/.ssh/id_rsa")          # attached to the instance
+# Force this key only and skip host-key prompts (Vast offers several keys).
+SSH_OPTS  = ["-o", "StrictHostKeyChecking=no", "-o", "IdentitiesOnly=yes",
+             "-o", "ConnectTimeout=25", "-i", SSH_KEY]
 
 # ---- secret loading (never printed) ---------------------------------------
 def load_env() -> dict:
@@ -150,8 +154,8 @@ def cmd_deploy(key: str, env: dict, iid: int):
                 f.write(f"{k}={env[k]}\n")
         tmp = f.name
     os.chmod(tmp, 0o600)
-    ssh = ["ssh", "-o", "StrictHostKeyChecking=no", "-p", port, f"root@{host}"]
-    scp = ["scp", "-o", "StrictHostKeyChecking=no", "-P", port]
+    ssh = ["ssh", *SSH_OPTS, "-p", port, f"root@{host}"]
+    scp = ["scp", *SSH_OPTS, "-P", port]
     try:
         subprocess.run(scp + [tmp, f"root@{host}:/root/peat.env"], check=True)
         subprocess.run(scp + [str(REPO_ROOT/"Code"/"vast"/"bootstrap.sh"),
@@ -175,9 +179,9 @@ def cmd_status(key: str, iid: int):
     tgt = ssh_target(key, iid)
     if tgt:
         host, port = tgt
-        subprocess.run(["ssh", "-o", "StrictHostKeyChecking=no", "-p", port,
-                        f"root@{host}", "tail -n 20 /root/mainrun.log 2>/dev/null || "
-                        "tail -n 20 /root/bootstrap.log 2>/dev/null"])
+        subprocess.run(["ssh", *SSH_OPTS, "-p", port, f"root@{host}",
+                        "tail -n 25 /root/mainrun.log 2>/dev/null || "
+                        "tail -n 25 /root/bootstrap.log 2>/dev/null"])
 
 def cmd_pull(key: str, iid: int):
     tgt = ssh_target(key, iid)
@@ -186,7 +190,7 @@ def cmd_pull(key: str, iid: int):
     host, port = tgt
     dest = str(REPO_ROOT) + "/"
     # rsync results back; -a preserves, --exclude keeps large caches/secrets out
-    subprocess.run(["scp", "-r", "-o", "StrictHostKeyChecking=no", "-P", port,
+    subprocess.run(["scp", "-r", *SSH_OPTS, "-P", port,
                     f"root@{host}:/root/PEAT_Debias/Code/results", dest + "Code/"])
     print("[vastctl] results pulled to", dest + "Code/results")
 
