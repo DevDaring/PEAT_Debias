@@ -10,6 +10,42 @@
       "status": "completed",
       "completed_at": "2026-07-19T13:57:11.277609+00:00",
       "metrics": {}
+    },
+    "peat_eval|bert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T15:01:12.098947+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.294429708222815,
+        "ss_mean": 57.33746684350133,
+        "ss_ci": "57.34 [54.91, 59.68]",
+        "ss_per_category": {
+          "race-color": 56.007751937984494,
+          "gender": 48.854961832061065,
+          "religion": 70.47619047619048,
+          "age": 62.06896551724138,
+          "nationality": 58.490566037735846,
+          "disability": 61.66666666666667,
+          "physical-appearance": 53.96825396825397,
+          "socioeconomic": 58.720930232558146,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.35073804862436525,
+          "sst2": 0.823394495412844,
+          "mrpc": 0.6764705882352942,
+          "stsb": 0.630236101903034,
+          "qqp": 0.752,
+          "mnli": 0.444,
+          "qnli": 0.617,
+          "rte": 0.5487364620938628,
+          "average": 0.6053219620336749
+        },
+        "GLUE Average": 0.6053219620336749,
+        "method": "PEAT",
+        "seed": 42,
+        "best_config": "l1=1.0_l2=0.001"
+      }
     }
   }
 }
