@@ -82,6 +82,78 @@
         "seed": 123,
         "best_config": "l1=1.0_l2=0.001"
       }
+    },
+    "peat_eval|bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T15:27:16.669442+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.824933687002655,
+        "ss_mean": 57.780702917771876,
+        "ss_ci": "57.78 [55.37, 60.28]",
+        "ss_per_category": {
+          "race-color": 56.395348837209305,
+          "gender": 48.854961832061065,
+          "religion": 70.47619047619048,
+          "age": 62.06896551724138,
+          "nationality": 61.0062893081761,
+          "disability": 63.33333333333333,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 63.095238095238095
+        },
+        "glue": {
+          "cola": 0.34371331610495925,
+          "sst2": 0.8245412844036697,
+          "mrpc": 0.678921568627451,
+          "stsb": 0.6323738115704363,
+          "qqp": 0.751,
+          "mnli": 0.445,
+          "qnli": 0.62,
+          "rte": 0.5415162454873647,
+          "average": 0.6046332782742352
+        },
+        "GLUE Average": 0.6046332782742352,
+        "method": "PEAT",
+        "seed": 456,
+        "best_config": "l1=1.0_l2=0.001"
+      }
+    },
+    "peat_eval|bert-base|789|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T15:40:07.976964+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.09018567639257,
+        "ss_mean": 58.095225464190975,
+        "ss_ci": "58.10 [55.64, 60.48]",
+        "ss_per_category": {
+          "race-color": 56.78294573643411,
+          "gender": 49.61832061068702,
+          "religion": 70.47619047619048,
+          "age": 63.2183908045977,
+          "nationality": 61.63522012578616,
+          "disability": 61.66666666666667,
+          "physical-appearance": 53.96825396825397,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 63.095238095238095
+        },
+        "glue": {
+          "cola": 0.34673798303109815,
+          "sst2": 0.8268348623853211,
+          "mrpc": 0.6740196078431373,
+          "stsb": 0.6301368898792273,
+          "qqp": 0.751,
+          "mnli": 0.445,
+          "qnli": 0.617,
+          "rte": 0.5379061371841155,
+          "average": 0.6035794350403625
+        },
+        "GLUE Average": 0.6035794350403625,
+        "method": "PEAT",
+        "seed": 789,
+        "best_config": "l1=1.0_l2=0.001"
+      }
     }
   }
 }
