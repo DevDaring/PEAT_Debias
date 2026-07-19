@@ -396,6 +396,42 @@
         },
         "method": "PEAT"
       }
+    },
+    "peat_eval|nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-19T23:25:05.586169+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 56.49867374005305,
+        "ss_mean": 56.49031830238727,
+        "ss_ci": "56.49 [53.91, 59.02]",
+        "ss_per_category": {
+          "race-color": 54.06976744186046,
+          "gender": 51.526717557251914,
+          "religion": 66.66666666666666,
+          "age": 60.91954022988506,
+          "nationality": 62.264150943396224,
+          "disability": 58.333333333333336,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 54.06976744186046,
+          "sexual-orientation": 59.523809523809526
+        },
+        "glue": {
+          "cola": 0.06982176152073481,
+          "sst2": 0.6456422018348624,
+          "mrpc": 0.6348039215686274,
+          "stsb": 0.34813519764007866,
+          "qqp": 0.618,
+          "mnli": 0.348,
+          "qnli": 0.596,
+          "rte": 0.51985559566787,
+          "average": 0.4725323347790216
+        },
+        "GLUE Average": 0.4725323347790216,
+        "method": "PEAT",
+        "seed": 42,
+        "best_config": "l1=10.0_l2=0.01"
+      }
     }
   }
 }
