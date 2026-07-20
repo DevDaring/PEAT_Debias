@@ -1284,6 +1284,76 @@
         "method": "Auto-Debias",
         "seed": 42
       }
+    },
+    "baseline|auto_debias_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T17:21:33.258686+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.55437665782494,
+        "ss_mean": 58.55994694960212,
+        "ss_ci": "58.56 [56.10, 60.88]",
+        "ss_per_category": {
+          "race-color": 57.94573643410853,
+          "gender": 48.854961832061065,
+          "religion": 69.52380952380952,
+          "age": 62.06896551724138,
+          "nationality": 62.264150943396224,
+          "disability": 61.66666666666667,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.2731403222986588,
+          "sst2": 0.7981651376146789,
+          "mrpc": 0.6323529411764706,
+          "stsb": 0.5998655157268501,
+          "qqp": 0.716,
+          "mnli": 0.427,
+          "qnli": 0.605,
+          "rte": 0.5487364620938628,
+          "average": 0.5750325473638151
+        },
+        "GLUE Average": 0.5750325473638151,
+        "method": "Auto-Debias",
+        "seed": 123
+      }
+    },
+    "baseline|auto_debias_bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T17:30:00.280982+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.95755968169761,
+        "ss_mean": 57.91690981432361,
+        "ss_ci": "57.92 [55.44, 60.34]",
+        "ss_per_category": {
+          "race-color": 56.78294573643411,
+          "gender": 49.23664122137404,
+          "religion": 69.52380952380952,
+          "age": 63.2183908045977,
+          "nationality": 59.74842767295597,
+          "disability": 61.66666666666667,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.27409490974532846,
+          "sst2": 0.7970183486238532,
+          "mrpc": 0.6372549019607843,
+          "stsb": 0.6005025068788643,
+          "qqp": 0.718,
+          "mnli": 0.422,
+          "qnli": 0.614,
+          "rte": 0.5379061371841155,
+          "average": 0.5750971005491182
+        },
+        "GLUE Average": 0.5750971005491182,
+        "method": "Auto-Debias",
+        "seed": 456
+      }
     }
   }
 }
