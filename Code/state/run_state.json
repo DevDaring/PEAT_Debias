@@ -1103,6 +1103,41 @@
         "method": "CDA",
         "seed": 123
       }
+    },
+    "baseline|cda_bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T16:27:47.585449+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.355437665782496,
+        "ss_mean": 58.32453580901857,
+        "ss_ci": "58.32 [55.97, 60.81]",
+        "ss_per_category": {
+          "race-color": 56.78294573643411,
+          "gender": 49.61832061068702,
+          "religion": 70.47619047619048,
+          "age": 63.2183908045977,
+          "nationality": 62.264150943396224,
+          "disability": 61.66666666666667,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.2902501045823521,
+          "sst2": 0.7924311926605505,
+          "mrpc": 0.6323529411764706,
+          "stsb": 0.6085002643576548,
+          "qqp": 0.717,
+          "mnli": 0.424,
+          "qnli": 0.614,
+          "rte": 0.5379061371841155,
+          "average": 0.5770550799951429
+        },
+        "GLUE Average": 0.5770550799951429,
+        "method": "CDA",
+        "seed": 456
+      }
     }
   }
 }
