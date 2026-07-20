@@ -1640,6 +1640,41 @@
         "method": "BiasUnlearn",
         "seed": 123
       }
+    },
+    "baseline|bias_unlearn_bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T18:57:38.172209+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.692307692307686,
+        "ss_mean": 57.67214854111406,
+        "ss_ci": "57.67 [55.31, 60.08]",
+        "ss_per_category": {
+          "race-color": 55.81395348837209,
+          "gender": 48.854961832061065,
+          "religion": 69.52380952380952,
+          "age": 60.91954022988506,
+          "nationality": 59.74842767295597,
+          "disability": 65.0,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 60.46511627906976,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.2752309468090564,
+          "sst2": 0.7924311926605505,
+          "mrpc": 0.6421568627450981,
+          "stsb": 0.6020728705703396,
+          "qqp": 0.72,
+          "mnli": 0.429,
+          "qnli": 0.613,
+          "rte": 0.5306859205776173,
+          "average": 0.5755722241703327
+        },
+        "GLUE Average": 0.5755722241703327,
+        "method": "BiasUnlearn",
+        "seed": 456
+      }
     }
   }
 }
