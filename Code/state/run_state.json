@@ -1459,6 +1459,80 @@
         "method": "BiasEdit",
         "seed": 456
       }
+    },
+    "baseline|fair_steer_bert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T18:06:34.474900+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 56.896551724137936,
+        "ss_mean": 56.94084880636605,
+        "ss_ci": "56.94 [54.51, 59.35]",
+        "ss_per_category": {
+          "race-color": 55.23255813953488,
+          "gender": 48.473282442748086,
+          "religion": 69.52380952380952,
+          "age": 65.51724137931035,
+          "nationality": 59.11949685534591,
+          "disability": 63.33333333333333,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 55.81395348837209,
+          "sexual-orientation": 61.904761904761905
+        },
+        "glue": {
+          "cola": 0.2694113680652142,
+          "sst2": 0.7970183486238532,
+          "mrpc": 0.6495098039215687,
+          "stsb": 0.6096722415399356,
+          "qqp": 0.723,
+          "mnli": 0.42,
+          "qnli": 0.616,
+          "rte": 0.5451263537906137,
+          "average": 0.5787172644926482
+        },
+        "GLUE Average": 0.5787172644926482,
+        "method": "FairSteer",
+        "seed": 42,
+        "steering_vec_norm": 1.0,
+        "steer_alpha": 1.0
+      }
+    },
+    "baseline|fair_steer_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T18:14:09.859387+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 56.896551724137936,
+        "ss_mean": 56.87652519893899,
+        "ss_ci": "56.88 [54.51, 59.35]",
+        "ss_per_category": {
+          "race-color": 55.23255813953488,
+          "gender": 48.473282442748086,
+          "religion": 69.52380952380952,
+          "age": 65.51724137931035,
+          "nationality": 59.11949685534591,
+          "disability": 63.33333333333333,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 55.81395348837209,
+          "sexual-orientation": 61.904761904761905
+        },
+        "glue": {
+          "cola": 0.2694113680652142,
+          "sst2": 0.7970183486238532,
+          "mrpc": 0.6495098039215687,
+          "stsb": 0.6096722415399356,
+          "qqp": 0.723,
+          "mnli": 0.42,
+          "qnli": 0.616,
+          "rte": 0.5451263537906137,
+          "average": 0.5787172644926482
+        },
+        "GLUE Average": 0.5787172644926482,
+        "method": "FairSteer",
+        "seed": 123,
+        "steering_vec_norm": 1.0,
+        "steer_alpha": 1.0
+      }
     }
   }
 }
