@@ -1212,6 +1212,78 @@
         "self_debias_alpha": 50.0,
         "note": "Schick et al. reweighting active in SS scoring path"
       }
+    },
+    "baseline|self_debias_bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T17:05:11.165495+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 54.244031830238725,
+        "ss_mean": 54.229111405835546,
+        "ss_ci": "54.23 [51.66, 56.56]",
+        "ss_per_category": {
+          "race-color": 52.90697674418605,
+          "gender": 47.70992366412214,
+          "religion": 68.57142857142857,
+          "age": 52.87356321839081,
+          "nationality": 49.685534591194966,
+          "disability": 60.0,
+          "physical-appearance": 52.38095238095239,
+          "socioeconomic": 52.90697674418605,
+          "sexual-orientation": 75.0
+        },
+        "glue": {
+          "cola": 0.2744578908511945,
+          "sst2": 0.7981651376146789,
+          "mrpc": 0.6299019607843137,
+          "stsb": 0.6042224323900736,
+          "qqp": 0.714,
+          "mnli": 0.422,
+          "qnli": 0.608,
+          "rte": 0.5415162454873647,
+          "average": 0.5740329583909531
+        },
+        "GLUE Average": 0.5740329583909531,
+        "method": "Self-Debias",
+        "seed": 456,
+        "self_debias_alpha": 50.0,
+        "note": "Schick et al. reweighting active in SS scoring path"
+      }
+    },
+    "baseline|auto_debias_bert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T17:13:15.375746+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.692307692307686,
+        "ss_mean": 57.732891246684346,
+        "ss_ci": "57.73 [55.24, 60.01]",
+        "ss_per_category": {
+          "race-color": 56.58914728682171,
+          "gender": 48.854961832061065,
+          "religion": 69.52380952380952,
+          "age": 63.2183908045977,
+          "nationality": 60.37735849056604,
+          "disability": 60.0,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 63.095238095238095
+        },
+        "glue": {
+          "cola": 0.2710890620692513,
+          "sst2": 0.7935779816513762,
+          "mrpc": 0.6274509803921569,
+          "stsb": 0.6032425911460073,
+          "qqp": 0.715,
+          "mnli": 0.427,
+          "qnli": 0.609,
+          "rte": 0.5415162454873647,
+          "average": 0.5734846075932696
+        },
+        "GLUE Average": 0.5734846075932696,
+        "method": "Auto-Debias",
+        "seed": 42
+      }
     }
   }
 }
