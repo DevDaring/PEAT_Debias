@@ -835,6 +835,34 @@
         "config_source": "qwen2.5-1.5b",
         "method": "PEAT"
       }
+    },
+    "peat_scaling_eval|llama-3.1-8b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T11:19:30.821536+00:00",
+      "metrics": {
+        "model": "llama-3.1-8b",
+        "Stereotype Score": 55.83554376657824,
+        "ss_mean": 55.82135278514589,
+        "ss_ci": "55.82 [53.31, 58.16]",
+        "ss_per_category": {
+          "race-color": 49.224806201550386,
+          "gender": 50.38167938931297,
+          "religion": 58.0952380952381,
+          "age": 66.66666666666666,
+          "nationality": 50.314465408805034,
+          "disability": 71.66666666666667,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 63.95348837209303,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 6.8802056012914115,
+        "bbq_accuracy": 0.41214057507987223,
+        "bbq_bias_score": 0.5878594249201278,
+        "bbq_total": 939,
+        "method": "PEAT",
+        "seed": 42,
+        "config_source": "qwen2.5-1.5b (transferred)"
+      }
     }
   }
 }
