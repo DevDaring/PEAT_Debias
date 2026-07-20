@@ -2245,6 +2245,43 @@
         "self_debias_alpha": 50.0,
         "note": "Schick et al. reweighting active in SS scoring path"
       }
+    },
+    "baseline|self_debias_modernbert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T23:44:18.672481+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 51.856763925729446,
+        "ss_mean": 51.797877984084884,
+        "ss_ci": "51.80 [49.20, 54.38]",
+        "ss_per_category": {
+          "race-color": 48.25581395348838,
+          "gender": 44.656488549618324,
+          "religion": 58.0952380952381,
+          "age": 54.02298850574713,
+          "nationality": 50.943396226415096,
+          "disability": 53.333333333333336,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 57.55813953488372,
+          "sexual-orientation": 69.04761904761905
+        },
+        "glue": {
+          "cola": 0.17656526043422544,
+          "sst2": 0.6915137614678899,
+          "mrpc": 0.6740196078431373,
+          "stsb": 0.5506004778021398,
+          "qqp": 0.743,
+          "mnli": 0.4,
+          "qnli": 0.661,
+          "rte": 0.49097472924187724,
+          "average": 0.5484592295986588
+        },
+        "GLUE Average": 0.5484592295986588,
+        "method": "Self-Debias",
+        "seed": 456,
+        "self_debias_alpha": 50.0,
+        "note": "Schick et al. reweighting active in SS scoring path"
+      }
     }
   }
 }
