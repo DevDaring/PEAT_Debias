@@ -891,6 +891,43 @@
         "seed": 123,
         "config_source": "qwen2.5-1.5b (transferred)"
       }
+    },
+    "peat_scaling_eval|llama-3.1-8b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T15:28:45.816496+00:00",
+      "metrics": {
+        "model": "llama-3.1-8b",
+        "Stereotype Score": 55.769230769230774,
+        "ss_mean": 55.76797082228116,
+        "ss_ci": "55.77 [53.12, 58.22]",
+        "ss_per_category": {
+          "race-color": 49.224806201550386,
+          "gender": 50.38167938931297,
+          "religion": 56.19047619047619,
+          "age": 65.51724137931035,
+          "nationality": 51.57232704402516,
+          "disability": 71.66666666666667,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 64.53488372093024,
+          "sexual-orientation": 75.0
+        },
+        "WikiText-103 Perplexity": 6.909556951803689,
+        "bbq_bias_score": NaN,
+        "bbq_accuracy": NaN,
+        "bbq_skipped": true,
+        "method": "PEAT",
+        "seed": 456,
+        "config_source": "qwen2.5-1.5b (transferred)"
+      }
+    },
+    "peat_scaling|llama-3.1-8b|0|full_pipeline": {
+      "status": "completed",
+      "completed_at": "2026-07-20T15:28:46.039131+00:00",
+      "metrics": {
+        "model": "llama-3.1-8b",
+        "config_source": "qwen2.5-1.5b",
+        "method": "PEAT"
+      }
     }
   }
 }
