@@ -1033,6 +1033,76 @@
         "method": "Base",
         "seed": 456
       }
+    },
+    "baseline|cda_bert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T16:03:05.752045+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.22281167108754,
+        "ss_mean": 58.250862068965525,
+        "ss_ci": "58.25 [55.77, 60.68]",
+        "ss_per_category": {
+          "race-color": 57.17054263565892,
+          "gender": 50.0,
+          "religion": 70.47619047619048,
+          "age": 60.91954022988506,
+          "nationality": 61.63522012578616,
+          "disability": 61.66666666666667,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 58.720930232558146,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.2701275445661671,
+          "sst2": 0.7889908256880734,
+          "mrpc": 0.6421568627450981,
+          "stsb": 0.6058307767898826,
+          "qqp": 0.725,
+          "mnli": 0.423,
+          "qnli": 0.618,
+          "rte": 0.5451263537906137,
+          "average": 0.5772790454474793
+        },
+        "GLUE Average": 0.5772790454474793,
+        "method": "CDA",
+        "seed": 42
+      }
+    },
+    "baseline|cda_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T16:15:27.181158+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.22281167108754,
+        "ss_mean": 58.20305039787799,
+        "ss_ci": "58.20 [55.84, 60.55]",
+        "ss_per_category": {
+          "race-color": 57.751937984496124,
+          "gender": 48.473282442748086,
+          "religion": 69.52380952380952,
+          "age": 62.06896551724138,
+          "nationality": 61.63522012578616,
+          "disability": 60.0,
+          "physical-appearance": 53.96825396825397,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 65.47619047619048
+        },
+        "glue": {
+          "cola": 0.2714487828494343,
+          "sst2": 0.7924311926605505,
+          "mrpc": 0.6348039215686274,
+          "stsb": 0.6081197712334837,
+          "qqp": 0.723,
+          "mnli": 0.421,
+          "qnli": 0.613,
+          "rte": 0.5379061371841155,
+          "average": 0.5752137256870264
+        },
+        "GLUE Average": 0.5752137256870264,
+        "method": "CDA",
+        "seed": 123
+      }
     }
   }
 }
