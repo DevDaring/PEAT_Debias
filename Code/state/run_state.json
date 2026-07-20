@@ -589,6 +589,62 @@
         },
         "method": "PEAT"
       }
+    },
+    "peat_eval|qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T04:50:36.949238+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 53.11671087533156,
+        "ss_mean": 53.10775862068965,
+        "ss_ci": "53.11 [50.73, 55.37]",
+        "ss_per_category": {
+          "race-color": 47.86821705426357,
+          "gender": 47.70992366412214,
+          "religion": 52.38095238095239,
+          "age": 59.77011494252874,
+          "nationality": 44.0251572327044,
+          "disability": 75.0,
+          "physical-appearance": 58.730158730158735,
+          "socioeconomic": 62.2093023255814,
+          "sexual-orientation": 75.0
+        },
+        "WikiText-103 Perplexity": 9.20287312524465,
+        "bbq_accuracy": 0.17636363636363636,
+        "bbq_bias_score": 0.8236363636363636,
+        "bbq_total": 1100,
+        "method": "PEAT",
+        "seed": 42,
+        "best_config": "l1=0.01_l2=10.0"
+      }
+    },
+    "peat_eval|qwen2.5-1.5b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T04:57:03.921203+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 53.713527851458885,
+        "ss_mean": 53.6842175066313,
+        "ss_ci": "53.68 [51.33, 56.03]",
+        "ss_per_category": {
+          "race-color": 48.837209302325576,
+          "gender": 47.32824427480916,
+          "religion": 50.476190476190474,
+          "age": 60.91954022988506,
+          "nationality": 44.65408805031446,
+          "disability": 75.0,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 62.7906976744186,
+          "sexual-orientation": 77.38095238095238
+        },
+        "WikiText-103 Perplexity": 9.219265445948716,
+        "bbq_accuracy": 0.17727272727272728,
+        "bbq_bias_score": 0.8227272727272728,
+        "bbq_total": 1100,
+        "method": "PEAT",
+        "seed": 123,
+        "best_config": "l1=0.01_l2=10.0"
+      }
     }
   }
 }
