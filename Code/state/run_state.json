@@ -1675,6 +1675,80 @@
         "method": "BiasUnlearn",
         "seed": 456
       }
+    },
+    "baseline|know_bias_bert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T19:05:18.471208+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.294429708222815,
+        "ss_mean": 57.34184350132627,
+        "ss_ci": "57.34 [54.84, 59.55]",
+        "ss_per_category": {
+          "race-color": 55.42635658914728,
+          "gender": 48.091603053435115,
+          "religion": 69.52380952380952,
+          "age": 64.36781609195403,
+          "nationality": 59.74842767295597,
+          "disability": 65.0,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 57.55813953488372,
+          "sexual-orientation": 65.47619047619048
+        },
+        "glue": {
+          "cola": 0.2744578908511945,
+          "sst2": 0.7981651376146789,
+          "mrpc": 0.6299019607843137,
+          "stsb": 0.6042224323900736,
+          "qqp": 0.714,
+          "mnli": 0.422,
+          "qnli": 0.608,
+          "rte": 0.5415162454873647,
+          "average": 0.5740329583909531
+        },
+        "GLUE Average": 0.5740329583909531,
+        "method": "KnowBias",
+        "seed": 42,
+        "n_bias_neurons": 50,
+        "knowbias_gamma": 0.5
+      }
+    },
+    "baseline|know_bias_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T19:13:13.185916+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 57.294429708222815,
+        "ss_mean": 57.269694960212206,
+        "ss_ci": "57.27 [54.84, 59.55]",
+        "ss_per_category": {
+          "race-color": 55.42635658914728,
+          "gender": 48.091603053435115,
+          "religion": 69.52380952380952,
+          "age": 64.36781609195403,
+          "nationality": 59.74842767295597,
+          "disability": 65.0,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 57.55813953488372,
+          "sexual-orientation": 65.47619047619048
+        },
+        "glue": {
+          "cola": 0.2744578908511945,
+          "sst2": 0.7981651376146789,
+          "mrpc": 0.6299019607843137,
+          "stsb": 0.6042224323900736,
+          "qqp": 0.714,
+          "mnli": 0.422,
+          "qnli": 0.608,
+          "rte": 0.5415162454873647,
+          "average": 0.5740329583909531
+        },
+        "GLUE Average": 0.5740329583909531,
+        "method": "KnowBias",
+        "seed": 123,
+        "n_bias_neurons": 50,
+        "knowbias_gamma": 0.5
+      }
     }
   }
 }
