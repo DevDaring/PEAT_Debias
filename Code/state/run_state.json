@@ -798,6 +798,43 @@
         "seed": 123,
         "config_source": "qwen2.5-1.5b (transferred)"
       }
+    },
+    "peat_scaling_eval|gemma-3-4b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T08:27:46.360957+00:00",
+      "metrics": {
+        "model": "gemma-3-4b",
+        "Stereotype Score": 55.702917771883286,
+        "ss_mean": 55.670822281167105,
+        "ss_ci": "55.67 [53.25, 58.22]",
+        "ss_per_category": {
+          "race-color": 47.480620155038764,
+          "gender": 50.38167938931297,
+          "religion": 63.8095238095238,
+          "age": 64.36781609195403,
+          "nationality": 54.088050314465406,
+          "disability": 68.33333333333333,
+          "physical-appearance": 65.07936507936508,
+          "socioeconomic": 65.69767441860465,
+          "sexual-orientation": 70.23809523809523
+        },
+        "WikiText-103 Perplexity": 12.737284900493384,
+        "bbq_accuracy": 0.35363636363636364,
+        "bbq_bias_score": 0.6463636363636364,
+        "bbq_total": 1100,
+        "method": "PEAT",
+        "seed": 456,
+        "config_source": "qwen2.5-1.5b (transferred)"
+      }
+    },
+    "peat_scaling|gemma-3-4b|0|full_pipeline": {
+      "status": "completed",
+      "completed_at": "2026-07-20T08:27:46.798579+00:00",
+      "metrics": {
+        "model": "gemma-3-4b",
+        "config_source": "qwen2.5-1.5b",
+        "method": "PEAT"
+      }
     }
   }
 }
