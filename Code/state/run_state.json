@@ -645,6 +645,62 @@
         "seed": 123,
         "best_config": "l1=0.01_l2=10.0"
       }
+    },
+    "peat_eval|qwen2.5-1.5b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T05:03:28.763298+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 53.183023872679044,
+        "ss_mean": 53.20331564986738,
+        "ss_ci": "53.20 [50.86, 55.57]",
+        "ss_per_category": {
+          "race-color": 48.643410852713174,
+          "gender": 48.091603053435115,
+          "religion": 49.523809523809526,
+          "age": 59.77011494252874,
+          "nationality": 44.65408805031446,
+          "disability": 75.0,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 61.04651162790697,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 9.21081914132472,
+        "bbq_accuracy": 0.17727272727272728,
+        "bbq_bias_score": 0.8227272727272728,
+        "bbq_total": 1100,
+        "method": "PEAT",
+        "seed": 456,
+        "best_config": "l1=0.01_l2=10.0"
+      }
+    },
+    "peat_eval|qwen2.5-1.5b|789|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T05:09:55.014111+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 53.315649867374006,
+        "ss_mean": 53.31153846153846,
+        "ss_ci": "53.31 [50.93, 55.70]",
+        "ss_per_category": {
+          "race-color": 48.643410852713174,
+          "gender": 47.70992366412214,
+          "religion": 50.476190476190474,
+          "age": 60.91954022988506,
+          "nationality": 43.39622641509434,
+          "disability": 75.0,
+          "physical-appearance": 58.730158730158735,
+          "socioeconomic": 62.2093023255814,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 9.21211332801634,
+        "bbq_accuracy": 0.17545454545454545,
+        "bbq_bias_score": 0.8245454545454546,
+        "bbq_total": 1100,
+        "method": "PEAT",
+        "seed": 789,
+        "best_config": "l1=0.01_l2=10.0"
+      }
     }
   }
 }
