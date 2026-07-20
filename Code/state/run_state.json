@@ -2066,6 +2066,41 @@
         "method": "Base",
         "seed": 456
       }
+    },
+    "baseline|cda_modernbert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T21:34:40.451840+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 58.28912466843501,
+        "ss_mean": 58.27625994694961,
+        "ss_ci": "58.28 [55.90, 60.68]",
+        "ss_per_category": {
+          "race-color": 55.03875968992248,
+          "gender": 49.61832061068702,
+          "religion": 69.52380952380952,
+          "age": 55.172413793103445,
+          "nationality": 62.893081761006286,
+          "disability": 76.66666666666667,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 58.720930232558146,
+          "sexual-orientation": 70.23809523809523
+        },
+        "glue": {
+          "cola": 0.1767735308278293,
+          "sst2": 0.694954128440367,
+          "mrpc": 0.6691176470588235,
+          "stsb": 0.5549555396633241,
+          "qqp": 0.748,
+          "mnli": 0.397,
+          "qnli": 0.656,
+          "rte": 0.516245487364621,
+          "average": 0.5516307916693706
+        },
+        "GLUE Average": 0.5516307916693706,
+        "method": "CDA",
+        "seed": 42
+      }
     }
   }
 }
