@@ -953,11 +953,19 @@ def evaluate_full(model, tokenizer, model_tag: str,
     else:
         ppl = evaluate_wikitext_perplexity(model, tokenizer, model_tag, device)
         metrics["WikiText-103 Perplexity"] = ppl
-        try:
-            metrics.update(evaluate_bbq(model, tokenizer, model_tag, device))
-        except Exception as _bbq_err:
-            logger.warning(f"BBQ skipped for {model_tag}: {_bbq_err}")
-            metrics.update({"bbq_bias_score": float("nan"), "bbq_accuracy": float("nan")})
+        # BBQ uses an LLM-as-judge (Gemini/DeepSeek/Mistral) and is very slow
+        # (~85 min/decoder eval) — and worthless when the judge is down. When
+        # the Gemini quota is exhausted, set PEAT_SKIP_BBQ=1 to skip it; the
+        # extrinsic evidence is carried by HONEST / Bias-in-Bios / StereoSet.
+        if os.environ.get("PEAT_SKIP_BBQ", "0") == "1":
+            metrics.update({"bbq_bias_score": float("nan"),
+                            "bbq_accuracy": float("nan"), "bbq_skipped": True})
+        else:
+            try:
+                metrics.update(evaluate_bbq(model, tokenizer, model_tag, device))
+            except Exception as _bbq_err:
+                logger.warning(f"BBQ skipped for {model_tag}: {_bbq_err}")
+                metrics.update({"bbq_bias_score": float("nan"), "bbq_accuracy": float("nan")})
 
         # Generation-based choice metric (AUXILIARY; not a main-paper result,
         # Supplement §6). Needs a cloud LLM judge and is slow/quota-limited, so
