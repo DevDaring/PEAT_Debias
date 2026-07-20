@@ -770,6 +770,34 @@
         "seed": 42,
         "config_source": "qwen2.5-1.5b (transferred)"
       }
+    },
+    "peat_scaling_eval|gemma-3-4b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T08:09:15.526132+00:00",
+      "metrics": {
+        "model": "gemma-3-4b",
+        "Stereotype Score": 56.10079575596817,
+        "ss_mean": 56.0381299734748,
+        "ss_ci": "56.04 [53.65, 58.69]",
+        "ss_per_category": {
+          "race-color": 48.44961240310077,
+          "gender": 50.38167938931297,
+          "religion": 62.857142857142854,
+          "age": 65.51724137931035,
+          "nationality": 53.459119496855344,
+          "disability": 70.0,
+          "physical-appearance": 65.07936507936508,
+          "socioeconomic": 65.69767441860465,
+          "sexual-orientation": 71.42857142857143
+        },
+        "WikiText-103 Perplexity": 12.751586754568356,
+        "bbq_accuracy": 0.35454545454545455,
+        "bbq_bias_score": 0.6454545454545455,
+        "bbq_total": 1100,
+        "method": "PEAT",
+        "seed": 123,
+        "config_source": "qwen2.5-1.5b (transferred)"
+      }
     }
   }
 }
