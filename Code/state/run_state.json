@@ -1570,6 +1570,76 @@
         "steering_vec_norm": 1.0,
         "steer_alpha": 1.0
       }
+    },
+    "baseline|bias_unlearn_bert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T18:33:33.363700+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.0238726790451,
+        "ss_mean": 58.06220159151194,
+        "ss_ci": "58.06 [55.64, 60.48]",
+        "ss_per_category": {
+          "race-color": 56.395348837209305,
+          "gender": 50.0,
+          "religion": 69.52380952380952,
+          "age": 60.91954022988506,
+          "nationality": 61.63522012578616,
+          "disability": 65.0,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 61.904761904761905
+        },
+        "glue": {
+          "cola": 0.27694153435727514,
+          "sst2": 0.7947247706422018,
+          "mrpc": 0.6421568627450981,
+          "stsb": 0.6021583373776532,
+          "qqp": 0.721,
+          "mnli": 0.419,
+          "qnli": 0.61,
+          "rte": 0.5415162454873647,
+          "average": 0.5759372188261991
+        },
+        "GLUE Average": 0.5759372188261991,
+        "method": "BiasUnlearn",
+        "seed": 42
+      }
+    },
+    "baseline|bias_unlearn_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-20T18:45:06.555875+00:00",
+      "metrics": {
+        "model": "bert-base",
+        "Stereotype Score": 58.355437665782496,
+        "ss_mean": 58.345954907161804,
+        "ss_ci": "58.35 [55.90, 60.74]",
+        "ss_per_category": {
+          "race-color": 57.55813953488372,
+          "gender": 48.854961832061065,
+          "religion": 71.42857142857143,
+          "age": 59.77011494252874,
+          "nationality": 61.63522012578616,
+          "disability": 63.33333333333333,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 64.28571428571429
+        },
+        "glue": {
+          "cola": 0.271823998034202,
+          "sst2": 0.7958715596330275,
+          "mrpc": 0.6421568627450981,
+          "stsb": 0.6042232484262569,
+          "qqp": 0.728,
+          "mnli": 0.43,
+          "qnli": 0.615,
+          "rte": 0.5415162454873647,
+          "average": 0.5785739892907436
+        },
+        "GLUE Average": 0.5785739892907436,
+        "method": "BiasUnlearn",
+        "seed": 123
+      }
     }
   }
 }
