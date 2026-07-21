@@ -3367,6 +3367,41 @@
         "n_bias_neurons": 50,
         "knowbias_gamma": 0.5
       }
+    },
+    "baseline|lora_vanilla_sft_nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T10:58:30.997496+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 56.896551724137936,
+        "ss_mean": 56.8986074270557,
+        "ss_ci": "56.90 [54.44, 59.55]",
+        "ss_per_category": {
+          "race-color": 54.84496124031008,
+          "gender": 48.473282442748086,
+          "religion": 67.61904761904762,
+          "age": 63.2183908045977,
+          "nationality": 59.74842767295597,
+          "disability": 65.0,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 55.81395348837209,
+          "sexual-orientation": 63.095238095238095
+        },
+        "glue": {
+          "cola": 0.11836118993457272,
+          "sst2": 0.6284403669724771,
+          "mrpc": 0.6372549019607843,
+          "stsb": 0.3530440034258212,
+          "qqp": 0.628,
+          "mnli": 0.361,
+          "qnli": 0.583,
+          "rte": 0.4657039711191336,
+          "average": 0.4718505541765986
+        },
+        "GLUE Average": 0.4718505541765986,
+        "method": "LoRA-Vanilla-SFT",
+        "seed": 42
+      }
     }
   }
 }
