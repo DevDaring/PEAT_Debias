@@ -3569,6 +3569,54 @@
         "method": "Base",
         "seed": 42
       }
+    },
+    "baseline|cda_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:21:27.884364+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 56.76392572944297,
+        "ss_mean": 56.72771883289125,
+        "ss_ci": "56.73 [54.37, 59.08]",
+        "ss_per_category": {
+          "race-color": 54.263565891472865,
+          "gender": 49.23664122137404,
+          "religion": 51.42857142857142,
+          "age": 63.2183908045977,
+          "nationality": 47.79874213836478,
+          "disability": 73.33333333333333,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 68.6046511627907,
+          "sexual-orientation": 73.80952380952381
+        },
+        "utility_skipped": true,
+        "method": "CDA",
+        "seed": 42
+      }
+    },
+    "baseline|cda_qwen2.5-1.5b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:32:46.673414+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 56.896551724137936,
+        "ss_mean": 56.83362068965518,
+        "ss_ci": "56.83 [54.44, 59.22]",
+        "ss_per_category": {
+          "race-color": 54.65116279069767,
+          "gender": 48.473282442748086,
+          "religion": 50.476190476190474,
+          "age": 66.66666666666666,
+          "nationality": 47.79874213836478,
+          "disability": 73.33333333333333,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 68.02325581395348,
+          "sexual-orientation": 73.80952380952381
+        },
+        "utility_skipped": true,
+        "method": "CDA",
+        "seed": 123
+      }
     }
   }
 }
