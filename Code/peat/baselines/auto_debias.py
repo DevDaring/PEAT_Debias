@@ -125,7 +125,7 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         model.eval()
         _csv = RAW_DIR / "baselines" / "auto_debias" / model_tag / f"seed_{seed}"
         _csv.mkdir(parents=True, exist_ok=True)
-        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
+        metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv, skip_utility=True)
         metrics["method"] = "Auto-Debias"
         metrics["seed"] = seed
         return metrics

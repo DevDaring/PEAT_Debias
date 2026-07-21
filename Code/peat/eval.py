@@ -922,7 +922,8 @@ def evaluate_full(model, tokenizer, model_tag: str,
                   seeds: list[int] = [42, 123, 456],
                   device: str = "cuda",
                   csv_dir: Optional[Path] = None,
-                  sentence_scorer=None) -> dict:
+                  sentence_scorer=None,
+                  skip_utility: bool = False) -> dict:
     """Run the complete evaluation suite for a model.
 
     ``sentence_scorer`` (optional) overrides the SS log-probability scorer for
@@ -930,6 +931,12 @@ def evaluate_full(model, tokenizer, model_tag: str,
     BBQ, which are reported on the model's own forward pass. Hook-based
     baselines (FairSteer, KnowBias, BiasEdit) instead wrap this call in an
     intervention context manager and need no override.
+
+    ``skip_utility=True`` skips GLUE/PPL (and BBQ). Used by the seven baseline
+    methods whose utility is not reported in any paper table (Table 1 is
+    SS-only; utility rows cover Base, PEAT, and LoRA-Vanilla-SFT only) —
+    running GLUE for them costs ~30-45 min per encoder cell for numbers that
+    are never used.
 
     Returns dict with all metrics.
     """
@@ -947,6 +954,11 @@ def evaluate_full(model, tokenizer, model_tag: str,
     })
 
     # Type-specific evaluations
+    if skip_utility:
+        logger.info(f"  utility eval skipped for {model_tag} "
+                    f"(method's utility is not reported in any table)")
+        metrics["utility_skipped"] = True
+        return metrics
     if spec.is_encoder:
         glue = evaluate_glue(model, tokenizer, model_tag, device)
         metrics["glue"] = glue

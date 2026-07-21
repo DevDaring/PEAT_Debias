@@ -108,7 +108,7 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         _csv.mkdir(parents=True, exist_ok=True)
         metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed],
                                 device=device, sentence_scorer=scorer,
-                                csv_dir=_csv)
+                                csv_dir=_csv, skip_utility=True)
         metrics["method"] = "Self-Debias"
         metrics["seed"] = seed
         metrics["self_debias_alpha"] = SELF_DEBIAS_ALPHA

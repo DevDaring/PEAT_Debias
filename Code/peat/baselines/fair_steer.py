@@ -123,7 +123,7 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         with steering_intervention(model, steering_vec, alpha=STEER_ALPHA):
             _csv = RAW_DIR / "baselines" / "fair_steer" / model_tag / f"seed_{seed}"
             _csv.mkdir(parents=True, exist_ok=True)
-            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
+            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv, skip_utility=True)
         metrics["method"] = "FairSteer"
         metrics["seed"] = seed
         metrics["steering_vec_norm"] = steering_vec.norm().item()

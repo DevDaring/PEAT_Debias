@@ -130,7 +130,7 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         with neuron_damping_intervention(model, bias_neurons, gamma=KNOWBIAS_GAMMA):
             _csv = RAW_DIR / "baselines" / "know_bias" / model_tag / f"seed_{seed}"
             _csv.mkdir(parents=True, exist_ok=True)
-            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
+            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv, skip_utility=True)
         metrics["method"] = "KnowBias"
         metrics["seed"] = seed
         metrics["n_bias_neurons"] = len(bias_neurons)
