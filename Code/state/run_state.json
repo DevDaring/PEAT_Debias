@@ -3913,6 +3913,30 @@
         "method": "BiasUnlearn",
         "seed": 42
       }
+    },
+    "baseline|bias_unlearn_qwen2.5-1.5b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T15:42:40.317756+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 34.217506631299734,
+        "ss_mean": 34.23222811671087,
+        "ss_ci": "34.23 [31.83, 36.41]",
+        "ss_per_category": {
+          "race-color": 33.72093023255814,
+          "gender": 58.396946564885496,
+          "religion": 28.57142857142857,
+          "age": 49.42528735632184,
+          "nationality": 26.41509433962264,
+          "disability": 16.666666666666664,
+          "physical-appearance": 30.158730158730158,
+          "socioeconomic": 18.023255813953487,
+          "sexual-orientation": 16.666666666666664
+        },
+        "utility_skipped": true,
+        "method": "BiasUnlearn",
+        "seed": 123
+      }
     }
   }
 }
