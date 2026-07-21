@@ -2635,6 +2635,32 @@
         "n_bias_neurons": 50,
         "knowbias_gamma": 0.5
       }
+    },
+    "baseline|know_bias_modernbert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T03:27:56.971240+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 57.62599469496021,
+        "ss_mean": 57.62075596816976,
+        "ss_ci": "57.62 [55.11, 60.01]",
+        "ss_per_category": {
+          "race-color": 55.23255813953488,
+          "gender": 48.473282442748086,
+          "religion": 64.76190476190476,
+          "age": 59.77011494252874,
+          "nationality": 64.77987421383648,
+          "disability": 71.66666666666667,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 56.395348837209305,
+          "sexual-orientation": 65.47619047619048
+        },
+        "utility_skipped": true,
+        "method": "KnowBias",
+        "seed": 123,
+        "n_bias_neurons": 50,
+        "knowbias_gamma": 0.5
+      }
     }
   }
 }
