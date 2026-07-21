@@ -3139,6 +3139,58 @@
         "method": "BiasEdit",
         "seed": 456
       }
+    },
+    "baseline|fair_steer_nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T08:35:04.254591+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 57.161803713527846,
+        "ss_mean": 57.18123342175066,
+        "ss_ci": "57.18 [54.57, 59.62]",
+        "ss_per_category": {
+          "race-color": 54.45736434108527,
+          "gender": 51.526717557251914,
+          "religion": 66.66666666666666,
+          "age": 62.06896551724138,
+          "nationality": 65.40880503144653,
+          "disability": 58.333333333333336,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 54.06976744186046,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "FairSteer",
+        "seed": 42,
+        "steering_vec_norm": 1.0,
+        "steer_alpha": 1.0
+      }
+    },
+    "baseline|fair_steer_nomicbert|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T08:44:08.007794+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 57.161803713527846,
+        "ss_mean": 57.19476127320956,
+        "ss_ci": "57.19 [54.57, 59.62]",
+        "ss_per_category": {
+          "race-color": 54.45736434108527,
+          "gender": 51.526717557251914,
+          "religion": 66.66666666666666,
+          "age": 62.06896551724138,
+          "nationality": 65.40880503144653,
+          "disability": 58.333333333333336,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 54.06976744186046,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "FairSteer",
+        "seed": 123,
+        "steering_vec_norm": 1.0,
+        "steer_alpha": 1.0
+      }
     }
   }
 }
