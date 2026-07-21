@@ -2969,6 +2969,56 @@
         "method": "CDA",
         "seed": 456
       }
+    },
+    "baseline|self_debias_nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T07:21:21.964318+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 52.58620689655172,
+        "ss_mean": 52.53468169761273,
+        "ss_ci": "52.53 [50.26, 55.04]",
+        "ss_per_category": {
+          "race-color": 47.674418604651166,
+          "gender": 54.19847328244275,
+          "religion": 59.04761904761905,
+          "age": 56.32183908045977,
+          "nationality": 48.42767295597484,
+          "disability": 56.666666666666664,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 55.23255813953488,
+          "sexual-orientation": 63.095238095238095
+        },
+        "utility_skipped": true,
+        "method": "Self-Debias",
+        "seed": 42,
+        "self_debias_alpha": 50.0,
+        "note": "Schick et al. reweighting active in SS scoring path"
+      }
+    },
+    "baseline|auto_debias_nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T07:30:44.571535+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 56.96286472148541,
+        "ss_mean": 56.97374005305039,
+        "ss_ci": "56.97 [54.51, 59.48]",
+        "ss_per_category": {
+          "race-color": 54.263565891472865,
+          "gender": 51.526717557251914,
+          "religion": 66.66666666666666,
+          "age": 63.2183908045977,
+          "nationality": 64.15094339622641,
+          "disability": 56.666666666666664,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 54.06976744186046,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "Auto-Debias",
+        "seed": 42
+      }
     }
   }
 }
