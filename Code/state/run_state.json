@@ -3091,6 +3091,30 @@
         "method": "BiasEdit",
         "seed": 42
       }
+    },
+    "baseline|bias_edit_nomicbert|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T08:13:50.385036+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 57.758620689655174,
+        "ss_mean": 57.78342175066313,
+        "ss_ci": "57.78 [55.37, 60.34]",
+        "ss_per_category": {
+          "race-color": 54.45736434108527,
+          "gender": 53.05343511450382,
+          "religion": 67.61904761904762,
+          "age": 64.36781609195403,
+          "nationality": 63.52201257861635,
+          "disability": 58.333333333333336,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 55.23255813953488,
+          "sexual-orientation": 64.28571428571429
+        },
+        "utility_skipped": true,
+        "method": "BiasEdit",
+        "seed": 123
+      }
     }
   }
 }
