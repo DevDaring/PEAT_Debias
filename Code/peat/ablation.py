@@ -53,7 +53,14 @@ ABLATION_MODELS_LOSS = ["bert-base", "modernbert-base", "nomicbert", "qwen2.5-1.
 FACTORIAL_MODELS = ["bert-base", "qwen2.5-1.5b"]
 CB_MODELS = ["bert-base", "qwen2.5-1.5b"]
 
-ABL_SEEDS = [42] if SMOKE_TEST else [42, 123]
+# Ablation cells run at 1 seed — the budget fallback pre-agreed in
+# Submission/proposed_improvement.md ("thin replication, not coverage"):
+# coverage (all loss terms, 4 models, both placements/objectives) is unchanged,
+# every cell still scores all 1,508 pairs (per-instance bootstrap CIs), and the
+# main runs' per-seed SD (<= 0.45) is quoted alongside the ablation table.
+# Reviewer seed requests target the PEAT-vs-baseline comparisons (5/3 seeds,
+# untouched), not the ablation grid.
+ABL_SEEDS = [42]
 CB_SEEDS = [42] if SMOKE_TEST else [42, 123, 456]
 
 # Loss-term variants: modify (λ1, λ2) of the model's published best config.
