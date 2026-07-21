@@ -3507,6 +3507,68 @@
         "method": "LoRA-Vanilla-SFT",
         "seed": 789
       }
+    },
+    "baseline|lora_vanilla_sft_nomicbert|1011|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:08:16.797277+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 56.56498673740054,
+        "ss_mean": 56.56763925729443,
+        "ss_ci": "56.57 [54.11, 59.15]",
+        "ss_per_category": {
+          "race-color": 55.23255813953488,
+          "gender": 48.854961832061065,
+          "religion": 65.71428571428571,
+          "age": 60.91954022988506,
+          "nationality": 59.74842767295597,
+          "disability": 65.0,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 54.06976744186046,
+          "sexual-orientation": 60.71428571428571
+        },
+        "glue": {
+          "cola": 0.13517950612696605,
+          "sst2": 0.6215596330275229,
+          "mrpc": 0.6764705882352942,
+          "stsb": 0.3512085703761524,
+          "qqp": 0.618,
+          "mnli": 0.364,
+          "qnli": 0.581,
+          "rte": 0.4729241877256318,
+          "average": 0.47754281068644594
+        },
+        "GLUE Average": 0.47754281068644594,
+        "method": "LoRA-Vanilla-SFT",
+        "seed": 1011
+      }
+    },
+    "baseline|base_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:10:13.046075+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 54.50928381962865,
+        "ss_mean": 54.499867374005305,
+        "ss_ci": "54.50 [52.06, 56.83]",
+        "ss_per_category": {
+          "race-color": 50.58139534883721,
+          "gender": 48.091603053435115,
+          "religion": 49.523809523809526,
+          "age": 63.2183908045977,
+          "nationality": 44.65408805031446,
+          "disability": 75.0,
+          "physical-appearance": 58.730158730158735,
+          "socioeconomic": 66.27906976744185,
+          "sexual-orientation": 72.61904761904762
+        },
+        "WikiText-103 Perplexity": 9.1572120365004,
+        "bbq_bias_score": NaN,
+        "bbq_accuracy": NaN,
+        "bbq_skipped": true,
+        "method": "Base",
+        "seed": 42
+      }
     }
   }
 }
