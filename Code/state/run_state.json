@@ -2537,6 +2537,30 @@
         "steering_vec_norm": 1.0,
         "steer_alpha": 1.0
       }
+    },
+    "baseline|bias_unlearn_modernbert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T02:26:23.148658+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 58.355437665782496,
+        "ss_mean": 58.35855437665783,
+        "ss_ci": "58.36 [55.90, 60.74]",
+        "ss_per_category": {
+          "race-color": 54.84496124031008,
+          "gender": 50.0,
+          "religion": 70.47619047619048,
+          "age": 55.172413793103445,
+          "nationality": 64.77987421383648,
+          "disability": 75.0,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 57.55813953488372,
+          "sexual-orientation": 69.04761904761905
+        },
+        "utility_skipped": true,
+        "method": "BiasUnlearn",
+        "seed": 42
+      }
     }
   }
 }
