@@ -156,7 +156,7 @@ def run(model_tag: str, seed: int = 42, device: str = "cuda",
         with editor_intervention(model, editor):
             _csv = RAW_DIR / "baselines" / "bias_edit" / model_tag / f"seed_{seed}"
             _csv.mkdir(parents=True, exist_ok=True)
-            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv)
+            metrics = evaluate_full(model, tokenizer, model_tag, seeds=[seed], device=device, csv_dir=_csv, skip_utility=True)
         metrics["method"] = "BiasEdit"
         metrics["seed"] = seed
         return metrics

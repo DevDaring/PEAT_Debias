@@ -143,10 +143,17 @@ def main():
     SEEDS = [42] if _SMOKE else [42, 123, 456, 789, 1011]
     SCALING_SEEDS = [42] if _SMOKE else [42, 123, 456]          # scaling models: 3 seeds
     FIVE_SEED_BASELINES = {"lora_vanilla_sft"}
+    # Base and Self-Debias involve no seed-dependent computation (no training,
+    # no sampled data): re-running them per seed reproduces identical scores —
+    # the published supplement reports SD 0.00 for both. One evaluation each.
+    DETERMINISTIC_BASELINES = {"base", "self_debias"}
 
     def seeds_for(baseline_name: str) -> list:
-        """5 seeds for LoRA-Vanilla-SFT (paired against PEAT); 3 for the rest."""
+        """5 seeds for LoRA-Vanilla-SFT (paired against PEAT); 1 for
+        deterministic methods (Base, Self-Debias); 3 for the rest."""
         if _SMOKE:
+            return [42]
+        if baseline_name in DETERMINISTIC_BASELINES:
             return [42]
         return SEEDS if baseline_name in FIVE_SEED_BASELINES else SEEDS[:3]
 
@@ -410,9 +417,10 @@ def main():
             return cks[-1] if cks else None
 
         for model_tag in CORE_MODELS:
+            EX_SEEDS = SEEDS[:3]   # extrinsic at 3 seeds (convention used by scaling/ablation)
             jobs = [("Base", 0)]
-            jobs += [("PEAT", s) for s in SEEDS]
-            jobs += [("LoRA-Vanilla-SFT", s) for s in SEEDS]
+            jobs += [("PEAT", s) for s in EX_SEEDS]
+            jobs += [("LoRA-Vanilla-SFT", s) for s in EX_SEEDS]
             if all(is_cell_complete(state, cell_key("extrinsic", f"{m}_{model_tag}", s))
                    for m, s in jobs):
                 logger.info(f"Extrinsic for {model_tag} already complete — skipping")
@@ -429,7 +437,7 @@ def main():
 
                 # Wrap once; hot-swap adapters (identical rank-4/last-2 structure)
                 model = attach_lora(model, model_tag)
-                for seed in SEEDS:
+                for seed in EX_SEEDS:
                     key = cell_key("extrinsic", f"PEAT_{model_tag}", seed)
                     if not is_cell_complete(state, key):
                         ck = _latest_ckpt(STATE_DIR / "peat" / model_tag / f"seed_{seed}")
