@@ -2897,6 +2897,30 @@
         "method": "Base",
         "seed": 42
       }
+    },
+    "baseline|cda_nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T06:34:16.540391+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 56.49867374005305,
+        "ss_mean": 56.496618037135285,
+        "ss_ci": "56.50 [54.11, 59.02]",
+        "ss_per_category": {
+          "race-color": 53.100775193798455,
+          "gender": 53.05343511450382,
+          "religion": 65.71428571428571,
+          "age": 60.91954022988506,
+          "nationality": 62.264150943396224,
+          "disability": 58.333333333333336,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 54.06976744186046,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "CDA",
+        "seed": 42
+      }
     }
   }
 }
