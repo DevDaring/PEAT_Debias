@@ -3217,6 +3217,30 @@
         "steering_vec_norm": 1.0,
         "steer_alpha": 1.0
       }
+    },
+    "baseline|bias_unlearn_nomicbert|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T09:07:30.080212+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 57.36074270557029,
+        "ss_mean": 57.37453580901856,
+        "ss_ci": "57.37 [54.71, 59.95]",
+        "ss_per_category": {
+          "race-color": 55.42635658914728,
+          "gender": 51.908396946564885,
+          "religion": 66.66666666666666,
+          "age": 60.91954022988506,
+          "nationality": 63.52201257861635,
+          "disability": 55.00000000000001,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 56.395348837209305,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "BiasUnlearn",
+        "seed": 42
+      }
     }
   }
 }
