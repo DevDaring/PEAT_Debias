@@ -2722,6 +2722,41 @@
         "method": "LoRA-Vanilla-SFT",
         "seed": 42
       }
+    },
+    "baseline|lora_vanilla_sft_modernbert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T04:25:28.772443+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 57.55968169761273,
+        "ss_mean": 57.55570291777188,
+        "ss_ci": "57.56 [55.11, 60.08]",
+        "ss_per_category": {
+          "race-color": 54.45736434108527,
+          "gender": 51.526717557251914,
+          "religion": 66.66666666666666,
+          "age": 54.02298850574713,
+          "nationality": 61.0062893081761,
+          "disability": 73.33333333333333,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 56.97674418604651,
+          "sexual-orientation": 69.04761904761905
+        },
+        "glue": {
+          "cola": 0.162883523588034,
+          "sst2": 0.7006880733944955,
+          "mrpc": 0.6862745098039216,
+          "stsb": 0.55692264712666,
+          "qqp": 0.752,
+          "mnli": 0.397,
+          "qnli": 0.663,
+          "rte": 0.5054151624548736,
+          "average": 0.5530229895459982
+        },
+        "GLUE Average": 0.5530229895459982,
+        "method": "LoRA-Vanilla-SFT",
+        "seed": 123
+      }
     }
   }
 }
