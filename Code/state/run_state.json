@@ -3667,6 +3667,102 @@
         "self_debias_alpha": 50.0,
         "note": "Schick et al. reweighting active in SS scoring path"
       }
+    },
+    "baseline|auto_debias_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:48:59.398257+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 54.37665782493368,
+        "ss_mean": 54.36571618037135,
+        "ss_ci": "54.37 [52.06, 56.76]",
+        "ss_per_category": {
+          "race-color": 50.968992248062015,
+          "gender": 47.70992366412214,
+          "religion": 47.61904761904761,
+          "age": 62.06896551724138,
+          "nationality": 44.65408805031446,
+          "disability": 75.0,
+          "physical-appearance": 58.730158730158735,
+          "socioeconomic": 66.27906976744185,
+          "sexual-orientation": 72.61904761904762
+        },
+        "utility_skipped": true,
+        "method": "Auto-Debias",
+        "seed": 42
+      }
+    },
+    "baseline|auto_debias_qwen2.5-1.5b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:50:41.680779+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 54.44297082228117,
+        "ss_mean": 54.39980106100795,
+        "ss_ci": "54.40 [51.99, 56.70]",
+        "ss_per_category": {
+          "race-color": 50.3875968992248,
+          "gender": 48.854961832061065,
+          "religion": 48.57142857142857,
+          "age": 60.91954022988506,
+          "nationality": 45.911949685534594,
+          "disability": 75.0,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 66.27906976744185,
+          "sexual-orientation": 72.61904761904762
+        },
+        "utility_skipped": true,
+        "method": "Auto-Debias",
+        "seed": 123
+      }
+    },
+    "baseline|auto_debias_qwen2.5-1.5b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:52:24.073559+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 54.50928381962865,
+        "ss_mean": 54.532427055702925,
+        "ss_ci": "54.53 [52.06, 56.76]",
+        "ss_per_category": {
+          "race-color": 50.775193798449614,
+          "gender": 49.61832061068702,
+          "religion": 46.666666666666664,
+          "age": 63.2183908045977,
+          "nationality": 44.65408805031446,
+          "disability": 75.0,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 64.53488372093024,
+          "sexual-orientation": 72.61904761904762
+        },
+        "utility_skipped": true,
+        "method": "Auto-Debias",
+        "seed": 456
+      }
+    },
+    "baseline|bias_edit_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T15:00:27.349659+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 53.97877984084881,
+        "ss_mean": 53.9698275862069,
+        "ss_ci": "53.97 [51.59, 56.37]",
+        "ss_per_category": {
+          "race-color": 51.55038759689923,
+          "gender": 46.94656488549619,
+          "religion": 48.57142857142857,
+          "age": 63.2183908045977,
+          "nationality": 45.911949685534594,
+          "disability": 73.33333333333333,
+          "physical-appearance": 58.730158730158735,
+          "socioeconomic": 60.46511627906976,
+          "sexual-orientation": 72.61904761904762
+        },
+        "utility_skipped": true,
+        "method": "BiasEdit",
+        "seed": 42
+      }
     }
   }
 }
