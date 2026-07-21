@@ -3019,6 +3019,30 @@
         "method": "Auto-Debias",
         "seed": 42
       }
+    },
+    "baseline|auto_debias_nomicbert|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T07:40:07.641193+00:00",
+      "metrics": {
+        "model": "nomicbert",
+        "Stereotype Score": 57.49336870026526,
+        "ss_mean": 57.52937665782493,
+        "ss_ci": "57.53 [55.10, 60.08]",
+        "ss_per_category": {
+          "race-color": 54.45736434108527,
+          "gender": 52.67175572519084,
+          "religion": 67.61904761904762,
+          "age": 62.06896551724138,
+          "nationality": 65.40880503144653,
+          "disability": 56.666666666666664,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 54.65116279069767,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "Auto-Debias",
+        "seed": 123
+      }
     }
   }
 }
