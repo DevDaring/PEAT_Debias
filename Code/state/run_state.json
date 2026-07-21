@@ -4093,6 +4093,33 @@
         "method": "LoRA-Vanilla-SFT",
         "seed": 123
       }
+    },
+    "baseline|lora_vanilla_sft_qwen2.5-1.5b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T16:44:14.783597+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 56.29973474801061,
+        "ss_mean": 56.3287798408488,
+        "ss_ci": "56.33 [53.78, 58.75]",
+        "ss_per_category": {
+          "race-color": 52.51937984496124,
+          "gender": 51.14503816793893,
+          "religion": 48.57142857142857,
+          "age": 59.77011494252874,
+          "nationality": 51.57232704402516,
+          "disability": 68.33333333333333,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 66.86046511627907,
+          "sexual-orientation": 75.0
+        },
+        "WikiText-103 Perplexity": 10.382363690506761,
+        "bbq_bias_score": NaN,
+        "bbq_accuracy": NaN,
+        "bbq_skipped": true,
+        "method": "LoRA-Vanilla-SFT",
+        "seed": 456
+      }
     }
   }
 }
