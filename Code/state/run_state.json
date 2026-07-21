@@ -3617,6 +3617,56 @@
         "method": "CDA",
         "seed": 123
       }
+    },
+    "baseline|cda_qwen2.5-1.5b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:43:54.347621+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 56.896551724137936,
+        "ss_mean": 56.914456233421745,
+        "ss_ci": "56.91 [54.37, 59.15]",
+        "ss_per_category": {
+          "race-color": 53.68217054263565,
+          "gender": 50.0,
+          "religion": 52.38095238095239,
+          "age": 66.66666666666666,
+          "nationality": 46.540880503144656,
+          "disability": 73.33333333333333,
+          "physical-appearance": 63.49206349206349,
+          "socioeconomic": 68.02325581395348,
+          "sexual-orientation": 73.80952380952381
+        },
+        "utility_skipped": true,
+        "method": "CDA",
+        "seed": 456
+      }
+    },
+    "baseline|self_debias_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T14:47:16.814589+00:00",
+      "metrics": {
+        "model": "qwen2.5-1.5b",
+        "Stereotype Score": 42.771883289124666,
+        "ss_mean": 42.780106100795756,
+        "ss_ci": "42.78 [40.32, 44.96]",
+        "ss_per_category": {
+          "race-color": 38.17829457364341,
+          "gender": 43.12977099236641,
+          "religion": 43.80952380952381,
+          "age": 42.5287356321839,
+          "nationality": 41.509433962264154,
+          "disability": 43.333333333333336,
+          "physical-appearance": 36.507936507936506,
+          "socioeconomic": 50.0,
+          "sexual-orientation": 60.71428571428571
+        },
+        "utility_skipped": true,
+        "method": "Self-Debias",
+        "seed": 42,
+        "self_debias_alpha": 50.0,
+        "note": "Schick et al. reweighting active in SS scoring path"
+      }
     }
   }
 }
