@@ -2317,6 +2317,41 @@
         "method": "Auto-Debias",
         "seed": 42
       }
+    },
+    "baseline|auto_debias_modernbert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-21T00:16:03.201269+00:00",
+      "metrics": {
+        "model": "modernbert-base",
+        "Stereotype Score": 57.89124668435013,
+        "ss_mean": 57.88003978779841,
+        "ss_ci": "57.88 [55.50, 60.34]",
+        "ss_per_category": {
+          "race-color": 53.875968992248055,
+          "gender": 48.091603053435115,
+          "religion": 71.42857142857143,
+          "age": 56.32183908045977,
+          "nationality": 66.0377358490566,
+          "disability": 71.66666666666667,
+          "physical-appearance": 61.904761904761905,
+          "socioeconomic": 56.97674418604651,
+          "sexual-orientation": 71.42857142857143
+        },
+        "glue": {
+          "cola": 0.1912215321253888,
+          "sst2": 0.6926605504587156,
+          "mrpc": 0.6764705882352942,
+          "stsb": 0.5515190650643288,
+          "qqp": 0.741,
+          "mnli": 0.394,
+          "qnli": 0.665,
+          "rte": 0.5018050541516246,
+          "average": 0.5517095987544189
+        },
+        "GLUE Average": 0.5517095987544189,
+        "method": "Auto-Debias",
+        "seed": 123
+      }
     }
   }
 }
