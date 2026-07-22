@@ -5283,6 +5283,29 @@
           }
         ]
       }
+    },
+    "ablation_place|qwen2.5-1.5b|42|fact_mlm_all": {
+      "status": "completed",
+      "completed_at": "2026-07-22T05:22:31.047394+00:00",
+      "metrics": {
+        "Stereotype Score": 59.88063660477454,
+        "ss_ci": "59.87 [57.29, 62.33]",
+        "ss_per_category": {
+          "race-color": 57.94573643410853,
+          "gender": 49.61832061068702,
+          "religion": 63.8095238095238,
+          "age": 63.2183908045977,
+          "nationality": 60.37735849056604,
+          "disability": 71.66666666666667,
+          "physical-appearance": 66.66666666666666,
+          "socioeconomic": 62.2093023255814,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 9.840550425631973,
+        "method": "fact_mlm_all",
+        "seed": 42,
+        "model": "qwen2.5-1.5b"
+      }
     }
   }
 }
