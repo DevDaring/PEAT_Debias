@@ -5738,6 +5738,22 @@
         "model": "nomicbert",
         "seed": 123
       }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_nomicbert|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T15:20:33.177714+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 61.61137440758294,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.0565,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.73375,
+        "bios_tpr_gap": 0.10616361309346259,
+        "bios_n_occupations": 15,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "nomicbert",
+        "seed": 123
+      }
     }
   }
 }
