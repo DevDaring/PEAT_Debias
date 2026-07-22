@@ -5754,6 +5754,22 @@
         "model": "nomicbert",
         "seed": 123
       }
+    },
+    "extrinsic|PEAT_nomicbert|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T15:47:39.197539+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 61.61137440758294,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.05875,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.72425,
+        "bios_tpr_gap": 0.10850275921049496,
+        "bios_n_occupations": 15,
+        "method": "PEAT",
+        "model": "nomicbert",
+        "seed": 456
+      }
     }
   }
 }
