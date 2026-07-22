@@ -5107,6 +5107,29 @@
           }
         ]
       }
+    },
+    "ablation_place|bert-base|42|fact_mlm_all": {
+      "status": "completed",
+      "completed_at": "2026-07-22T02:03:27.875044+00:00",
+      "metrics": {
+        "Stereotype Score": 59.08488063660477,
+        "ss_ci": "59.08 [56.43, 61.67]",
+        "ss_per_category": {
+          "race-color": 59.68992248062015,
+          "gender": 53.05343511450382,
+          "religion": 67.61904761904762,
+          "age": 62.06896551724138,
+          "nationality": 58.490566037735846,
+          "disability": 70.0,
+          "physical-appearance": 55.55555555555556,
+          "socioeconomic": 54.65116279069767,
+          "sexual-orientation": 65.47619047619048
+        },
+        "GLUE Average": 0.5943211949433512,
+        "method": "fact_mlm_all",
+        "seed": 42,
+        "model": "bert-base"
+      }
     }
   }
 }
