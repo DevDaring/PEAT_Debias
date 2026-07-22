@@ -5354,6 +5354,30 @@
         "model": "bert-base",
         "n_train_pairs": 2301
       }
+    },
+    "peat_cb|bert-base|456|peat_cb": {
+      "status": "completed",
+      "completed_at": "2026-07-22T06:25:10.956920+00:00",
+      "metrics": {
+        "Stereotype Score": 57.692307692307686,
+        "ss_ci": "57.70 [55.24, 60.15]",
+        "ss_per_category": {
+          "race-color": 56.201550387596896,
+          "gender": 49.23664122137404,
+          "religion": 69.52380952380952,
+          "age": 62.06896551724138,
+          "nationality": 60.37735849056604,
+          "disability": 63.33333333333333,
+          "physical-appearance": 53.96825396825397,
+          "socioeconomic": 59.883720930232556,
+          "sexual-orientation": 63.095238095238095
+        },
+        "GLUE Average": 0.5755718575461155,
+        "method": "PEAT-CB",
+        "seed": 456,
+        "model": "bert-base",
+        "n_train_pairs": 2301
+      }
     }
   }
 }
