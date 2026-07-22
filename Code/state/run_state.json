@@ -5514,6 +5514,38 @@
         "model": "bert-base",
         "seed": 123
       }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T08:50:40.012072+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 59.241706161137444,
+        "stereoset_heldout_n": 211,
+        "honest_score": NaN,
+        "honest_error": "To be able to use evaluate-measurement/honest, you need to install the following dependencies['unidecode'] using 'pip install unidecode' for instance'",
+        "bios_accuracy": 0.78375,
+        "bios_tpr_gap": 0.11999538978865196,
+        "bios_n_occupations": 15,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "bert-base",
+        "seed": 123
+      }
+    },
+    "extrinsic|PEAT_bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T08:59:32.767770+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 60.18957345971564,
+        "stereoset_heldout_n": 211,
+        "honest_score": NaN,
+        "honest_error": "To be able to use evaluate-measurement/honest, you need to install the following dependencies['unidecode'] using 'pip install unidecode' for instance'",
+        "bios_accuracy": 0.783,
+        "bios_tpr_gap": 0.11343244856295444,
+        "bios_n_occupations": 15,
+        "method": "PEAT",
+        "model": "bert-base",
+        "seed": 456
+      }
     }
   }
 }
