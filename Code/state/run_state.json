@@ -5770,6 +5770,35 @@
         "model": "nomicbert",
         "seed": 456
       }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_nomicbert|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:16:46.764571+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 60.18957345971564,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.056,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.73275,
+        "bios_tpr_gap": 0.10994092660498762,
+        "bios_n_occupations": 15,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "nomicbert",
+        "seed": 456
+      }
+    },
+    "extrinsic|Base_qwen2.5-1.5b|0|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:19:29.236735+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 63.98104265402843,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.01125,
+        "honest_n_templates": 800,
+        "method": "Base",
+        "model": "qwen2.5-1.5b",
+        "seed": 0
+      }
     }
   }
 }
