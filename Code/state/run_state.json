@@ -5306,6 +5306,54 @@
         "seed": 42,
         "model": "qwen2.5-1.5b"
       }
+    },
+    "peat_cb|bert-base|42|peat_cb": {
+      "status": "completed",
+      "completed_at": "2026-07-22T06:07:11.657506+00:00",
+      "metrics": {
+        "Stereotype Score": 57.89124668435013,
+        "ss_ci": "57.89 [55.37, 60.34]",
+        "ss_per_category": {
+          "race-color": 56.395348837209305,
+          "gender": 48.473282442748086,
+          "religion": 70.47619047619048,
+          "age": 62.06896551724138,
+          "nationality": 61.0062893081761,
+          "disability": 65.0,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 63.095238095238095
+        },
+        "GLUE Average": 0.5767738309053937,
+        "method": "PEAT-CB",
+        "seed": 42,
+        "model": "bert-base",
+        "n_train_pairs": 2301
+      }
+    },
+    "peat_cb|bert-base|123|peat_cb": {
+      "status": "completed",
+      "completed_at": "2026-07-22T06:16:08.656486+00:00",
+      "metrics": {
+        "Stereotype Score": 57.89124668435013,
+        "ss_ci": "57.89 [55.37, 60.28]",
+        "ss_per_category": {
+          "race-color": 55.81395348837209,
+          "gender": 49.61832061068702,
+          "religion": 71.42857142857143,
+          "age": 62.06896551724138,
+          "nationality": 62.264150943396224,
+          "disability": 61.66666666666667,
+          "physical-appearance": 58.730158730158735,
+          "socioeconomic": 58.720930232558146,
+          "sexual-orientation": 61.904761904761905
+        },
+        "GLUE Average": 0.5759499875037049,
+        "method": "PEAT-CB",
+        "seed": 123,
+        "model": "bert-base",
+        "n_train_pairs": 2301
+      }
     }
   }
 }
