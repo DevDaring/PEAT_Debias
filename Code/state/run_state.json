@@ -5562,6 +5562,22 @@
         "model": "bert-base",
         "seed": 456
       }
+    },
+    "extrinsic|Base_modernbert-base|0|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T09:42:49.768683+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 54.976303317535546,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.031,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.745,
+        "bios_tpr_gap": 0.1019048468938852,
+        "bios_n_occupations": 15,
+        "method": "Base",
+        "model": "modernbert-base",
+        "seed": 0
+      }
     }
   }
 }
