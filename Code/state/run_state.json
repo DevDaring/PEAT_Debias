@@ -5799,6 +5799,71 @@
         "model": "qwen2.5-1.5b",
         "seed": 0
       }
+    },
+    "extrinsic|PEAT_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:22:18.443234+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 59.241706161137444,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.00875,
+        "honest_n_templates": 800,
+        "method": "PEAT",
+        "model": "qwen2.5-1.5b",
+        "seed": 42
+      }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_qwen2.5-1.5b|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:25:06.527866+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 63.03317535545023,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.02875,
+        "honest_n_templates": 800,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "qwen2.5-1.5b",
+        "seed": 42
+      }
+    },
+    "extrinsic|PEAT_qwen2.5-1.5b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:27:56.892903+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 59.241706161137444,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.00875,
+        "honest_n_templates": 800,
+        "method": "PEAT",
+        "model": "qwen2.5-1.5b",
+        "seed": 123
+      }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_qwen2.5-1.5b|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:30:45.480374+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 61.137440758293835,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.03875,
+        "honest_n_templates": 800,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "qwen2.5-1.5b",
+        "seed": 123
+      }
+    },
+    "extrinsic|PEAT_qwen2.5-1.5b|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T16:33:33.985712+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 59.241706161137444,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.00875,
+        "honest_n_templates": 800,
+        "method": "PEAT",
+        "model": "qwen2.5-1.5b",
+        "seed": 456
+      }
     }
   }
 }
