@@ -2,6 +2,18 @@
 
 PEAT trains a parameter-efficient LoRA adapter that equalizes the probability of stereotypical and anti-stereotypical token completions at masked positions, without degrading language-modeling utility. It is evaluated against nine comparative methods (including five recent SOTA bias mitigation approaches) on six language models (three encoders, three causal decoders), under a single fixed compute and precision configuration.
 
+## Latest Results (2026-07 major-revision run)
+
+The full revision pipeline completed on a single A100-80GB: **198 cells, 0 failures**, all six PEAT models reproducing published stereotype scores (1,508 CrowS-Pairs pairs each, deduplicated by `idx`). Every baseline intervention is now kept **active during scoring** (the corrected evaluation), and significance is measured across the 1,508 paired outcomes rather than across seeds.
+
+Headline findings (honest scope):
+
+- **Qwen2.5-1.5B:** PEAT reaches SS = 53.42 (5 seeds), **2.91 points below parameter-matched LoRA fine-tuning**; a McNemar test over pairs confirms the reduction (Holm-adjusted *p* = 0.037), and it transfers to a held-out StereoSet split (63.98 → 59.24).
+- **Utility:** PEAT preserves GLUE better than vanilla LoRA on the encoders (BERT 0.604 vs 0.567).
+- **Scope limits (reported honestly):** on the three encoders the PEAT-vs-LoRA advantage is not statistically reliable; the inference-time Self-Debias reaches lower intrinsic scores on every model, at a per-query cost; coverage-balanced training (PEAT-CB) lowers disability bias on the decoder (75.0 → 70.0) but not on the encoder.
+
+Paper-ready tables are written to `Code/results/`: `CLEAN_SUMMARY.md`, `clean_ss_summary.csv`, `table_wpB_significance.csv` (PEAT vs Base), and `table_wpB_peat_vs_lora.csv` (PEAT vs LoRA, McNemar + Holm).
+
 ## Hardware Requirements
 
 - **GPU**: Single NVIDIA A100-40GB or A6000-48GB

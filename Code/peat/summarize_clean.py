@@ -120,10 +120,9 @@ def main():
     else:
         lines.append("\n## Baselines\n_(baseline stage not yet complete)_\n")
 
-    # ---- Ablations / PEAT-CB (if present) ----
+    # ---- Ablations (path: <variant>/<model>/seed_*) ----
     for sub, title in [("ablation_loss", "Loss-term ablation"),
-                       ("ablation_place", "Placement factorial"),
-                       ("peat_cb", "PEAT-CB (coverage-balanced)")]:
+                       ("ablation_place", "Placement factorial")]:
         g = collect(RAW + f"/{sub}/*/*/seed_*/ss_*.csv",
                     lambda f, s=sub: tuple(f.split(f"/{s}/")[1].split("/")[:2]))
         if g:
@@ -133,6 +132,23 @@ def main():
             for k in sorted(g):
                 mean, sd, n = agg(g[k]["seeds"])
                 lines.append(f"| {k[0]} | {k[1]} | {n} | {mean:.2f} | {sd:.2f} |")
+
+    # ---- PEAT-CB (path: <model>/seed_*; single level, NOT variant/model) ----
+    # Surface the coverage-target categories so the null/effect is explicit.
+    cb = collect(RAW + "/peat_cb/*/seed_*/ss_*.csv",
+                 lambda f: f.split("/peat_cb/")[1].split("/")[0])
+    if cb:
+        lines.append("\n## PEAT-CB (coverage-balanced) — target categories vs overall\n")
+        lines.append("| Model | n | SS mean | SD | disability | sexual-orientation |")
+        lines.append("|---|---|---|---|---|---|")
+        for m in sorted(cb):
+            mean, sd, n = agg(cb[m]["seeds"])
+            dis, _, _ = agg(cb[m]["per_cat"]["disability"])
+            so, _, _ = agg(cb[m]["per_cat"]["sexual-orientation"])
+            lines.append(f"| {m} | {n} | {mean:.2f} | {sd:.2f} | {dis:.1f} | {so:.1f} |")
+            rows_csv.append({"group": "PEAT-CB", "method": "PEAT-CB", "model": m,
+                             "n_seeds": n, "ss_mean": round(mean, 2), "ss_sd": round(sd, 2),
+                             "disability": round(dis, 1), "sexual_orientation": round(so, 1)})
 
     lines.append("\n## Notes\n")
     lines.append("- BBQ excluded: Gemini API quota exhausted during the run; the "

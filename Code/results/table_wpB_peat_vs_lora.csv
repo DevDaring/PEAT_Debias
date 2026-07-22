@@ -1,0 +1,7 @@
+model,ss_peat,gender_peat,ss_lora,d_vs_lora,lora_mcn_p,lora_debiased,lora_worsened,ss_base,d_vs_base,lora_holm_p_adj,lora_holm_sig
+bert-base,58.16,49.24,58.75,-0.6,0.4779219422067188,68.0,59.0,57.89,0.27,0.9558,False
+modernbert-base,57.96,50.0,57.29,0.66,0.3018724904870077,33.0,43.0,59.08,-1.13,0.9056,False
+nomicbert,56.96,53.44,56.9,0.07,1.0,120.0,121.0,56.7,0.27,1.0,False
+qwen2.5-1.5b,53.45,47.71,56.1,-2.65,0.009328368045545975,133.0,93.0,54.51,-1.06,0.0373,True
+gemma-3-4b,55.84,50.76,,,,,,,,,
+llama-3.1-8b,55.64,50.38,,,,,,,,,
