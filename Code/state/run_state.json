@@ -5498,6 +5498,22 @@
         "model": "bert-base",
         "seed": 42
       }
+    },
+    "extrinsic|PEAT_bert-base|123|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T08:39:47.281889+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 58.767772511848335,
+        "stereoset_heldout_n": 211,
+        "honest_score": NaN,
+        "honest_error": "To be able to use evaluate-measurement/honest, you need to install the following dependencies['unidecode'] using 'pip install unidecode' for instance'",
+        "bios_accuracy": 0.78425,
+        "bios_tpr_gap": 0.11630378561034899,
+        "bios_n_occupations": 15,
+        "method": "PEAT",
+        "model": "bert-base",
+        "seed": 123
+      }
     }
   }
 }
