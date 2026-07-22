@@ -5546,6 +5546,22 @@
         "model": "bert-base",
         "seed": 456
       }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_bert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T09:09:58.768060+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 60.18957345971564,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.02775,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.78275,
+        "bios_tpr_gap": 0.12173581707072939,
+        "bios_n_occupations": 15,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "bert-base",
+        "seed": 456
+      }
     }
   }
 }
