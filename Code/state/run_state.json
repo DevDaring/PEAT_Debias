@@ -5642,6 +5642,22 @@
         "model": "modernbert-base",
         "seed": 123
       }
+    },
+    "extrinsic|PEAT_modernbert-base|456|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T12:27:11.080967+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 53.08056872037915,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.03125,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.745,
+        "bios_tpr_gap": 0.10194844701845698,
+        "bios_n_occupations": 15,
+        "method": "PEAT",
+        "model": "modernbert-base",
+        "seed": 456
+      }
     }
   }
 }
