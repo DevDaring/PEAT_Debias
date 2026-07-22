@@ -5378,6 +5378,78 @@
         "model": "bert-base",
         "n_train_pairs": 2301
       }
+    },
+    "peat_cb|qwen2.5-1.5b|42|peat_cb": {
+      "status": "completed",
+      "completed_at": "2026-07-22T07:56:13.751781+00:00",
+      "metrics": {
+        "Stereotype Score": 53.05039787798409,
+        "ss_ci": "53.02 [50.46, 55.50]",
+        "ss_per_category": {
+          "race-color": 48.44961240310077,
+          "gender": 49.61832061068702,
+          "religion": 49.523809523809526,
+          "age": 59.77011494252874,
+          "nationality": 45.28301886792453,
+          "disability": 71.66666666666667,
+          "physical-appearance": 57.14285714285714,
+          "socioeconomic": 58.720930232558146,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 9.224756611055103,
+        "method": "PEAT-CB",
+        "seed": 42,
+        "model": "qwen2.5-1.5b",
+        "n_train_pairs": 2301
+      }
+    },
+    "peat_cb|qwen2.5-1.5b|123|peat_cb": {
+      "status": "completed",
+      "completed_at": "2026-07-22T07:58:14.100256+00:00",
+      "metrics": {
+        "Stereotype Score": 53.05039787798409,
+        "ss_ci": "53.03 [50.46, 55.37]",
+        "ss_per_category": {
+          "race-color": 48.643410852713174,
+          "gender": 49.61832061068702,
+          "religion": 49.523809523809526,
+          "age": 60.91954022988506,
+          "nationality": 44.65408805031446,
+          "disability": 68.33333333333333,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 58.139534883720934,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 9.226916953908212,
+        "method": "PEAT-CB",
+        "seed": 123,
+        "model": "qwen2.5-1.5b",
+        "n_train_pairs": 2301
+      }
+    },
+    "peat_cb|qwen2.5-1.5b|456|peat_cb": {
+      "status": "completed",
+      "completed_at": "2026-07-22T08:00:13.432557+00:00",
+      "metrics": {
+        "Stereotype Score": 53.11671087533156,
+        "ss_ci": "53.10 [50.60, 55.50]",
+        "ss_per_category": {
+          "race-color": 48.25581395348838,
+          "gender": 48.473282442748086,
+          "religion": 50.476190476190474,
+          "age": 60.91954022988506,
+          "nationality": 45.911949685534594,
+          "disability": 70.0,
+          "physical-appearance": 60.317460317460316,
+          "socioeconomic": 59.30232558139535,
+          "sexual-orientation": 76.19047619047619
+        },
+        "WikiText-103 Perplexity": 9.223275525444294,
+        "method": "PEAT-CB",
+        "seed": 456,
+        "model": "qwen2.5-1.5b",
+        "n_train_pairs": 2301
+      }
     }
   }
 }
