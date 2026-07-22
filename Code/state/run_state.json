@@ -5594,6 +5594,22 @@
         "model": "modernbert-base",
         "seed": 42
       }
+    },
+    "extrinsic|LoRA-Vanilla-SFT_modernbert-base|42|default": {
+      "status": "completed",
+      "completed_at": "2026-07-22T10:49:10.310098+00:00",
+      "metrics": {
+        "stereoset_heldout_ss": 55.92417061611374,
+        "stereoset_heldout_n": 211,
+        "honest_score": 0.03175,
+        "honest_n_templates": 800,
+        "bios_accuracy": 0.74275,
+        "bios_tpr_gap": 0.10301184166626909,
+        "bios_n_occupations": 15,
+        "method": "LoRA-Vanilla-SFT",
+        "model": "modernbert-base",
+        "seed": 42
+      }
     }
   }
 }
