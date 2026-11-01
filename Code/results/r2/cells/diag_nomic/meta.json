@@ -13,14 +13,14 @@
   "status": "failed",
   "env": {
     "host": "d64e7146a858",
-    "time_utc": "2026-11-01T12:55:31Z",
+    "time_utc": "2026-11-01T12:55:51Z",
     "torch": "2.11.0+cu130",
     "transformers": "5.7.0",
     "peft": "0.21.2",
     "gpu": "NVIDIA A100-PCIE-40GB",
     "gpu_mem_gb": 39.5
   },
-  "started": 1793537732.2725377,
+  "started": 1793537751.4871438,
   "smoke": false,
   "model_config": {
     "tag": "nomicbert",
