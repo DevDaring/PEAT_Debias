@@ -84,3 +84,30 @@ Loading weights: 100%|██████████| 291/291 [00:01<00:00, 281.
 [2026-11-01 10:47:39] INFO     peat.models —   Loaded llama-3.1-8b from local cache
 [2026-11-01 10:47:39] INFO     peat.models —   Loaded llama-3.1-8b: 8030.3M params, 32 layers
 [2026-11-01 10:47:39] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+
+===== peat_llama_s42 start 2026-11-01T10:54:42Z
+[2026-11-01 10:54:46] INFO     peat.models — Loading causal: meta-llama/Meta-Llama-3.1-8B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]
+Loading weights:   1%|          | 2/291 [00:00<00:16, 17.99it/s]
+Loading weights:  11%|█▏        | 33/291 [00:00<00:01, 180.90it/s]
+Loading weights:  23%|██▎       | 68/291 [00:00<00:00, 248.45it/s]
+Loading weights:  35%|███▌      | 103/291 [00:00<00:00, 279.01it/s]
+Loading weights:  45%|████▌     | 132/291 [00:00<00:00, 279.93it/s]
+Loading weights:  57%|█████▋    | 166/291 [00:00<00:00, 299.08it/s]
+Loading weights:  68%|██████▊   | 197/291 [00:00<00:00, 299.00it/s]
+Loading weights:  79%|███████▉  | 230/291 [00:00<00:00, 303.21it/s]
+Loading weights:  91%|█████████ | 265/291 [00:00<00:00, 311.03it/s]
+Loading weights: 100%|██████████| 291/291 [00:01<00:00, 283.76it/s]
+[2026-11-01 10:54:51] INFO     peat.models —   Loaded llama-3.1-8b from local cache
+[2026-11-01 10:54:51] INFO     peat.models —   Loaded llama-3.1-8b: 8030.3M params, 32 layers
+[2026-11-01 10:54:51] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (288937 > 131072). Running this sequence through the model will result in indexing errors
+/home/PEAT_Debias/Code/peat/r2/extrinsic2.py:147: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(lambda g: g.sample(min(n, len(g)), random_state=seed)))
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 201/201 [00:00<00:00, 21018.58it/s]
+{"cell": "peat_llama_s42", "status": "done"}
