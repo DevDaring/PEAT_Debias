@@ -241,8 +241,22 @@ def delta_table(model, tokenizer, model_tag, df: pd.DataFrame, device, batch_siz
     is_enc = get_spec(model_tag).is_encoder
     model.eval()
     recs = []
-    for start in range(0, len(df), batch_size):
-        chunk = df.iloc[start:start + batch_size]
+    # Keep the padded logits (2 x pairs x max_len x vocab, bf16) under ~1.5 GB:
+    # Hindi/Bengali contexts tokenise to several hundred tokens.
+    vocab = model.get_output_embeddings().weight.shape[0]
+    budget = max(int(1.5e9 / (2 * vocab)), 64)
+    lens = [len(tokenizer(c)["input_ids"]) + 8 for c in df["context"]]
+    starts, s = [], 0
+    while s < len(df):
+        e, longest = s, 0
+        while e < len(df) and e - s < batch_size and max(longest, lens[e]) * 2 * (e - s + 1) <= budget:
+            longest = max(longest, lens[e])
+            e += 1
+        e = max(e, s + 1)
+        starts.append((s, e))
+        s = e
+    for start, stop in starts:
+        chunk = df.iloc[start:stop]
         items = list(zip(chunk["context"], chunk["t_s"], chunk["t_a"]))
         prepared = prepare_items(tokenizer, is_enc, items)
         if not any(p is not None for p in prepared):

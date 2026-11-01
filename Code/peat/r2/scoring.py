@@ -189,11 +189,13 @@ def _encoder_scores(model, tokenizer, sentences: list[str], diff_positions: list
 def _causal_scores(model, tokenizer, sentences: list[str], device, chunk: int = 32):
     """Summed log P(sentence). Returns (orig, fp32) arrays."""
     enc = [tokenizer(s, truncation=True, max_length=1024)["input_ids"] for s in sentences]
+    from peat.r2.utility import token_budget_batches
     order = np.argsort([len(e) for e in enc])
     orig = np.zeros(len(sentences))
     fp32 = np.zeros(len(sentences))
-    for start in range(0, len(order), chunk):
-        idx = order[start:start + chunk]
+    # Full-sequence log-softmax in fp32 and bf16 is materialised below, so the
+    # budget is set lower than for scoring a few continuation positions.
+    for idx in token_budget_batches(order, [len(e) for e in enc], model, chunk, logits_bytes=0.6e9):
         ids, att, lens = pad_batch([enc[i] for i in idx], pad_id_of(tokenizer), device)
         logits = model(input_ids=ids, attention_mask=att).logits[:, :-1]
         labels = ids[:, 1:]
