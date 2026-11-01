@@ -64,3 +64,23 @@ Traceback (most recent call last):
   File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/linear.py", line 134, in forward
     return F.linear(input, self.weight, self.bias)
 torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 5.20 GiB. GPU 0 has a total capacity of 23.60 GiB of which 4.98 GiB is free. Including non-PyTorch memory, this process has 18.60 GiB memory in use. Of the allocated memory 17.80 GiB is allocated by PyTorch, and 531.61 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+
+===== peat_llama_s42 start 2026-11-01T10:47:30Z
+[2026-11-01 10:47:34] INFO     peat.models — Loading causal: meta-llama/Meta-Llama-3.1-8B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]
+Loading weights:   1%|          | 2/291 [00:00<00:15, 19.00it/s]
+Loading weights:  11%|█         | 32/291 [00:00<00:01, 176.33it/s]
+Loading weights:  23%|██▎       | 67/291 [00:00<00:00, 245.66it/s]
+Loading weights:  33%|███▎      | 96/291 [00:00<00:00, 260.50it/s]
+Loading weights:  45%|████▍     | 130/291 [00:00<00:00, 287.52it/s]
+Loading weights:  55%|█████▍    | 159/291 [00:00<00:00, 283.55it/s]
+Loading weights:  66%|██████▋   | 193/291 [00:00<00:00, 300.58it/s]
+Loading weights:  77%|███████▋  | 224/291 [00:00<00:00, 302.11it/s]
+Loading weights:  88%|████████▊ | 256/291 [00:00<00:00, 307.29it/s]
+Loading weights:  99%|█████████▊| 287/291 [00:01<00:00, 305.95it/s]
+Loading weights: 100%|██████████| 291/291 [00:01<00:00, 281.09it/s]
+[2026-11-01 10:47:39] INFO     peat.models —   Loaded llama-3.1-8b from local cache
+[2026-11-01 10:47:39] INFO     peat.models —   Loaded llama-3.1-8b: 8030.3M params, 32 layers
+[2026-11-01 10:47:39] INFO     peat.data — Loading cached StereoSet pairs from Parquet
