@@ -1,0 +1,41 @@
+{
+  "cell": {
+    "id": "diag_bert",
+    "kind": "diag",
+    "model": "bert-base",
+    "seed": 0,
+    "priority": 2,
+    "evals": [],
+    "cfg": {},
+    "vram": 6,
+    "est_min": 6
+  },
+  "status": "done",
+  "env": {
+    "host": "d64e7146a858",
+    "time_utc": "2026-11-01T12:57:08Z",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.7.0",
+    "peft": "0.21.2",
+    "gpu": "NVIDIA A100-PCIE-40GB",
+    "gpu_mem_gb": 39.5
+  },
+  "started": 1793537829.1058693,
+  "smoke": false,
+  "model_config": {
+    "tag": "bert-base",
+    "hf_id": "google-bert/bert-base-uncased",
+    "model_type": "encoder",
+    "attn_impl": "eager",
+    "dtype": "torch.bfloat16",
+    "num_hidden_layers": 12,
+    "hidden_size": 768,
+    "num_params": 109514298
+  },
+  "finished": 1793537839.9693258,
+  "summary": {
+    "diag_layers": 13,
+    "diag_pairs": 2104
+  },
+  "peak_mem_gb": 0.7903199195861816
+}

@@ -1,0 +1,21 @@
+
+===== diag_bert start 2026-11-01T12:57:04Z
+[2026-11-01 12:57:09] INFO     peat.models — Loading encoder: google-bert/bert-base-uncased (dtype=torch.bfloat16, attn=eager)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 202/202 [00:00<00:00, 4582.62it/s]
+[transformers] [1mBertForMaskedLM LOAD REPORT[0m from: google-bert/bert-base-uncased
+Key                         | Status     |  | 
+----------------------------+------------+--+-
+bert.pooler.dense.bias      | UNEXPECTED |  | 
+bert.pooler.dense.weight    | UNEXPECTED |  | 
+cls.seq_relationship.weight | UNEXPECTED |  | 
+cls.seq_relationship.bias   | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[2026-11-01 12:57:10] INFO     peat.models —   Loaded bert-base from local cache
+[2026-11-01 12:57:10] INFO     peat.models —   Loaded bert-base: 109.5M params, 12 layers
+[2026-11-01 12:57:10] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+{"cell": "diag_bert", "status": "done"}
