@@ -192,6 +192,34 @@ def pad_id_of(tokenizer) -> int:
     return 0
 
 
+def vocab_size(model) -> int:
+    """Output vocabulary size; custom models (NomicBERT) return no output
+    embeddings, so fall back to the config."""
+    try:
+        emb = model.get_output_embeddings()
+        if emb is not None and getattr(emb, "weight", None) is not None:
+            return int(emb.weight.shape[0])
+    except Exception:
+        pass
+    cfg = model.config
+    return int(getattr(cfg, "vocab_size", None) or getattr(getattr(cfg, "text_config", cfg), "vocab_size"))
+
+
+def word_embedding_module(model):
+    """First nn.Embedding in the network (the token embedding); used where a
+    model does not implement get_input_embeddings (NomicBERT)."""
+    try:
+        emb = model.get_input_embeddings()
+        if emb is not None:
+            return emb
+    except Exception:
+        pass
+    for _, m in model.named_modules():
+        if isinstance(m, torch.nn.Embedding):
+            return m
+    raise RuntimeError("no embedding module found")
+
+
 def forward_logits(model, ids, att):
     out = model(input_ids=ids, attention_mask=att)
     return out.logits

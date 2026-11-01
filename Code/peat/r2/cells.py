@@ -176,7 +176,7 @@ def _run_diag(model, tok, tag, train_full, val_full, d, device) -> dict:
     pairs = pd.concat([train_full, val_full], ignore_index=True)
     pairs = cap(pairs)
     n_params = sum(p.numel() for p in model.parameters())
-    gp = dg.gradient_profile(model, tok, tag, pairs, device, param_grads=n_params < 5e9)
+    gp = dg.gradient_profile(model, tok, tag, pairs, device, param_grads=n_params < 2e9)
     gp.to_csv(d / "grad_profile.csv", index=False)
     H_s, H_a, keep = dg.filler_representations(model, tok, tag, pairs, device)
     sub = pairs.iloc[keep].reset_index(drop=True)

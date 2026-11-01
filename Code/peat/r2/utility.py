@@ -31,7 +31,7 @@ import torch
 from datasets import load_dataset
 
 from peat.models import get_spec
-from peat.r2.common import SMOKE, SMOKE_N, cap, pad_batch, pad_id_of
+from peat.r2.common import SMOKE, SMOKE_N, cap, pad_batch, pad_id_of, vocab_size
 
 
 def _base_ctx(model):
@@ -202,7 +202,7 @@ def _load_task(name: str):
 def token_budget_batches(order, lengths, model, max_items=16, logits_bytes=1.5e9):
     """Group length-sorted indices so that the padded logits tensor
     (items x max_len x vocab, bf16) stays under logits_bytes."""
-    vocab = model.get_output_embeddings().weight.shape[0]
+    vocab = vocab_size(model)
     budget = max(int(logits_bytes / (2 * vocab)), 64)  # padded tokens per batch
     batch, longest = [], 0
     for i in order:

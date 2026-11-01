@@ -29,7 +29,7 @@ import pandas as pd
 import torch
 
 from peat.models import get_spec
-from peat.r2.common import SMOKE, cap, pad_batch, pad_id_of
+from peat.r2.common import SMOKE, cap, pad_batch, pad_id_of, word_embedding_module
 from peat.r2.fastpeat import pair_forward, prepare_fill, prepare_items, surrogate
 
 _LAYER_RE = re.compile(r"\.(?:layer|layers|h|blocks)\.(\d+)\.")
@@ -39,7 +39,7 @@ def gradient_profile(model, tokenizer, model_tag, df, device, n_batches=8, bs=16
                      param_grads: bool = True) -> pd.DataFrame:
     is_enc = get_spec(model_tag).is_encoder
     model.eval()
-    emb = model.get_input_embeddings()
+    emb = word_embedding_module(model)
     hook = emb.register_forward_hook(lambda m, i, o: o.requires_grad_(True))
     for p in model.parameters():
         p.requires_grad_(param_grads)

@@ -41,7 +41,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 
 from peat.models import get_spec
-from peat.r2.common import SMOKE, pad_batch, pad_id_of
+from peat.r2.common import SMOKE, pad_batch, pad_id_of, vocab_size
 from peat.utils import get_autocast_dtype, set_seed
 
 SURROGATES = ("huber", "l2", "l1", "logcosh", "logistic", "hinge")
@@ -243,7 +243,7 @@ def delta_table(model, tokenizer, model_tag, df: pd.DataFrame, device, batch_siz
     recs = []
     # Keep the padded logits (2 x pairs x max_len x vocab, bf16) under ~1.5 GB:
     # Hindi/Bengali contexts tokenise to several hundred tokens.
-    vocab = model.get_output_embeddings().weight.shape[0]
+    vocab = vocab_size(model)
     budget = max(int(1.5e9 / (2 * vocab)), 64)
     lens = [len(tokenizer(c)["input_ids"]) + 8 for c in df["context"]]
     starts, s = [], 0
