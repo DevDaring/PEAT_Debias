@@ -1,0 +1,37 @@
+{
+  "cell": {
+    "id": "diag_nomic",
+    "kind": "diag",
+    "model": "nomicbert",
+    "seed": 0,
+    "priority": 2,
+    "evals": [],
+    "cfg": {},
+    "vram": 8,
+    "est_min": 8
+  },
+  "status": "failed",
+  "env": {
+    "host": "0d72b3abf1c2",
+    "time_utc": "2026-11-01T14:02:39Z",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.7.0",
+    "peft": "0.21.2",
+    "gpu": "NVIDIA A30",
+    "gpu_mem_gb": 23.6
+  },
+  "started": 1793541760.1849048,
+  "smoke": false,
+  "model_config": {
+    "tag": "nomicbert",
+    "hf_id": "nomic-ai/nomic-bert-2048",
+    "model_type": "encoder",
+    "attn_impl": "eager",
+    "dtype": "torch.bfloat16",
+    "num_hidden_layers": 12,
+    "hidden_size": 768,
+    "num_params": 137323008
+  },
+  "error": "TypeError(\"NomicBertForPreTraining.forward() got an unexpected keyword argument 'output_hidden_states'\")",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/PEAT_Debias/Code/peat/r2/cells.py\", line 84, in run_cell\n    summary.update(_run_diag(model, tok, tag, train_full, val_full, d, device))\n  File \"/home/PEAT_Debias/Code/peat/r2/cells.py\", line 179, in _run_diag\n    gp = dg.gradient_profile(model, tok, tag, pairs, device, param_grads=n_params < 2e9)\n  File \"/home/PEAT_Debias/Code/peat/r2/diagnostics.py\", line 58, in gradient_profile\n    out = model(input_ids=ids, attention_mask=att, output_hidden_states=True)\n  File \"/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1779, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n  File \"/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py\", line 1790, in _call_impl\n    return forward_call(*args, **kwargs)\nTypeError: NomicBertForPreTraining.forward() got an unexpected keyword argument 'output_hidden_states'\n"
+}
