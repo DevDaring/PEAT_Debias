@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "surr_hinge_bert_s456",
+  "last_cell": "diag_llama",
   "last_status": "done",
-  "last_minutes": 0.5,
+  "last_minutes": 0.8,
   "worker": "jarvis-a",
-  "t": 1793535231.8655808,
-  "t_utc": "2026-11-01T12:13:51Z"
+  "t": 1793535300.6322672,
+  "t_utc": "2026-11-01T12:15:00Z"
 }
