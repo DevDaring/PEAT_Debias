@@ -1,0 +1,56 @@
+{
+  "cell": {
+    "id": "cb_nomic_s42",
+    "kind": "peat",
+    "model": "nomicbert",
+    "seed": 42,
+    "priority": 3,
+    "evals": [
+      "crows_en",
+      "cloze",
+      "delta"
+    ],
+    "cfg": {
+      "lambda_1": 10.0,
+      "lambda_2": 0.01,
+      "surrogate": "huber",
+      "tau": 1.0,
+      "lr": 0.0001,
+      "epochs": 5,
+      "rank": 4,
+      "placement": "last2",
+      "data": "cb"
+    },
+    "vram": 8,
+    "est_min": 8
+  },
+  "status": "failed",
+  "env": {
+    "host": "d64e7146a858",
+    "time_utc": "2026-11-01T12:50:49Z",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.7.0",
+    "peft": "0.21.2",
+    "gpu": "NVIDIA A100-PCIE-40GB",
+    "gpu_mem_gb": 39.5
+  },
+  "started": 1793537450.169834,
+  "smoke": false,
+  "model_config": {
+    "tag": "nomicbert",
+    "hf_id": "nomic-ai/nomic-bert-2048",
+    "model_type": "encoder",
+    "attn_impl": "eager",
+    "dtype": "torch.bfloat16",
+    "num_hidden_layers": 12,
+    "hidden_size": 768,
+    "num_params": 137323008
+  },
+  "params": {
+    "trainable": 129024,
+    "total": 137452032,
+    "pct": 0.09386838311710081
+  },
+  "error": "AttributeError(\"'NoneType' object has no attribute 'weight'\")",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/PEAT_Debias/Code/peat/r2/cells.py\", line 72, in run_cell\n    tr = fastpeat.train_peat(model, tok, tag, train_df, val_df, cfg, cell[\"seed\"], device)\n  File \"/home/PEAT_Debias/Code/peat/r2/fastpeat.py\", line 392, in train_peat\n    vt = delta_table(model, tokenizer, model_tag, val_df, device, with_reference=False)\n  File \"/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n  File \"/home/PEAT_Debias/Code/peat/r2/fastpeat.py\", line 246, in delta_table\n    vocab = model.get_output_embeddings().weight.shape[0]\nAttributeError: 'NoneType' object has no attribute 'weight'\n"
+}
