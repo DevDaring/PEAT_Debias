@@ -1,0 +1,66 @@
+
+===== peat_llama_s42 start 2026-11-01T10:39:31Z
+[2026-11-01 10:39:35] INFO     peat.models — Loading causal: meta-llama/Meta-Llama-3.1-8B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]
+Loading weights:   0%|          | 1/291 [00:00<00:35,  8.27it/s]
+Loading weights:  13%|█▎        | 37/291 [00:00<00:01, 198.40it/s]
+Loading weights:  23%|██▎       | 68/291 [00:00<00:00, 244.23it/s]
+Loading weights:  34%|███▍      | 99/291 [00:00<00:00, 268.87it/s]
+Loading weights:  45%|████▌     | 131/291 [00:00<00:00, 281.57it/s]
+Loading weights:  56%|█████▌    | 162/291 [00:00<00:00, 290.89it/s]
+Loading weights:  67%|██████▋   | 194/291 [00:00<00:00, 294.43it/s]
+Loading weights:  78%|███████▊  | 228/291 [00:00<00:00, 308.45it/s]
+Loading weights:  89%|████████▉ | 260/291 [00:00<00:00, 303.64it/s]
+Loading weights: 100%|██████████| 291/291 [00:01<00:00, 280.57it/s]
+[2026-11-01 10:39:40] INFO     peat.models —   Loaded llama-3.1-8b from local cache
+[2026-11-01 10:39:40] INFO     peat.models —   Loaded llama-3.1-8b: 8030.3M params, 32 layers
+[2026-11-01 10:39:40] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[2026-11-01 10:43:28] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 10:43:28] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 10:43:28] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+Traceback (most recent call last):
+  File "/home/PEAT_Debias/Code/run_r2.py", line 176, in <module>
+    sys.exit(main())
+  File "/home/PEAT_Debias/Code/run_r2.py", line 164, in main
+    return cmd_cell(a.cell)
+  File "/home/PEAT_Debias/Code/run_r2.py", line 64, in cmd_cell
+    meta = run_cell(get_cell(cell_id), device="cuda" if torch.cuda.is_available() else "cpu")
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 90, in run_cell
+    res = _run_eval(ev, model, tok, tag, train_df, val_df, d, device)
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 137, in _run_eval
+    t = fastpeat.delta_table(model, tok, tag, df, device)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/PEAT_Debias/Code/peat/r2/fastpeat.py", line 250, in delta_table
+    out = pair_forward(model, tokenizer, prepared, device, want_kl_logits=False)
+  File "/home/PEAT_Debias/Code/peat/r2/fastpeat.py", line 139, in pair_forward
+    logits = model(input_ids=ids, attention_mask=att).logits
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/peft/peft_model.py", line 2120, in forward
+    return self.base_model(
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/peft/tuners/tuners_utils.py", line 359, in forward
+    return self.model(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/transformers/utils/generic.py", line 900, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 487, in forward
+    logits = self.lm_head(hidden_states[:, slice_indices, :])
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/linear.py", line 134, in forward
+    return F.linear(input, self.weight, self.bias)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 5.20 GiB. GPU 0 has a total capacity of 23.60 GiB of which 4.98 GiB is free. Including non-PyTorch memory, this process has 18.60 GiB memory in use. Of the allocated memory 17.80 GiB is allocated by PyTorch, and 531.61 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
