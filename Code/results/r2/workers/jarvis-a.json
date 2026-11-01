@@ -2,8 +2,8 @@
   "gpu_mem_gb": 39.5,
   "last_cell": "cb_nomic_s42",
   "last_status": "failed(rc=1)",
-  "last_minutes": 0.2,
+  "last_minutes": 0.3,
   "worker": "jarvis-a",
-  "t": 1793537460.29158,
-  "t_utc": "2026-11-01T12:51:00Z"
+  "t": 1793537486.0249808,
+  "t_utc": "2026-11-01T12:51:26Z"
 }
