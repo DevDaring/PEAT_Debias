@@ -1,0 +1,21 @@
+
+===== diag_llama start 2026-11-01T12:57:31Z
+[2026-11-01 12:57:35] INFO     peat.models — Loading causal: meta-llama/Meta-Llama-3.1-8B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]
+Loading weights:   0%|          | 1/291 [00:00<00:30,  9.52it/s]
+Loading weights:  11%|█         | 32/291 [00:00<00:01, 180.56it/s]
+Loading weights:  23%|██▎       | 67/291 [00:00<00:00, 248.98it/s]
+Loading weights:  33%|███▎      | 96/291 [00:00<00:00, 261.81it/s]
+Loading weights:  45%|████▍     | 130/291 [00:00<00:00, 288.09it/s]
+Loading weights:  55%|█████▍    | 159/291 [00:00<00:00, 285.68it/s]
+Loading weights:  66%|██████▋   | 193/291 [00:00<00:00, 301.69it/s]
+Loading weights:  77%|███████▋  | 224/291 [00:00<00:00, 300.90it/s]
+Loading weights:  88%|████████▊ | 256/291 [00:00<00:00, 306.69it/s]
+Loading weights:  99%|█████████▊| 287/291 [00:01<00:00, 304.67it/s]
+Loading weights: 100%|██████████| 291/291 [00:01<00:00, 281.33it/s]
+[2026-11-01 12:57:41] INFO     peat.models —   Loaded llama-3.1-8b from local cache
+[2026-11-01 12:57:41] INFO     peat.models —   Loaded llama-3.1-8b: 8030.3M params, 32 layers
+[2026-11-01 12:57:41] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+{"cell": "diag_llama", "status": "done"}

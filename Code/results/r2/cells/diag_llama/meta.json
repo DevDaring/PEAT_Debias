@@ -1,0 +1,41 @@
+{
+  "cell": {
+    "id": "diag_llama",
+    "kind": "diag",
+    "model": "llama-3.1-8b",
+    "seed": 0,
+    "priority": 2,
+    "evals": [],
+    "cfg": {},
+    "vram": 22,
+    "est_min": 35
+  },
+  "status": "done",
+  "env": {
+    "host": "d64e7146a858",
+    "time_utc": "2026-11-01T12:57:35Z",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.7.0",
+    "peft": "0.21.2",
+    "gpu": "NVIDIA A100-PCIE-40GB",
+    "gpu_mem_gb": 39.5
+  },
+  "started": 1793537855.7754343,
+  "smoke": false,
+  "model_config": {
+    "tag": "llama-3.1-8b",
+    "hf_id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "model_type": "causal",
+    "attn_impl": "sdpa",
+    "dtype": "torch.bfloat16",
+    "num_hidden_layers": 32,
+    "hidden_size": 4096,
+    "num_params": 8030261248
+  },
+  "finished": 1793537900.2669804,
+  "summary": {
+    "diag_layers": 33,
+    "diag_pairs": 2104
+  },
+  "peak_mem_gb": 22.344583988189697
+}
