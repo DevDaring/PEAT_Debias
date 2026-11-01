@@ -1,0 +1,30 @@
+
+===== base_llama start 2026-11-01T10:10:16Z
+[2026-11-01 10:10:21] INFO     peat.models — Loading causal: meta-llama/Meta-Llama-3.1-8B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]
+Loading weights:   1%|          | 2/291 [00:00<00:14, 19.30it/s]
+Loading weights:  11%|█         | 32/291 [00:00<00:01, 180.40it/s]
+Loading weights:  23%|██▎       | 67/291 [00:00<00:00, 249.84it/s]
+Loading weights:  33%|███▎      | 96/291 [00:00<00:00, 262.88it/s]
+Loading weights:  45%|████▍     | 130/291 [00:00<00:00, 289.50it/s]
+Loading weights:  55%|█████▍    | 159/291 [00:00<00:00, 287.14it/s]
+Loading weights:  66%|██████▋   | 193/291 [00:00<00:00, 303.88it/s]
+Loading weights:  77%|███████▋  | 224/291 [00:00<00:00, 304.77it/s]
+Loading weights:  88%|████████▊ | 257/291 [00:00<00:00, 307.32it/s]
+Loading weights: 100%|██████████| 291/291 [00:01<00:00, 284.35it/s]
+[2026-11-01 10:10:26] INFO     peat.models —   Loaded llama-3.1-8b from local cache
+[2026-11-01 10:10:26] INFO     peat.models —   Loaded llama-3.1-8b: 8030.3M params, 32 layers
+[2026-11-01 10:10:26] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[2026-11-01 10:10:28] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 10:10:28] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 10:10:28] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (288937 > 131072). Running this sequence through the model will result in indexing errors
+/home/PEAT_Debias/Code/peat/r2/extrinsic2.py:147: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(lambda g: g.sample(min(n, len(g)), random_state=seed)))
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 201/201 [00:00<00:00, 22053.92it/s]
+{"cell": "base_llama", "status": "done"}
