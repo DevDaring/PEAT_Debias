@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "cb_modernbert_s123",
+  "last_cell": "place_middle2_modernbert_s123",
   "last_status": "done",
   "last_minutes": 0.7,
   "worker": "jarvis-a",
-  "t": 1793537315.843028,
-  "t_utc": "2026-11-01T12:48:35Z"
+  "t": 1793537368.6841369,
+  "t_utc": "2026-11-01T12:49:28Z"
 }
