@@ -1,0 +1,16 @@
+
+===== surr_l2_qwen_s42 start 2026-11-01T12:16:33Z
+[2026-11-01 12:16:37] INFO     peat.models — Loading causal: Qwen/Qwen2.5-1.5B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]
+Loading weights:  49%|████▉     | 165/338 [00:00<00:00, 1639.60it/s]
+Loading weights: 100%|█████████▉| 337/338 [00:00<00:00, 1686.21it/s]
+Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1682.72it/s]
+[2026-11-01 12:16:39] INFO     peat.models —   Loaded qwen2.5-1.5b from local cache
+[2026-11-01 12:16:39] INFO     peat.models —   Loaded qwen2.5-1.5b: 1543.7M params, 28 layers
+[2026-11-01 12:16:39] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[2026-11-01 12:17:54] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 12:17:54] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 12:17:54] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+{"cell": "surr_l2_qwen_s42", "status": "done"}
