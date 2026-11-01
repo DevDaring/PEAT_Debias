@@ -14,6 +14,32 @@ Headline findings (honest scope):
 
 Paper-ready tables are written to `Code/results/`: `CLEAN_SUMMARY.md`, `clean_ss_summary.csv`, `table_wpB_significance.csv` (PEAT vs Base), and `table_wpB_peat_vs_lora.csv` (PEAT vs LoRA, McNemar + Holm).
 
+## Revision-2 Experiments (2026-11, APIN-D-26-06244R1)
+
+The second revision adds the experiments requested by Reviewers #4 and #5. They run from a separate single entry point, `Code/run_r2.py`, as 131 independent *cells* (one model × method × seed × variant each). Each cell trains (if needed), evaluates, and writes its outputs incrementally to `Code/results/r2/cells/<cell_id>/`; trained LoRA adapters (≤ 2.6 MB each) go to `Code/results/r2/adapters/`.
+
+| Reviewer point | Cells | Outputs |
+|---|---|---|
+| R4.1, R5.1 surrogate choice (squared, absolute, symmetric logistic, one-sided logistic, one-sided hinge vs Huber) | `surr_*` | `crows_en.csv`, `cloze_english.csv`, `delta_{train,val}.csv` |
+| R4.2 bounds (Markov, Cantelli, two-sided decomposition, empirical Bernstein) | all `peat_*`, `base_*` | `tables/bounds.csv` |
+| R4.3 non-English and generation-based bias: French CrowS-Pairs, Multi-CrowS-Pairs Hindi/Bengali, BBQ (likelihood-scored), BOLD regard | `base_*`, `peat_*`, `lora_qwen_*` | `crows_fr.csv`, `mcrows_*.csv`, `cloze_*.csv`, `bbq.csv`, `bold.csv` |
+| R4.4 encoder diagnostics: gradient profile, linear stereotype direction, output-gap readout; placement sweep | `diag_*`, `place_*` | `grad_profile.csv`, `probe_layers.csv` |
+| R4.5, R5.2 utility: WikiText-103 perplexity with KL/TV drift, pseudo-perplexity, zero-shot ARC/HellaSwag/PIQA/WinoGrande/BoolQ/LAMBADA | `base_*`, `peat_*`, `lora_*` | `summary_utility.json`, `summary_zeroshot.json` |
+| R4.6 coverage-balanced synthetic pairs on five models | `cb_*` | `crows_en.csv` (per category) |
+| R4.7 rank / learning-rate sensitivity | `hp_*` | `crows_en.csv`, `delta_val.csv` |
+| R4.8 per-term losses, gradient norms and gradient cosines | all trained cells | `train_steps.csv`, `train_epochs.csv` |
+
+```bash
+cd Code
+python3 run_r2.py --smoke              # 2-sample end-to-end test of every cell type
+python3 run_r2.py --worker my-gpu      # claim and run cells until none remain (resumable)
+python3 run_r2.py --status             # progress
+python3 -m peat.r2.analysis            # paper tables -> results/r2/tables/*.csv
+python3 -m peat.r2.make_tables         # LaTeX tables  -> results/r2/latex/*.tex
+```
+
+The batched PEAT trainer (`peat/r2/fastpeat.py`) computes the same loss as the original per-item implementation; `python -m tests.test_r2_equivalence` checks this on CPU. Workers on different machines coordinate through claim files pushed to this repository, so the run survives the loss of any VM.
+
 ## Hardware Requirements
 
 - **GPU**: Single NVIDIA A100-40GB or A6000-48GB
