@@ -78,3 +78,5 @@ Submission/
 !Code/results/r2/adapters/
 !Code/results/r2/adapters/*.safetensors
 Code/results/r2/smoke/
+Code/r2deploy/hosts.json
+Code/r2deploy/akash_*_manifest.txt
