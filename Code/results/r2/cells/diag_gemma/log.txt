@@ -27,3 +27,32 @@ Traceback (most recent call last):
   File "/home/PEAT_Debias/Code/peat/r2/diagnostics.py", line 87, in gradient_profile
     blk_norm[key] = blk_norm.get(key, 0.0) + p.grad.float().pow(2).sum().item()
 torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.50 GiB. GPU 0 has a total capacity of 23.60 GiB of which 2.37 GiB is free. Including non-PyTorch memory, this process has 21.22 GiB memory in use. Of the allocated memory 15.91 GiB is allocated by PyTorch, and 5.03 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+
+===== diag_gemma start 2026-11-01T12:15:07Z
+[2026-11-01 12:15:12] INFO     peat.models — Loading causal: google/gemma-3-4b-it (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/883 [00:00<?, ?it/s]
+Loading weights:  12%|█▏        | 102/883 [00:00<00:00, 1019.67it/s]
+Loading weights:  23%|██▎       | 204/883 [00:00<00:00, 989.63it/s] 
+Loading weights:  34%|███▍      | 304/883 [00:00<00:00, 968.50it/s]
+Loading weights:  46%|████▌     | 406/883 [00:00<00:00, 987.90it/s]
+Loading weights:  83%|████████▎ | 729/883 [00:00<00:00, 1782.49it/s]
+Loading weights: 100%|██████████| 883/883 [00:00<00:00, 1619.36it/s]
+[2026-11-01 12:15:17] INFO     peat.models —   Loaded gemma-3-4b from local cache
+[2026-11-01 12:15:17] INFO     peat.models —   Loaded gemma-3-4b: 4300.1M params, 34 layers
+[2026-11-01 12:15:17] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+Traceback (most recent call last):
+  File "/home/PEAT_Debias/Code/run_r2.py", line 178, in <module>
+    sys.exit(main())
+  File "/home/PEAT_Debias/Code/run_r2.py", line 166, in main
+    return cmd_cell(a.cell)
+  File "/home/PEAT_Debias/Code/run_r2.py", line 64, in cmd_cell
+    meta = run_cell(get_cell(cell_id), device="cuda" if torch.cuda.is_available() else "cpu")
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 84, in run_cell
+    summary.update(_run_diag(model, tok, tag, train_full, val_full, d, device))
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 179, in _run_diag
+    gp = dg.gradient_profile(model, tok, tag, pairs, device, param_grads=n_params < 5e9)
+  File "/home/PEAT_Debias/Code/peat/r2/diagnostics.py", line 87, in gradient_profile
+    blk_norm[key] = blk_norm.get(key, 0.0) + p.grad.float().pow(2).sum().item()
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.50 GiB. GPU 0 has a total capacity of 23.60 GiB of which 2.37 GiB is free. Including non-PyTorch memory, this process has 21.22 GiB memory in use. Of the allocated memory 15.91 GiB is allocated by PyTorch, and 5.03 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
