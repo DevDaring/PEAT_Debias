@@ -1,0 +1,26 @@
+
+===== nodrop_bert_s42 start 2026-11-01T10:31:27Z
+[2026-11-01 10:31:31] INFO     peat.models — Loading encoder: google-bert/bert-base-uncased (dtype=torch.bfloat16, attn=eager)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 202/202 [00:00<00:00, 4809.49it/s]
+[transformers] [1mBertForMaskedLM LOAD REPORT[0m from: google-bert/bert-base-uncased
+Key                         | Status     |  | 
+----------------------------+------------+--+-
+cls.seq_relationship.weight | UNEXPECTED |  | 
+bert.pooler.dense.bias      | UNEXPECTED |  | 
+bert.pooler.dense.weight    | UNEXPECTED |  | 
+cls.seq_relationship.bias   | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[2026-11-01 10:31:33] INFO     peat.models —   Loaded bert-base from local cache
+[2026-11-01 10:31:33] INFO     peat.models —   Loaded bert-base: 109.5M params, 12 layers
+[2026-11-01 10:31:33] INFO     peat.data — Building StereoSet pairs from HuggingFace...
+[2026-11-01 10:31:36] INFO     peat.data —   Built 2104 pairs, skipped 2 rows
+[2026-11-01 10:31:36] INFO     peat.data —   Cached: train=1893, val=211
+[2026-11-01 10:32:01] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 10:32:01] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 10:32:01] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+{"cell": "nodrop_bert_s42", "status": "done"}
