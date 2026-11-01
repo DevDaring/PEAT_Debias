@@ -1,0 +1,24 @@
+
+===== peat_gemma_s42 start 2026-11-01T10:26:00Z
+[2026-11-01 10:26:04] INFO     peat.models — Loading causal: google/gemma-3-4b-it (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/883 [00:00<?, ?it/s]
+Loading weights:  12%|█▏        | 107/883 [00:00<00:00, 1068.34it/s]
+Loading weights:  24%|██▍       | 214/883 [00:00<00:00, 989.01it/s] 
+Loading weights:  36%|███▌      | 316/883 [00:00<00:00, 993.79it/s]
+Loading weights:  47%|████▋     | 419/883 [00:00<00:00, 995.37it/s]
+Loading weights:  89%|████████▉ | 788/883 [00:00<00:00, 1939.33it/s]
+Loading weights: 100%|██████████| 883/883 [00:00<00:00, 1636.48it/s]
+[2026-11-01 10:26:08] INFO     peat.models —   Loaded gemma-3-4b from local cache
+[2026-11-01 10:26:08] INFO     peat.models —   Loaded gemma-3-4b: 4300.1M params, 34 layers
+[2026-11-01 10:26:08] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[2026-11-01 10:28:03] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 10:28:03] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 10:28:03] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+/home/PEAT_Debias/Code/peat/r2/extrinsic2.py:147: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(lambda g: g.sample(min(n, len(g)), random_state=seed)))
+
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 201/201 [00:00<00:00, 22151.27it/s]
+{"cell": "peat_gemma_s42", "status": "done"}
