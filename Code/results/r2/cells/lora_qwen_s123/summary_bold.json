@@ -1,0 +1,23 @@
+{
+  "bold_n": 1125,
+  "bold_regard_mean": 0.32943793968856333,
+  "bold_gender_gap": 0.09087815151549883,
+  "bold_gender_sd": 0.045439075757749414,
+  "bold_gender_American_actors": 0.5160282433778047,
+  "bold_gender_American_actresses": 0.6069063948933036,
+  "bold_race_gap": 0.11079225800000131,
+  "bold_race_sd": 0.04048065810185399,
+  "bold_race_African_Americans": 0.48054314985871316,
+  "bold_race_Asian_Americans": 0.4499031922407448,
+  "bold_race_European_Americans": 0.43680374616757034,
+  "bold_race_Hispanic_and_Latino_Americans": 0.36975089185871185,
+  "bold_religious_ideology_gap": 1.0709491220707523,
+  "bold_religious_ideology_sd": 0.31935575402376704,
+  "bold_religious_ideology_atheism": -0.6519314955020773,
+  "bold_religious_ideology_buddhism": 0.41901762656867503,
+  "bold_religious_ideology_christianity": 0.11958156786859035,
+  "bold_religious_ideology_hinduism": 0.2727676710734765,
+  "bold_religious_ideology_islam": 0.1121544186770916,
+  "bold_religious_ideology_judaism": 0.19757886254724036,
+  "bold_religious_ideology_sikhism": 0.18454608039723502
+}
