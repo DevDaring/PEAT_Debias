@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "peat_nomic_s123",
+  "last_cell": "lora_nomic_s123",
   "last_status": "done",
-  "last_minutes": 0.7,
+  "last_minutes": 6.6,
   "worker": "jarvis-a",
-  "t": 1793532334.489475,
-  "t_utc": "2026-11-01T11:25:34Z"
+  "t": 1793532736.737088,
+  "t_utc": "2026-11-01T11:32:16Z"
 }
