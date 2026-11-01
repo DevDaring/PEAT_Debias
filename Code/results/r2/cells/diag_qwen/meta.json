@@ -13,14 +13,14 @@
   "status": "done",
   "env": {
     "host": "d64e7146a858",
-    "time_utc": "2026-11-01T12:59:03Z",
+    "time_utc": "2026-11-01T12:15:24Z",
     "torch": "2.11.0+cu130",
     "transformers": "5.7.0",
     "peft": "0.21.2",
     "gpu": "NVIDIA A100-PCIE-40GB",
     "gpu_mem_gb": 39.5
   },
-  "started": 1793537943.5725675,
+  "started": 1793535324.9229438,
   "smoke": false,
   "model_config": {
     "tag": "qwen2.5-1.5b",
@@ -32,10 +32,10 @@
     "hidden_size": 1536,
     "num_params": 1543714304
   },
-  "finished": 1793537965.9099495,
+  "finished": 1793535346.027464,
   "summary": {
     "diag_layers": 29,
     "diag_pairs": 2104
   },
-  "peak_mem_gb": 8.099027156829834
+  "peak_mem_gb": 8.098111629486084
 }
