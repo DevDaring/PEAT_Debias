@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "done": 92,
-  "total": 131,
-  "todo_for_me": 37,
+  "last_cell": "diag_gemma",
+  "last_status": "failed(rc=1)",
+  "last_minutes": 0.7,
   "worker": "jarvis-a",
-  "t": 1793537591.882617,
-  "t_utc": "2026-11-01T12:53:11Z"
+  "t": 1793537653.195462,
+  "t_utc": "2026-11-01T12:54:13Z"
 }
