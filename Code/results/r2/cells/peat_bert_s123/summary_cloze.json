@@ -1,0 +1,22 @@
+{
+  "cloze_english_n": 1411,
+  "cloze_english_ss": 54.99645641389086,
+  "cloze_english_mean": 0.2584753821273256,
+  "cloze_english_median": 0.25,
+  "cloze_english_sd": 2.9124661937526657,
+  "cloze_english_mean_abs": 2.1763374178571104,
+  "cloze_english_huber": 3.4850390493398202,
+  "cloze_english_frac_abs_lt_0.1": 0.040396881644223954,
+  "cloze_english_frac_abs_lt_0.5": 0.19489723600283487,
+  "cloze_english_frac_abs_lt_1": 0.35081502480510274,
+  "cloze0_english_n": 1411,
+  "cloze0_english_ss": 55.20907158043941,
+  "cloze0_english_mean": 0.2627134160240408,
+  "cloze0_english_median": 0.25,
+  "cloze0_english_sd": 2.936421047663474,
+  "cloze0_english_mean_abs": 2.1963619744446827,
+  "cloze0_english_huber": 3.5240671007335065,
+  "cloze0_english_frac_abs_lt_0.1": 0.040396881644223954,
+  "cloze0_english_frac_abs_lt_0.5": 0.18922749822820695,
+  "cloze0_english_frac_abs_lt_1": 0.3479801559177888
+}
