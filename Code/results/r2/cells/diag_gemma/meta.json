@@ -13,14 +13,14 @@
   "status": "failed",
   "env": {
     "host": "d64e7146a858",
-    "time_utc": "2026-11-01T12:53:37Z",
+    "time_utc": "2026-11-01T12:54:37Z",
     "torch": "2.11.0+cu130",
     "transformers": "5.7.0",
     "peft": "0.21.2",
     "gpu": "NVIDIA A100-PCIE-40GB",
     "gpu_mem_gb": 39.5
   },
-  "started": 1793537617.8151696,
+  "started": 1793537678.3137388,
   "smoke": false,
   "model_config": {
     "tag": "gemma-3-4b",
