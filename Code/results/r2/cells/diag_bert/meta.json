@@ -13,14 +13,14 @@
   "status": "done",
   "env": {
     "host": "d64e7146a858",
-    "time_utc": "2026-11-01T12:57:08Z",
+    "time_utc": "2026-11-01T12:06:11Z",
     "torch": "2.11.0+cu130",
     "transformers": "5.7.0",
     "peft": "0.21.2",
     "gpu": "NVIDIA A100-PCIE-40GB",
     "gpu_mem_gb": 39.5
   },
-  "started": 1793537829.1058693,
+  "started": 1793534771.5877485,
   "smoke": false,
   "model_config": {
     "tag": "bert-base",
@@ -32,10 +32,10 @@
     "hidden_size": 768,
     "num_params": 109514298
   },
-  "finished": 1793537839.9693258,
+  "finished": 1793534780.848189,
   "summary": {
     "diag_layers": 13,
     "diag_pairs": 2104
   },
-  "peak_mem_gb": 0.7903199195861816
+  "peak_mem_gb": 0.7896332740783691
 }
