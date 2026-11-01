@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "diag_qwen",
+  "last_cell": "surr_l1_qwen_s42",
   "last_status": "done",
-  "last_minutes": 0.5,
+  "last_minutes": 2.1,
   "worker": "jarvis-a",
-  "t": 1793535347.1635988,
-  "t_utc": "2026-11-01T12:15:47Z"
+  "t": 1793535484.799467,
+  "t_utc": "2026-11-01T12:18:04Z"
 }
