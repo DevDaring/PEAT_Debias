@@ -1,0 +1,20 @@
+{
+  "arc_easy_n": 2000,
+  "arc_easy_acc": 0.7445,
+  "arc_easy_acc_norm": 0.742,
+  "arc_challenge_n": 1172,
+  "arc_challenge_acc": 0.4300341296928328,
+  "arc_challenge_acc_norm": 0.46501706484641636,
+  "hellaswag_n": 2000,
+  "hellaswag_acc": 0.454,
+  "hellaswag_acc_norm": 0.6525,
+  "piqa_n": 1838,
+  "piqa_acc": 0.7519042437431991,
+  "piqa_acc_norm": 0.7568008705114254,
+  "winogrande_n": 1267,
+  "winogrande_acc": 0.6416732438831886,
+  "boolq_n": 2000,
+  "boolq_acc": 0.7415,
+  "lambada_openai_n": 2000,
+  "lambada_openai_acc": 0.4325
+}
