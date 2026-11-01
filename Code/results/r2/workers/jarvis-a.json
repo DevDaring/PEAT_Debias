@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "peat_llama_s42",
+  "last_cell": "lora_modernbert_s42",
   "last_status": "done",
-  "last_minutes": 14.2,
+  "last_minutes": 7.4,
   "worker": "jarvis-a",
-  "t": 1793531331.811106,
-  "t_utc": "2026-11-01T11:08:51Z"
+  "t": 1793531789.2429438,
+  "t_utc": "2026-11-01T11:16:29Z"
 }
