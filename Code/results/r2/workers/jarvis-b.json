@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 23.6,
-  "last_cell": "lora_bert_s456",
+  "last_cell": "peat_gemma_s123",
   "last_status": "done",
-  "last_minutes": 4.9,
+  "last_minutes": 9.7,
   "worker": "jarvis-b",
-  "t": 1793528966.1053474,
-  "t_utc": "2026-11-01T10:29:26Z"
+  "t": 1793529557.6432502,
+  "t_utc": "2026-11-01T10:39:17Z"
 }
