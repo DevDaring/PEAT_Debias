@@ -73,3 +73,8 @@ desktop.ini
 
 # -- Submission (paper writing) --
 Submission/
+
+# -- Revision-2 run: keep the small LoRA adapters, drop local smoke output --
+!Code/results/r2/adapters/
+!Code/results/r2/adapters/*.safetensors
+Code/results/r2/smoke/

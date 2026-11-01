@@ -102,6 +102,8 @@ def send_sms(message: str) -> None:
 
 def get_dtype() -> torch.dtype:
     """Return bfloat16 if GPU compute capability >= 8.0, else float16."""
+    if os.environ.get("PEAT_FORCE_FP32") == "1":  # CPU-only smoke tests
+        return torch.float32
     if torch.cuda.is_available():
         cc = torch.cuda.get_device_capability()
         if cc[0] >= 8:
