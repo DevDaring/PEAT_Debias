@@ -134,6 +134,8 @@ def t_utility_enc():
 
 
 def t_multilingual():
+    """Non-English bias scores; sentence-level scores in float32 (tie-free),
+    matching the paired tests reported in the text."""
     d = load("multilingual")
     rows = []
     for m in ["qwen", "gemma", "llama"]:
@@ -148,26 +150,91 @@ def t_multilingual():
                 continue
             r = r.iloc[0]
             rows.append([NAME[m] if meth == "base" else "", METH[meth],
-                         pm(r.crows_fr_ss, r.crows_fr_ss_sd), pm(r.mcrows_hindi_ss, r.mcrows_hindi_ss_sd),
-                         pm(r.mcrows_bengali_ss, r.mcrows_bengali_ss_sd), pm(r.cloze_hindi_ss, r.cloze_hindi_ss_sd),
-                         pm(r.cloze_bengali_ss, r.cloze_bengali_ss_sd),
-                         pm(r.bbq_s_amb, r.bbq_s_amb_sd, 3), pm(r.bbq_acc_ambig, r.bbq_acc_ambig_sd, 3),
-                         pm(r.bold_gender_gap, r.bold_gender_gap_sd, 3), pm(r.bold_race_gap, r.bold_race_gap_sd, 3)])
-    hdr = ("Model & Method & FR & HI & BN & HI cloze & BN cloze & BBQ $s_{\\mathrm{amb}}$ & BBQ acc & BOLD gender & BOLD race")
-    return wrap(rows, hdr, "@{}llccccccccc@{}")
+                         pm(r.crows_fr_ss_fp32, r.crows_fr_ss_fp32_sd), pm(r.mcrows_hindi_ss_fp32, r.mcrows_hindi_ss_fp32_sd),
+                         pm(r.mcrows_bengali_ss_fp32, r.mcrows_bengali_ss_fp32_sd),
+                         pm(r.cloze_hindi_ss, r.cloze_hindi_ss_sd), pm(r.cloze_bengali_ss, r.cloze_bengali_ss_sd),
+                         pm(r.cloze_english_ss, r.cloze_english_ss_sd)])
+    hdr = "Model & Method & French & Hindi & Bengali & Hindi (cloze) & Bengali (cloze) & English (cloze)"
+    return wrap(rows, hdr, "@{}llcccccc@{}")
+
+
+def g3(x):
+    """Three significant figures, plain decimal (no exponent) for table cells."""
+    if x is None or (isinstance(x, float) and math.isnan(x)):
+        return "---"
+    if x == 0:
+        return "0"
+    d = max(0, 2 - int(math.floor(math.log10(abs(x)))))
+    return f"{x:.{d}f}"
 
 
 def t_dynamics():
-    d = load("loss_dynamics")
+    d = load("loss_dynamics").set_index("model")
+    rows = []
+    for m in ["bert", "modernbert", "nomic", "qwen", "gemma", "llama"]:
+        if m not in d.index:
+            continue
+        r = d.loc[m]
+        rows.append([NAME[m], g3(r.L_neut_start), g3(r.L_neut_end), g3(r.w_pair_end), g3(r.w_kl_end),
+                     g3(r.g_neut_end), g3(r.g_pair_end), g3(r.g_kl_end),
+                     f(r.cos_neut_pair_end, 2, True), f(r.cos_neut_kl_end, 2, True)])
+    hdr = ("Model & $\Lneut$ start & $\Lneut$ end & $\lambda_1\Lpair$ & $\lambda_2\Lkl$ & "
+           "$\|g_{\mathrm{neut}}\|$ & $\|g_{\mathrm{pair}}\|$ & $\|g_{\mathrm{kl}}\|$ & "
+           "$\cos(g_{\mathrm{neut}},g_{\mathrm{pair}})$ & $\cos(g_{\mathrm{neut}},g_{\mathrm{kl}})$")
+    return wrap(rows, hdr, "@{}lccccccccc@{}")
+
+
+def t_signheld():
+    d = load("delta_sign")
+    d = d[d.format == "stereoset_val"]
+    rows = []
+    for m in ["bert", "modernbert", "nomic", "qwen", "gemma", "llama"]:
+        g = d[d.model == m]
+        if g.empty:
+            continue
+        if rows:
+            rows.append("MID")
+        for meth in ["base", "lora", "peat"]:
+            r = g[g.method == meth]
+            if r.empty:
+                continue
+            r = r.iloc[0]
+            rows.append([NAME[m] if meth == "base" else "", METH[meth], f(r.SS), f(r["median"]), f(r.mean_abs),
+                         f(r["band_plus_0.5"], 1), f(r["band_minus_0.5"], 1),
+                         "---" if meth == "base" else f(r.shift_on_pos, 2, True),
+                         "---" if meth == "base" else f(r.shift_on_neg, 2, True)])
+    hdr = ("Model & Method & SS & median $\Delta$ & mean $|\Delta|$ & $b^{+}$ & $b^{-}$ & "
+           "shift ($\Delta_{\thetaz}>0$) & shift ($\Delta_{\thetaz}<0$)")
+    return wrap(rows, hdr, "@{}llrrrrrrr@{}")
+
+
+def t_bounds_small():
+    d = load("bounds")
+    d = d[(d.split == "val") & (d.eps == 0.5)].groupby(["model", "method"]).mean(numeric_only=True).reset_index()
+    rows = []
+    for m in ["bert", "modernbert", "nomic", "qwen", "gemma", "llama"]:
+        for meth in ["base", "peat"]:
+            r = d[(d.model == m) & (d.method == meth)]
+            if r.empty:
+                continue
+            r = r.iloc[0]
+            rows.append([NAME[m] if meth == "base" else "", METH[meth], f(r.L_neut), f(r.SS, 1),
+                         f(r.SS_eps_realised, 1), f(r.markov_bound, 0), f(r.cantelli_bound, 1),
+                         f(r.tail_asym_signed, 1, True), f(r.band_signed, 1, True)])
+    hdr = ("Model & Method & $\Lneut$ & SS & $\mathrm{SS}_{0.5}$ & Markov & Cantelli & "
+           "$50(p^{+}-p^{-})$ & $50(b^{+}-b^{-})$")
+    return wrap(rows, hdr, "@{}llrrrrrrr@{}")
+
+
+def t_boldbbq():
+    d = load("bold_bbq_paired")
+    lab = {"gender": "BOLD gender gap", "race": "BOLD race gap", "religious_ideology": "BOLD religion gap",
+           "BBQ s_amb": "BBQ $s_{\mathrm{amb}}$"}
     rows = []
     for _, r in d.iterrows():
-        rows.append([NAME.get(r.model, r.model), f(r.L_neut_start, 3), f(r.L_neut_end, 3), f(r.w_pair_end, 4),
-                     f(r.w_kl_end, 4), f(r.g_neut_end, 3), f(r.g_pair_end, 3), f(r.g_kl_end, 3),
-                     f(r.cos_neut_pair_end, 2), f(r.cos_neut_kl_end, 2)])
-    hdr = ("Model & $\\Lneut$ start & $\\Lneut$ end & $\\lambda_1\\Lpair$ & $\\lambda_2\\Lkl$ & "
-           "$\\|g_{\\mathrm{neut}}\\|$ & $\\|g_{\\mathrm{pair}}\\|$ & $\\|g_{\\mathrm{kl}}\\|$ & "
-           "$\\cos(g_{\\mathrm{neut}},g_{\\mathrm{pair}})$ & $\\cos(g_{\\mathrm{neut}},g_{\\mathrm{kl}})$")
-    return wrap(rows, hdr, "@{}lccccccccc@{}")
+        rows.append([NAME[r.model], METH[r.method], lab[r.domain], f(r.gap_base, 3), f(r.gap_method, 3),
+                     f(r["diff"], 3, True), f"[{r.ci_lo:+.3f}, {r.ci_hi:+.3f}]"])
+    return wrap(rows, "Model & Method & Measure & Base & Method & Change & 95\% CI", "@{}lllrrrc@{}")
 
 
 def t_placement():
@@ -244,7 +311,7 @@ def t_cb():
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for name, fn in [("surrogates", t_surrogates), ("bounds", t_bounds), ("utility_dec", t_utility_dec),
-                     ("utility_enc", t_utility_enc), ("multilingual", t_multilingual), ("dynamics", t_dynamics),
+                     ("utility_enc", t_utility_enc), ("multilingual", t_multilingual), ("dynamics", t_dynamics), ("signheld", t_signheld), ("bounds_small", t_bounds_small), ("boldbbq", t_boldbbq),
                      ("placement", t_placement), ("hp", t_hp), ("cb", t_cb)]:
         try:
             (OUT / f"{name}.tex").write_text(fn(), encoding="utf-8")
