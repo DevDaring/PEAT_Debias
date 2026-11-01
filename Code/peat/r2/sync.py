@@ -39,6 +39,10 @@ def pull() -> None:
         # Local commits only ever touch results/r2 and were already pushed or
         # are re-creatable; align with the remote and keep untracked results.
         git("reset", "--mixed", "-q", "origin/main", check=False)
+        # A mixed reset leaves old code in the working tree; restore every
+        # tracked file outside results/r2 so workers always run the HEAD code.
+        git("checkout", "origin/main", "--", "Code/peat", "Code/run_r2.py", "Code/tests",
+            "Code/r2deploy", check=False)
 
 
 def push(paths: list[str], message: str, retries: int = 6) -> bool:
