@@ -124,6 +124,25 @@ def _run_eval(ev, model, tok, tag, train_df, val_df, d, device) -> dict:
                 out[f"delta0_{name}_{k}"] = v
             out[f"pairmass_{name}_mean_abs_shift"] = float((t["mu"] - t["mu0"]).abs().mean())
         return out
+    if ev == "cloze":
+        # CrowS-derived content scored in the training format (Eq. 1): the
+        # probability of the group word at the masked slot. Separates the
+        # objective from the sentence-level CrowS measurement (encoders score
+        # P(context | group word) there, the reverse direction).
+        from peat.r2.scoring import load_multi_crows_cloze
+        out = {}
+        langs = ["english"] + (["hindi", "bengali"] if not spec.is_encoder else [])
+        for lang in langs:
+            df = cap(load_multi_crows_cloze(lang))
+            t = fastpeat.delta_table(model, tok, tag, df, device)
+            t = t.merge(df[["bias_type"]].rename_axis("row").reset_index().rename(
+                columns={"bias_type": "bt"}), on="row", how="left")
+            t.to_csv(d / f"cloze_{lang}.csv", index=False)
+            for k, v in fastpeat.summarise_delta(t["delta"].values).items():
+                out[f"cloze_{lang}_{k}"] = v
+            for k, v in fastpeat.summarise_delta(t["delta0"].values).items():
+                out[f"cloze0_{lang}_{k}"] = v
+        return out
     if ev == "utility":
         from peat.r2 import utility
         return utility.encoder_pppl_kl(model, tok, device) if spec.is_encoder else \

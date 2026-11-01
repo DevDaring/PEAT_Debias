@@ -41,7 +41,7 @@ def _short(m: str) -> str:
 
 
 def _evals(model: str, full: bool, zeroshot: bool) -> list[str]:
-    ev = ["crows_en", "delta"]
+    ev = ["crows_en", "cloze", "delta"]
     if full:
         ev.append("utility")
         if model in DECODERS:
@@ -81,21 +81,21 @@ def build_plan() -> list[dict]:
     for kind in ["l2", "l1", "logcosh", "logistic", "hinge"]:
         for m in ["bert-base", "qwen2.5-1.5b"]:
             for s in SEEDS:
-                add(f"surr_{kind}_{_short(m)}_s{s}", "peat", m, s, 2, ["crows_en", "delta"],
+                add(f"surr_{kind}_{_short(m)}_s{s}", "peat", m, s, 2, ["crows_en", "cloze", "delta"],
                     _train_cfg(m, surrogate=kind))
     for m in ["bert-base", "modernbert-base", "nomicbert", "qwen2.5-1.5b", "gemma-3-4b"]:
         for s in SEEDS:
-            add(f"cb_{_short(m)}_s{s}", "peat", m, s, 3, ["crows_en", "delta"], _train_cfg(m, data="cb"))
+            add(f"cb_{_short(m)}_s{s}", "peat", m, s, 3, ["crows_en", "cloze", "delta"], _train_cfg(m, data="cb"))
     for pl in ["first2", "middle2", "all"]:
         for m in CORE:
             for s in [42, 123]:
-                add(f"place_{pl}_{_short(m)}_s{s}", "peat", m, s, 3, ["crows_en", "delta"],
+                add(f"place_{pl}_{_short(m)}_s{s}", "peat", m, s, 3, ["crows_en", "cloze", "delta"],
                     _train_cfg(m, placement=pl))
     for name, over in [("r2", {"rank": 2}), ("r8", {"rank": 8}), ("r16", {"rank": 16}),
                        ("lr5e-5", {"lr": 5e-5}), ("lr2e-4", {"lr": 2e-4})]:
         for m in ["bert-base", "qwen2.5-1.5b"]:
             for s in [42, 123]:
-                add(f"hp_{name}_{_short(m)}_s{s}", "peat", m, s, 4, ["crows_en", "delta"],
+                add(f"hp_{name}_{_short(m)}_s{s}", "peat", m, s, 4, ["crows_en", "cloze", "delta"],
                     _train_cfg(m, **over))
     return cells
 

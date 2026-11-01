@@ -91,6 +91,37 @@ def load_multi_crows(language: str) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
+def load_multi_crows_cloze(language: str) -> pd.DataFrame:
+    """Multi-CrowS-Pairs in the training (StereoSet cloze) format of Eq. 1.
+
+    Single-MASK rows only. t_s is the stereotyping filler: the stereotypical
+    target for 'stereo' rows and the anti-stereotypical target for
+    'antistereo' rows, matching the CrowS-Pairs direction convention used by
+    peat.eval.compute_stereotype_score. Delta > 0 means the stereotyping
+    filler is preferred at the masked slot.
+    """
+    L = language.capitalize()
+    p = _download(MULTI_CROWS_URL.format(L=L, l=language.lower()),
+                  R2_DATA_DIR / f"multi_crows_{language.lower()}.csv")
+    raw = pd.read_csv(p)
+    out = []
+    for r in raw.to_dict("records"):
+        try:
+            ts = ast.literal_eval(str(r["Target_Stereotypical"]))
+            ta = ast.literal_eval(str(r["Target_Anti-Stereotypical"]))
+        except Exception:
+            continue
+        sent = str(r["Sentence"])
+        if sent.count("MASK") != 1 or len(ts) != 1 or len(ta) != 1:
+            continue
+        more, less = str(ts[0]), str(ta[0])
+        st = r["stereo_antistereo"] == "stereo"
+        out.append({"context": sent.replace("MASK", "BLANK"), "t_s": more if st else less,
+                    "t_a": less if st else more, "bias_type": r["bias_type"],
+                    "stereo_antistereo": r["stereo_antistereo"], "src_index": r["Index"]})
+    return pd.DataFrame(out)
+
+
 CROWS_CSV_URL = ("https://raw.githubusercontent.com/nyu-mll/crows-pairs/master/data/"
                  "crows_pairs_anonymized.csv")
 

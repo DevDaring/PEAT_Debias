@@ -74,7 +74,7 @@ def main():
             inst = c.instances.get(a.id)
             body = f"HF_KEY={ENV['HUGGINGFACE_TOKEN'].strip()}\nGH_TOKEN={ENV['Github_Classic_Token'].strip()}\n"
             target, port = ssh_parts(inst)
-            with tempfile.NamedTemporaryFile("w", delete=False, suffix=".env") as f:
+            with tempfile.NamedTemporaryFile("w", delete=False, suffix=".env", newline="\n") as f:
                 f.write(body)
                 tmp = f.name
             try:

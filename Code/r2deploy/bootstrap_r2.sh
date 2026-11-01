@@ -13,6 +13,7 @@ BASE="${PEAT_BASE:-$HOME}"
 ENVF="$HOME/peat_r2.env"
 REPO="$BASE/PEAT_Debias"
 
+sed -i 's/\r$//' "$ENVF"
 set -a; . "$ENVF"; set +a
 export HF_TOKEN="$HF_KEY" HUGGING_FACE_HUB_TOKEN="$HF_KEY" HF_HUB_ENABLE_HF_TRANSFER=0
 export HF_HOME="${HF_HOME:-$BASE/hf_cache}" TOKENIZERS_PARALLELISM=false
