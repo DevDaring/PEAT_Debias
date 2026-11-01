@@ -1,0 +1,41 @@
+{
+  "cell": {
+    "id": "diag_modernbert",
+    "kind": "diag",
+    "model": "modernbert-base",
+    "seed": 0,
+    "priority": 2,
+    "evals": [],
+    "cfg": {},
+    "vram": 8,
+    "est_min": 8
+  },
+  "status": "done",
+  "env": {
+    "host": "d64e7146a858",
+    "time_utc": "2026-11-01T12:58:35Z",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.7.0",
+    "peft": "0.21.2",
+    "gpu": "NVIDIA A100-PCIE-40GB",
+    "gpu_mem_gb": 39.5
+  },
+  "started": 1793537916.3021274,
+  "smoke": false,
+  "model_config": {
+    "tag": "modernbert-base",
+    "hf_id": "answerdotai/ModernBERT-base",
+    "model_type": "encoder",
+    "attn_impl": "sdpa",
+    "dtype": "torch.bfloat16",
+    "num_hidden_layers": 22,
+    "hidden_size": 768,
+    "num_params": 149655232
+  },
+  "finished": 1793537932.408383,
+  "summary": {
+    "diag_layers": 23,
+    "diag_pairs": 2104
+  },
+  "peak_mem_gb": 1.4605298042297363
+}
