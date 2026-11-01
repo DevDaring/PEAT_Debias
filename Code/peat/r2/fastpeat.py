@@ -326,8 +326,13 @@ def train_peat(model, tokenizer, model_tag: str, train_df: pd.DataFrame, val_df:
     step_rows, epoch_rows = [], []
     t0 = time.time()
     gstep = 0
+    # The published configuration trains theta in train mode, so encoders
+    # with dropout (BERT 0.1, NomicBERT 0.1) score theta with dropout noise
+    # while the reference theta_0 is scored without it. cfg["no_dropout"]
+    # removes that noise (diagnostic ablation for Reviewer #4, c.4 and c.8).
+    no_dropout = bool(cfg.get("no_dropout", False))
     for epoch in range(1, epochs + 1):
-        model.train()
+        model.eval() if no_dropout else model.train()
         for batch in loader:
             with torch.amp.autocast("cuda", dtype=cast, enabled=torch.cuda.is_available()):
                 terms = peat_loss_terms(model, tokenizer, model_tag, batch, device, kind, tau)

@@ -91,6 +91,12 @@ def build_plan() -> list[dict]:
             for s in [42, 123]:
                 add(f"place_{pl}_{_short(m)}_s{s}", "peat", m, s, 3, ["crows_en", "cloze", "delta"],
                     _train_cfg(m, placement=pl))
+    # Dropout diagnosis (R4.4/R4.8): BERT and NomicBERT use dropout 0.1, which
+    # makes the pair-mass anchor see dropout noise; ModernBERT has none.
+    for m in ["bert-base", "nomicbert"]:
+        for s in SEEDS:
+            add(f"nodrop_{_short(m)}_s{s}", "peat", m, s, 2, ["crows_en", "cloze", "delta", "utility"],
+                _train_cfg(m, no_dropout=True))
     for name, over in [("r2", {"rank": 2}), ("r8", {"rank": 8}), ("r16", {"rank": 16}),
                        ("lr5e-5", {"lr": 5e-5}), ("lr2e-4", {"lr": 2e-4})]:
         for m in ["bert-base", "qwen2.5-1.5b"]:

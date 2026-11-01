@@ -89,12 +89,19 @@ def cmd_worker(worker: str, prefixes=None, max_attempts: int = 2) -> int:
     from peat.r2 import sync
     from peat.r2.common import CELLS_DIR, ensure_r2_dirs
     from peat.r2.plan import build_plan
+    import importlib
+    import peat.r2.plan as plan_mod
     ensure_r2_dirs()
     mem = gpu_mem_gb()
     attempts: dict[str, int] = {}
+    # Push any cell that finished locally but was not published (worker restart).
+    for d in CELLS_DIR.glob("*/meta.json"):
+        if sync.is_done(d.parent.name):
+            sync.publish(d.parent.name, worker, "done")
     while True:
         sync.pull()
-        plan = sorted(build_plan(), key=lambda c: (c["priority"], c["model"], c["seed"]))
+        importlib.reload(plan_mod)  # pick up cells added to the plan during the run
+        plan = sorted(plan_mod.build_plan(), key=lambda c: (c["priority"], c["model"], c["seed"]))
         todo = [c for c in plan if not sync.is_done(c["id"]) and c["vram"] <= mem - 1
                 and attempts.get(c["id"], 0) < max_attempts
                 and (not prefixes or any(c["id"].startswith(p) for p in prefixes))]
