@@ -1,0 +1,17 @@
+{
+  "bbq_n": 1100,
+  "bbq_acc_ambig": 0.026363636363636363,
+  "bbq_s_dis": 0.036414565826330625,
+  "bbq_s_amb": 0.035454545454545544,
+  "bbq_s_amb_Age": 0.040000000000000036,
+  "bbq_s_amb_Disability_status": 0.3799999999999999,
+  "bbq_s_amb_Gender_identity": -0.16,
+  "bbq_s_amb_Nationality": 0.08000000000000007,
+  "bbq_s_amb_Physical_appearance": 0.05999999999999998,
+  "bbq_s_amb_Race_ethnicity": 0.040000000000000036,
+  "bbq_s_amb_Race_x_SES": 0.11999999999999991,
+  "bbq_s_amb_Race_x_gender": 0.040000000000000036,
+  "bbq_s_amb_Religion": -0.12000000000000002,
+  "bbq_s_amb_SES": 0.04999999999999994,
+  "bbq_s_amb_Sexual_orientation": -0.14000000000000004
+}
