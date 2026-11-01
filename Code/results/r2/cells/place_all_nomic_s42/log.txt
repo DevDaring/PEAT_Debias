@@ -22,3 +22,27 @@ Traceback (most recent call last):
   File "/home/PEAT_Debias/Code/peat/r2/fastpeat.py", line 246, in delta_table
     vocab = model.get_output_embeddings().weight.shape[0]
 AttributeError: 'NoneType' object has no attribute 'weight'
+
+===== place_all_nomic_s42 start 2026-11-01T12:53:15Z
+[2026-11-01 12:53:19] INFO     peat.models — Loading encoder: nomic-ai/nomic-bert-2048 (dtype=torch.bfloat16, attn=eager)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+<All keys matched successfully>
+[2026-11-01 12:53:24] INFO     peat.models —   Loaded nomicbert from local cache
+[2026-11-01 12:53:24] INFO     peat.models —   Loaded nomicbert: 137.3M params, 12 layers
+[2026-11-01 12:53:24] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+Traceback (most recent call last):
+  File "/home/PEAT_Debias/Code/run_r2.py", line 178, in <module>
+    sys.exit(main())
+  File "/home/PEAT_Debias/Code/run_r2.py", line 166, in main
+    return cmd_cell(a.cell)
+  File "/home/PEAT_Debias/Code/run_r2.py", line 64, in cmd_cell
+    meta = run_cell(get_cell(cell_id), device="cuda" if torch.cuda.is_available() else "cpu")
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 72, in run_cell
+    tr = fastpeat.train_peat(model, tok, tag, train_df, val_df, cfg, cell["seed"], device)
+  File "/home/PEAT_Debias/Code/peat/r2/fastpeat.py", line 392, in train_peat
+    vt = delta_table(model, tokenizer, model_tag, val_df, device, with_reference=False)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/PEAT_Debias/Code/peat/r2/fastpeat.py", line 246, in delta_table
+    vocab = model.get_output_embeddings().weight.shape[0]
+AttributeError: 'NoneType' object has no attribute 'weight'
