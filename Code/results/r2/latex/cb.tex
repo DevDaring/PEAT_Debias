@@ -1,0 +1,19 @@
+  \footnotesize
+  \begin{adjustbox}{max width=\textwidth}
+  \begin{tabular}{@{}llcccccc@{}}
+    \toprule
+    Model & Variant & Overall & Disability & $p_{\mathrm{Holm}}$ & Sexual orient. & $p_{\mathrm{Holm}}$ & Gender \\
+    \midrule
+    BERT-base & \PEAT{} & 57.91\,{\scriptsize$\pm$0.48} & 63.9\,{\scriptsize$\pm$1.0} &  & 63.5\,{\scriptsize$\pm$1.4} &  & 48.5\,{\scriptsize$\pm$1.3} \\
+     & \PEAT{}-CB & 57.87\,{\scriptsize$\pm$0.10} & 64.4\,{\scriptsize$\pm$1.9} & 1.000 & 63.9\,{\scriptsize$\pm$0.7} & 1.000 & 49.1\,{\scriptsize$\pm$0.4} \\
+    ModernBERT & \PEAT{} & 58.31\,{\scriptsize$\pm$0.28} & 72.2\,{\scriptsize$\pm$1.0} &  & 69.4\,{\scriptsize$\pm$0.7} &  & 51.1\,{\scriptsize$\pm$0.7} \\
+     & \PEAT{}-CB & 58.60\,{\scriptsize$\pm$0.08} & 73.9\,{\scriptsize$\pm$1.0} & 1.000 & 70.6\,{\scriptsize$\pm$1.4} & 1.000 & 51.9\,{\scriptsize$\pm$0.4} \\
+    NomicBERT & \PEAT{} & 57.40\,{\scriptsize$\pm$0.38} & 58.9\,{\scriptsize$\pm$1.0} &  & 59.5\,{\scriptsize$\pm$1.2} &  & 54.2\,{\scriptsize$\pm$0.0} \\
+     & \PEAT{}-CB & 57.56\,{\scriptsize$\pm$0.35} & 58.9\,{\scriptsize$\pm$1.0} & 1.000 & 59.9\,{\scriptsize$\pm$0.7} & 1.000 & 54.8\,{\scriptsize$\pm$1.1} \\
+    Qwen2.5-1.5B & \PEAT{} & 53.40\,{\scriptsize$\pm$0.44} & 75.0 &  & 75.0\,{\scriptsize$\pm$1.2} &  & 48.0\,{\scriptsize$\pm$1.6} \\
+     & \PEAT{}-CB & 53.12\,{\scriptsize$\pm$0.43} & 70.0 & 1.000 & 77.0\,{\scriptsize$\pm$0.7} & 1.000 & 47.7\,{\scriptsize$\pm$0.7} \\
+    Gemma-3-4B & \PEAT{} & 55.61\,{\scriptsize$\pm$0.31} & 66.1\,{\scriptsize$\pm$1.0} &  & 71.0\,{\scriptsize$\pm$1.4} &  & 52.9\,{\scriptsize$\pm$1.5} \\
+     & \PEAT{}-CB & 54.82\,{\scriptsize$\pm$0.14} & 63.9\,{\scriptsize$\pm$1.0} & 1.000 & 65.5\,{\scriptsize$\pm$1.2} & 0.654 & 49.7\,{\scriptsize$\pm$0.8} \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}

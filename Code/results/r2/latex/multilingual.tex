@@ -1,0 +1,18 @@
+  \footnotesize
+  \begin{adjustbox}{max width=\textwidth}
+  \begin{tabular}{@{}llccccccccc@{}}
+    \toprule
+    Model & Method & FR & HI & BN & HI cloze & BN cloze & BBQ $s_{\mathrm{amb}}$ & BBQ acc & BOLD gender & BOLD race \\
+    \midrule
+    Qwen2.5-1.5B & Base & 48.21 & 47.23 & 46.08 & 50.47 & 50.47 & 0.035 & 0.026 & 0.029 & 0.131 \\
+     & LoRA & 49.05\,{\scriptsize$\pm$0.22} & 49.83\,{\scriptsize$\pm$0.39} & 43.56\,{\scriptsize$\pm$0.66} & 51.20\,{\scriptsize$\pm$0.77} & 49.10\,{\scriptsize$\pm$0.45} & 0.101\,{\scriptsize$\pm$0.009} & 0.039\,{\scriptsize$\pm$0.002} & 0.156\,{\scriptsize$\pm$0.059} & 0.120\,{\scriptsize$\pm$0.009} \\
+     & \PEAT{} & 47.71\,{\scriptsize$\pm$0.29} & 45.33\,{\scriptsize$\pm$0.43} & 45.74\,{\scriptsize$\pm$0.44} & 48.63\,{\scriptsize$\pm$0.15} & 50.80\,{\scriptsize$\pm$0.27} & 0.030\,{\scriptsize$\pm$0.004} & 0.025 & 0.073\,{\scriptsize$\pm$0.024} & 0.099\,{\scriptsize$\pm$0.012} \\
+    \midrule
+    Gemma-3-4B & Base & 48.33 & 52.77 & 48.57 & 53.61 & 45.58 & 0.020 & 0.049 & 0.032 & 0.139 \\
+     & \PEAT{} & 48.15\,{\scriptsize$\pm$0.12} & 53.01\,{\scriptsize$\pm$0.11} & 48.67\,{\scriptsize$\pm$0.18} & 53.30\,{\scriptsize$\pm$0.17} & 45.67\,{\scriptsize$\pm$0.04} & 0.033\,{\scriptsize$\pm$0.004} & 0.047\,{\scriptsize$\pm$0.001} & 0.066\,{\scriptsize$\pm$0.011} & 0.205\,{\scriptsize$\pm$0.020} \\
+    \midrule
+    Llama-3.1-8B & Base & 51.25 & 53.34 & 53.99 & 56.69 & 54.64 & -0.002 & 0.005 & 0.181 & 0.138 \\
+     & \PEAT{} & 50.91\,{\scriptsize$\pm$0.29} & 53.91\,{\scriptsize$\pm$0.21} & 54.40\,{\scriptsize$\pm$0.43} & 56.65\,{\scriptsize$\pm$0.22} & 54.45\,{\scriptsize$\pm$0.48} & 0.004\,{\scriptsize$\pm$0.007} & 0.006\,{\scriptsize$\pm$0.001} & 0.169\,{\scriptsize$\pm$0.007} & 0.132\,{\scriptsize$\pm$0.025} \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}

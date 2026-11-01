@@ -113,7 +113,10 @@ def bound_rows(d: np.ndarray, eps_list=(0.1, 0.25, 0.5, 1.0), tau=1.0) -> list[d
         cant = sd ** 2 / (sd ** 2 + (e - mu) ** 2) if e > mu else 1.0
         bplus = float(((d > 0) & (d < e)).mean())
         bminus = float(((d > -e) & (d <= 0)).mean())
+        pplus = float((d >= e).mean())
+        pminus = float((d <= -e).mean())
         rows.append({"eps": e, "L_neut": L, "mean": mu, "sd": sd,
+                     "tail_asym_signed": 50 * (pplus - pminus), "band_signed": 50 * (bplus - bminus),
                      "SS_eps_realised": 100 * float((d >= e).mean()),
                      "markov_bound": min(100.0, 100 * L / e ** 2),
                      "cantelli_bound": 100 * cant,
@@ -177,35 +180,39 @@ def table_peat_vs_lora_fp32():
 
 
 def table_delta_sign():
-    """Reviewer #5 w.1: sign and magnitude of the per-pair gap, Base vs LoRA vs PEAT."""
+    """Reviewer #5 w.1: sign and magnitude of the per-pair gap, Base vs LoRA vs
+    PEAT. Statistics are computed per seed and then averaged over seeds."""
     rows = []
+    srcs = {"crows": ("crows_en", "delta_fp32"), "cloze_en": ("cloze_english", "delta"),
+            "stereoset_val": ("delta_val", "delta")}
     for m in ["bert", "modernbert", "nomic", "qwen", "gemma", "llama"]:
-        base = csv(f"base_{m}", "crows_en")
-        for meth in ("base", "lora", "peat"):
+        for meth in ("base", "lora", "peat", "nodrop"):
             cids = [f"base_{m}"] if meth == "base" else seeds_of(f"{meth}_{m}")
-            for src, (fname, col) in {"crows": ("crows_en", "delta_fp32"),
-                                      "cloze_en": ("cloze_english", "delta"),
-                                      "stereoset_val": ("delta_val", "delta")}.items():
-                ds = [csv(c, fname) for c in cids]
-                ds = [x for x in ds if x is not None]
-                if not ds:
+            for src, (fname, col) in srcs.items():
+                b = csv(f"base_{m}", fname)
+                per = []
+                for c in cids:
+                    x = csv(c, fname)
+                    if x is None:
+                        continue
+                    D = x[col].values
+                    D0 = x["delta0"].values if "delta0" in x else (b[col].values if b is not None else None)
+                    eps = 0.5
+                    r = {"SS": 100 * (D > 0).mean(), "mean": D.mean(), "median": np.median(D),
+                         "mean_abs": np.abs(D).mean(), "band_plus_0.5": 100 * ((D > 0) & (D < eps)).mean(),
+                         "band_minus_0.5": 100 * ((D > -eps) & (D <= 0)).mean()}
+                    if meth != "base" and D0 is not None and len(D0) == len(D):
+                        ch = D - D0
+                        r.update({"shift_on_pos": ch[D0 > 0].mean(), "shift_on_neg": ch[D0 < 0].mean(),
+                                  "flips_to_anti": int(((D0 > 0) & (D <= 0)).sum()),
+                                  "flips_to_stereo": int(((D0 <= 0) & (D > 0)).sum()),
+                                  "corr_with_base": float(np.corrcoef(D0, D)[0, 1])})
+                    per.append(r)
+                if not per:
                     continue
-                D = np.mean([x[col].values for x in ds], axis=0)
-                if meth == "base":
-                    D0 = D
-                else:
-                    D0 = ds[0]["delta0"].values if "delta0" in ds[0] else (
-                        base[col].values if (base is not None and src == "crows") else None)
-                eps = 0.5
-                row = {"model": m, "method": meth, "format": src, "n": D.size,
-                       "SS": 100 * (D > 0).mean(), "mean": D.mean(), "median": np.median(D),
-                       "mean_abs": np.abs(D).mean(), "band_plus_0.5": 100 * ((D > 0) & (D < eps)).mean(),
-                       "band_minus_0.5": 100 * ((D > -eps) & (D <= 0)).mean()}
-                if D0 is not None and meth != "base" and len(D0) == len(D):
-                    ch = D - D0
-                    row.update({"shift_on_pos": ch[D0 > 0].mean(), "shift_on_neg": ch[D0 < 0].mean(),
-                                "flips_to_anti": int(((D0 > 0) & (D <= 0)).sum()),
-                                "flips_to_stereo": int(((D0 <= 0) & (D > 0)).sum())})
+                row = {"model": m, "method": meth, "format": src, "n_seeds": len(per),
+                       "n": len(csv(cids[0], fname))}
+                row.update(pd.DataFrame(per).mean().to_dict())
                 rows.append(row)
     return pd.DataFrame(rows)
 
@@ -214,7 +221,7 @@ def table_bounds():
     rows = []
     for m in ["bert", "modernbert", "nomic", "qwen", "gemma", "llama"]:
         for meth in ("base", "peat"):
-            cids = [f"base_{m}"] if meth == "base" else seeds_of(f"peat_{m}")[:1]
+            cids = [f"base_{m}"] if meth == "base" else seeds_of(f"peat_{m}")
             for c in cids:
                 for split in ("val", "train"):
                     t = csv(c, f"delta_{split}")

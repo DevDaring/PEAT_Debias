@@ -1,0 +1,15 @@
+  \footnotesize
+  \begin{adjustbox}{max width=\textwidth}
+  \begin{tabular}{@{}lccccccccc@{}}
+    \toprule
+    Model & $\Lneut$ start & $\Lneut$ end & $\lambda_1\Lpair$ & $\lambda_2\Lkl$ & $\|g_{\mathrm{neut}}\|$ & $\|g_{\mathrm{pair}}\|$ & $\|g_{\mathrm{kl}}\|$ & $\cos(g_{\mathrm{neut}},g_{\mathrm{pair}})$ & $\cos(g_{\mathrm{neut}},g_{\mathrm{kl}})$ \\
+    \midrule
+    BERT-base & 3.510 & 3.363 & 3.1716 & 0.0003 & 3.039 & 14.064 & 0.000 & -0.02 & -0.10 \\
+    Gemma-3-4B & 4.210 & 2.358 & 0.0392 & 0.2819 & 16.856 & 1.043 & 5.749 & -0.20 & -0.18 \\
+    Llama-3.1-8B & 2.654 & 1.333 & 0.0155 & 0.1896 & 10.106 & 0.378 & 3.338 & -0.23 & -0.19 \\
+    ModernBERT & 2.897 & 2.568 & 0.0851 & 0.0130 & 1.476 & 1.172 & 0.177 & -0.79 & -0.42 \\
+    NomicBERT & 4.562 & 4.094 & 139.9516 & 0.0158 & 7.555 & 481.157 & 0.015 & 0.07 & 0.26 \\
+    Qwen2.5-1.5B & 2.851 & 1.877 & 0.0110 & 0.1791 & 9.868 & 0.282 & 2.872 & -0.27 & -0.19 \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}

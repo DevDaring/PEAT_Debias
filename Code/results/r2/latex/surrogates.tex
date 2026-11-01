@@ -1,0 +1,22 @@
+  \footnotesize
+  \begin{adjustbox}{max width=\textwidth}
+  \begin{tabular}{@{}llcccccc@{}}
+    \toprule
+    Model & Surrogate & CrowS SS & Cloze SS (en) & Held-out SS & median $\Delta$ & mean $|\Delta|$ & $p$ vs Huber \\
+    \midrule
+    BERT-base & Huber (\PEAT{}) & 57.91\,{\scriptsize$\pm$0.48} & 55.07\,{\scriptsize$\pm$0.12} & 60.19 & 0.25 & 1.92 & --- \\
+     & squared & 58.09\,{\scriptsize$\pm$0.23} & 56.15\,{\scriptsize$\pm$0.23} & 61.14\,{\scriptsize$\pm$0.47} & 0.22 & 1.66 & 1.000 \\
+     & absolute & 57.85\,{\scriptsize$\pm$0.27} & 54.97\,{\scriptsize$\pm$0.18} & 60.03\,{\scriptsize$\pm$0.27} & 0.27 & 1.95 & 0.161 \\
+     & symmetric logistic & 58.05\,{\scriptsize$\pm$0.17} & 55.11\,{\scriptsize$\pm$0.15} & 60.51\,{\scriptsize$\pm$0.27} & 0.26 & 1.96 & 1.000 \\
+     & one-sided logistic & 57.69\,{\scriptsize$\pm$0.13} & 54.88\,{\scriptsize$\pm$0.11} & 60.19 & 0.26 & 1.96 & 0.210 \\
+     & one-sided hinge & 57.65\,{\scriptsize$\pm$0.23} & 55.02\,{\scriptsize$\pm$0.22} & 60.03\,{\scriptsize$\pm$0.27} & 0.26 & 1.96 & 0.172 \\
+    \midrule
+    Qwen2.5-1.5B & Huber (\PEAT{}) & 53.40\,{\scriptsize$\pm$0.44} & 57.26\,{\scriptsize$\pm$0.31} & 59.56\,{\scriptsize$\pm$0.27} & 0.21 & 1.50 & --- \\
+     & squared & 53.93\,{\scriptsize$\pm$0.28} & 58.21\,{\scriptsize$\pm$0.76} & 59.72\,{\scriptsize$\pm$0.47} & 0.20 & 1.39 & 0.182 \\
+     & absolute & 53.65\,{\scriptsize$\pm$0.24} & 57.26\,{\scriptsize$\pm$0.07} & 60.82\,{\scriptsize$\pm$0.55} & 0.22 & 1.57 & 0.794 \\
+     & symmetric logistic & 53.43\,{\scriptsize$\pm$0.25} & 58.47\,{\scriptsize$\pm$0.19} & 61.14\,{\scriptsize$\pm$0.47} & 0.24 & 1.58 & 0.666 \\
+     & one-sided logistic & 54.18\,{\scriptsize$\pm$0.29} & 57.15\,{\scriptsize$\pm$0.30} & 60.03\,{\scriptsize$\pm$0.27} & 0.22 & 1.61 & 0.113 \\
+     & one-sided hinge & 53.98\,{\scriptsize$\pm$0.27} & 57.71\,{\scriptsize$\pm$0.58} & 59.72\,{\scriptsize$\pm$0.00} & 0.23 & 1.60 & 0.155 \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}

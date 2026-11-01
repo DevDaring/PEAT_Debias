@@ -1,0 +1,28 @@
+  \footnotesize
+  \begin{adjustbox}{max width=\textwidth}
+  \begin{tabular}{@{}llcccc@{}}
+    \toprule
+    Model & Placement & seeds & CrowS SS & Cloze SS (en) & Held-out SS \\
+    \midrule
+    BERT-base & first two & 2 & 57.69\,{\scriptsize$\pm$0.09} & 55.42\,{\scriptsize$\pm$0.10} & 61.37\,{\scriptsize$\pm$0.34} \\
+     & middle two & 2 & 57.66\,{\scriptsize$\pm$0.52} & 55.67\,{\scriptsize$\pm$0.15} & 60.66 \\
+     & last two (\PEAT{}) & 3 & 57.91\,{\scriptsize$\pm$0.48} & 55.07\,{\scriptsize$\pm$0.12} & 60.19 \\
+     & all blocks & 2 & 58.09\,{\scriptsize$\pm$0.19} & 55.71\,{\scriptsize$\pm$0.20} & 60.19\,{\scriptsize$\pm$0.67} \\
+    \midrule
+    ModernBERT & first two & 2 & 58.19\,{\scriptsize$\pm$0.42} & 52.02\,{\scriptsize$\pm$0.20} & 55.92 \\
+     & middle two & 2 & 58.39\,{\scriptsize$\pm$0.42} & 51.91\,{\scriptsize$\pm$0.15} & 55.45 \\
+     & last two (\PEAT{}) & 3 & 58.31\,{\scriptsize$\pm$0.28} & 51.88\,{\scriptsize$\pm$0.07} & 55.45\,{\scriptsize$\pm$0.47} \\
+     & all blocks & 2 & 58.49\,{\scriptsize$\pm$0.66} & 52.13\,{\scriptsize$\pm$0.05} & 55.92\,{\scriptsize$\pm$0.67} \\
+    \midrule
+    NomicBERT & first two & 2 & 56.93\,{\scriptsize$\pm$0.33} & 57.16\,{\scriptsize$\pm$0.25} & 63.74\,{\scriptsize$\pm$0.34} \\
+     & middle two & 2 & 57.63\,{\scriptsize$\pm$0.56} & 58.01\,{\scriptsize$\pm$0.05} & 61.37\,{\scriptsize$\pm$0.34} \\
+     & last two (\PEAT{}) & 3 & 57.40\,{\scriptsize$\pm$0.38} & 56.22\,{\scriptsize$\pm$0.47} & 62.56\,{\scriptsize$\pm$0.82} \\
+     & all blocks & 2 & 57.49\,{\scriptsize$\pm$0.47} & 57.51\,{\scriptsize$\pm$0.45} & 61.37\,{\scriptsize$\pm$1.68} \\
+    \midrule
+    Qwen2.5-1.5B & first two & 2 & 53.48\,{\scriptsize$\pm$0.33} & 56.91\,{\scriptsize$\pm$0.40} & 63.27\,{\scriptsize$\pm$0.34} \\
+     & middle two & 2 & 54.68\,{\scriptsize$\pm$0.33} & 58.89\,{\scriptsize$\pm$0.20} & 63.74\,{\scriptsize$\pm$0.34} \\
+     & last two (\PEAT{}) & 3 & 53.40\,{\scriptsize$\pm$0.44} & 57.26\,{\scriptsize$\pm$0.31} & 59.56\,{\scriptsize$\pm$0.27} \\
+     & all blocks & 2 & 53.08\,{\scriptsize$\pm$0.05} & 57.12\,{\scriptsize$\pm$0.30} & 58.53\,{\scriptsize$\pm$1.01} \\
+    \bottomrule
+  \end{tabular}
+  \end{adjustbox}
