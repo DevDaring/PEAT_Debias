@@ -35,14 +35,56 @@ from peat.r2.fastpeat import pair_forward, prepare_fill, prepare_items, surrogat
 _LAYER_RE = re.compile(r"\.(?:layer|layers|h|blocks)\.(\d+)\.")
 
 
+def _blocks(model):
+    """The transformer block list: the longest ModuleList outside any vision tower."""
+    best = None
+    for name, m in model.named_modules():
+        if isinstance(m, torch.nn.ModuleList) and len(m) >= 2 and "vision" not in name:
+            if best is None or len(m) > len(best):
+                best = m
+    if best is None:
+        raise RuntimeError("no transformer block list found")
+    return best
+
+
+class HiddenCapture:
+    """Collects the token-embedding output and every block output with forward
+    hooks. Works for models whose forward() has no output_hidden_states
+    (NomicBERT) and re-pads un-padded (tokens, d) outputs with the mask."""
+
+    def __init__(self, model, grad: bool):
+        self.h, self.att, self.grad = [], None, grad
+        self.handles = [word_embedding_module(model).register_forward_hook(self._hook)]
+        self.handles += [b.register_forward_hook(self._hook) for b in _blocks(model)]
+
+    def _hook(self, m, i, o):
+        x = o[0] if isinstance(o, (tuple, list)) else o
+        if x.dim() == 2 and self.att is not None:
+            B, L = self.att.shape
+            full = x.new_zeros(B * L, x.shape[-1])
+            full[self.att.flatten().bool()] = x
+            x = full.view(B, L, -1)
+        if self.grad and len(self.h) == 0 and not x.requires_grad:
+            x.requires_grad_(True)
+        self.h.append(x)
+
+    def run(self, model, ids, att):
+        self.h, self.att = [], att
+        out = model(input_ids=ids, attention_mask=att)
+        return out, list(self.h)
+
+    def remove(self):
+        for h in self.handles:
+            h.remove()
+
+
 def gradient_profile(model, tokenizer, model_tag, df, device, n_batches=8, bs=16,
                      param_grads: bool = True) -> pd.DataFrame:
     is_enc = get_spec(model_tag).is_encoder
     model.eval()
-    emb = word_embedding_module(model)
-    hook = emb.register_forward_hook(lambda m, i, o: o.requires_grad_(True))
     for p in model.parameters():
         p.requires_grad_(param_grads)
+    cap_h = HiddenCapture(model, grad=True)
     hs_norm, blk_norm = None, {}
     used = 0
     try:
@@ -55,8 +97,7 @@ def gradient_profile(model, tokenizer, model_tag, df, device, n_batches=8, bs=16
                 continue
             seqs = [p[0][0] for p in valid] + [p[1][0] for p in valid]
             ids, att, _ = pad_batch(seqs, pad_id_of(tokenizer), device)
-            out = model(input_ids=ids, attention_mask=att, output_hidden_states=True)
-            hidden = out.hidden_states
+            out, hidden = cap_h.run(model, ids, att)
             # Reuse the training-format Delta on the same forward pass.
             logits = out.logits
             B = len(valid)
@@ -88,7 +129,7 @@ def gradient_profile(model, tokenizer, model_tag, df, device, n_batches=8, bs=16
                 model.zero_grad(set_to_none=True)
             used += 1
     finally:
-        hook.remove()
+        cap_h.remove()
         for p in model.parameters():
             p.requires_grad_(False)
     rows_out = [{"kind": "hidden", "layer": l, "grad_norm": v / max(used, 1)}
@@ -104,6 +145,14 @@ def filler_representations(model, tokenizer, model_tag, df, device, bs=16):
     *unmasked* filled sentence, for the stereotypical and the anti fill."""
     model.eval()
     H_s, H_a, keep = [], [], []
+    cap_h = HiddenCapture(model, grad=False)
+    try:
+        return _filler_reps(model, tokenizer, df, device, bs, cap_h, H_s, H_a, keep)
+    finally:
+        cap_h.remove()
+
+
+def _filler_reps(model, tokenizer, df, device, bs, cap_h, H_s, H_a, keep):
     for s in range(0, len(df), bs):
         ch = df.iloc[s:s + bs]
         seqs, spans = [], []
@@ -124,19 +173,20 @@ def filler_representations(model, tokenizer, model_tag, df, device, bs=16):
         if not seqs:
             continue
         ids, att, _ = pad_batch(seqs, pad_id_of(tokenizer), device)
-        hs = model(input_ids=ids, attention_mask=att, output_hidden_states=True).hidden_states
+        _, hs = cap_h.run(model, ids, att)
         reps = torch.stack([torch.stack([h[i, a:b].float().mean(0) for i, (a, b) in enumerate(spans)])
                             for h in hs])  # (layers, 2*len, d)
-        reps = reps.cpu().half()
+        reps = reps.cpu()  # float32: Gemma's residual stream overflows float16
         H_s.append(reps[:, 0::2]); H_a.append(reps[:, 1::2])
     return torch.cat(H_s, 1), torch.cat(H_a, 1), keep
 
 
 def _ridge_dual(Xtr, ytr, Xte, lam_rel=1e-2):
+    Xtr, ytr, Xte = Xtr.double(), ytr.double(), Xte.double()
     K = Xtr @ Xtr.T
-    lam = lam_rel * torch.trace(K) / K.shape[0]
-    alpha = torch.linalg.solve(K + lam * torch.eye(K.shape[0], device=K.device), ytr)
-    return (Xte @ Xtr.T) @ alpha
+    lam = lam_rel * torch.trace(K) / K.shape[0] + 1e-8
+    alpha = torch.linalg.solve(K + lam * torch.eye(K.shape[0], device=K.device, dtype=K.dtype), ytr)
+    return ((Xte @ Xtr.T) @ alpha).float()
 
 
 def probe_layers(H_s, H_a, delta0: np.ndarray, device, folds=5, seed=0) -> pd.DataFrame:
@@ -148,6 +198,10 @@ def probe_layers(H_s, H_a, delta0: np.ndarray, device, folds=5, seed=0) -> pd.Da
     rows = []
     for l in range(H_s.shape[0]):
         D = (H_s[l] - H_a[l]).float().to(device)
+        if not torch.isfinite(D).all():
+            rows.append({"layer": l, "direction_acc": float("nan"), "delta_r2": float("nan"),
+                         "mean_cos_to_mean_dir": float("nan")})
+            continue
         D = D / (D.norm(dim=1, keepdim=True).mean() + 1e-8)
         acc, ss_res, ss_tot = [], 0.0, 0.0
         for f in range(folds):
