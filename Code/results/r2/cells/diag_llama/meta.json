@@ -13,14 +13,14 @@
   "status": "done",
   "env": {
     "host": "d64e7146a858",
-    "time_utc": "2026-11-01T12:57:35Z",
+    "time_utc": "2026-11-01T12:14:16Z",
     "torch": "2.11.0+cu130",
     "transformers": "5.7.0",
     "peft": "0.21.2",
     "gpu": "NVIDIA A100-PCIE-40GB",
     "gpu_mem_gb": 39.5
   },
-  "started": 1793537855.7754343,
+  "started": 1793535257.3518116,
   "smoke": false,
   "model_config": {
     "tag": "llama-3.1-8b",
@@ -32,10 +32,10 @@
     "hidden_size": 4096,
     "num_params": 8030261248
   },
-  "finished": 1793537900.2669804,
+  "finished": 1793535299.3716338,
   "summary": {
     "diag_layers": 33,
     "diag_pairs": 2104
   },
-  "peak_mem_gb": 22.344583988189697
+  "peak_mem_gb": 22.340799808502197
 }
