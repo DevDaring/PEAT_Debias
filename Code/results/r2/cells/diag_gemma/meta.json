@@ -1,0 +1,37 @@
+{
+  "cell": {
+    "id": "diag_gemma",
+    "kind": "diag",
+    "model": "gemma-3-4b",
+    "seed": 0,
+    "priority": 2,
+    "evals": [],
+    "cfg": {},
+    "vram": 20,
+    "est_min": 20
+  },
+  "status": "failed",
+  "env": {
+    "host": "0d72b3abf1c2",
+    "time_utc": "2026-11-01T12:57:22Z",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.7.0",
+    "peft": "0.21.2",
+    "gpu": "NVIDIA A30",
+    "gpu_mem_gb": 23.6
+  },
+  "started": 1793537843.1976757,
+  "smoke": false,
+  "model_config": {
+    "tag": "gemma-3-4b",
+    "hf_id": "google/gemma-3-4b-it",
+    "model_type": "causal",
+    "attn_impl": "sdpa",
+    "dtype": "torch.bfloat16",
+    "num_hidden_layers": 34,
+    "hidden_size": 2560,
+    "num_params": 4300079472
+  },
+  "error": "_LinAlgError('torch.linalg.solve: The solver failed because the input matrix is singular.')",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/PEAT_Debias/Code/peat/r2/cells.py\", line 84, in run_cell\n    summary.update(_run_diag(model, tok, tag, train_full, val_full, d, device))\n  File \"/home/PEAT_Debias/Code/peat/r2/cells.py\", line 186, in _run_diag\n    pr = dg.probe_layers(H_s[:, idx], H_a[:, idx], dt[\"delta\"].values, device)\n  File \"/home/PEAT_Debias/Code/peat/r2/diagnostics.py\", line 158, in probe_layers\n    pred = _ridge_dual(Xtr, ytr, D[te])\n  File \"/home/PEAT_Debias/Code/peat/r2/diagnostics.py\", line 138, in _ridge_dual\n    alpha = torch.linalg.solve(K + lam * torch.eye(K.shape[0], device=K.device), ytr)\ntorch._C._LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.\n"
+}
