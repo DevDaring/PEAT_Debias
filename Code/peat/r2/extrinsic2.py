@@ -35,19 +35,34 @@ from peat.r2.utility import _loglik
 
 BBQ_CATS = ["Age", "Disability_status", "Gender_identity", "Nationality", "Physical_appearance",
             "Race_ethnicity", "Race_x_SES", "Race_x_gender", "Religion", "SES", "Sexual_orientation"]
-BBQ_RAW = "https://raw.githubusercontent.com/nyu-mll/BBQ/main/data/{c}.jsonl"
-BBQ_META = "https://raw.githubusercontent.com/nyu-mll/BBQ/main/analysis_scripts/additional_metadata.csv"
+# jsDelivr serves the same GitHub files from a CDN; raw.githubusercontent is
+# the fallback (it was very slow from some cloud regions).
+BBQ_RAW = ["https://cdn.jsdelivr.net/gh/nyu-mll/BBQ@main/data/{c}.jsonl",
+           "https://raw.githubusercontent.com/nyu-mll/BBQ/main/data/{c}.jsonl"]
+BBQ_META = ["https://cdn.jsdelivr.net/gh/nyu-mll/BBQ@main/analysis_scripts/additional_metadata.csv",
+            "https://raw.githubusercontent.com/nyu-mll/BBQ/main/analysis_scripts/additional_metadata.csv"]
 BOLD_DOMAINS = ["gender", "race", "religious_ideology"]
 REGARD_MODEL = "sasha/regardv3"
 
 
-def _fetch(url: str, name: str) -> bytes:
+def _fetch(urls: list[str], name: str) -> bytes:
     p = R2_DATA_DIR / name
     if not p.exists():
         p.parent.mkdir(parents=True, exist_ok=True)
-        req = urllib.request.Request(url, headers={"User-Agent": "peat-r2"})
-        with urllib.request.urlopen(req, timeout=180) as r:
-            p.write_bytes(r.read())
+        err = None
+        for url in urls:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "peat-r2"})
+                with urllib.request.urlopen(req, timeout=180) as r:
+                    data = r.read()
+                tmp = p.with_suffix(".part")
+                tmp.write_bytes(data)
+                tmp.replace(p)
+                break
+            except Exception as e:
+                err = e
+        else:
+            raise RuntimeError(f"download failed for {name}: {err}")
     return p.read_bytes()
 
 
@@ -57,7 +72,7 @@ def load_bbq_ambiguous_sample(per_cat: int = 100, seed: int = 42) -> pd.DataFram
     meta = meta.drop_duplicates(["category", "example_id"])
     frames = []
     for c in BBQ_CATS:
-        lines = _fetch(BBQ_RAW.format(c=c), f"bbq_{c}.jsonl").decode("utf-8").splitlines()
+        lines = _fetch([u.format(c=c) for u in BBQ_RAW], f"bbq_{c}.jsonl").decode("utf-8").splitlines()
         df = pd.DataFrame([json.loads(l) for l in lines if l.strip()])
         df = df[df["context_condition"] == "ambig"]
         df = df.merge(meta, on=["category", "example_id"], how="inner")
