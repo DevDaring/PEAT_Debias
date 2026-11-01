@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "hp_r2_bert_s123",
+  "last_cell": "hp_r8_bert_s123",
   "last_status": "done",
   "last_minutes": 0.5,
   "worker": "jarvis-a",
-  "t": 1793539963.194356,
-  "t_utc": "2026-11-01T13:32:43Z"
+  "t": 1793540012.1312048,
+  "t_utc": "2026-11-01T13:33:32Z"
 }
