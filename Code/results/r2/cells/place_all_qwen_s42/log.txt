@@ -1,16 +1,15 @@
 
-===== place_all_qwen_s42 start 2026-11-01T13:10:07Z
-[2026-11-01 13:10:11] INFO     peat.models — Loading causal: Qwen/Qwen2.5-1.5B-Instruct (dtype=torch.bfloat16, attn=sdpa)
+===== place_all_qwen_s42 start 2026-11-01T13:14:33Z
+[2026-11-01 13:14:37] INFO     peat.models — Loading causal: Qwen/Qwen2.5-1.5B-Instruct (dtype=torch.bfloat16, attn=sdpa)
 [transformers] `torch_dtype` is deprecated! Use `dtype` instead!
 
 Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]
-Loading weights:  33%|███▎      | 112/338 [00:00<00:00, 1115.22it/s]
-Loading weights:  83%|████████▎ | 279/338 [00:00<00:00, 1422.56it/s]
-Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1448.82it/s]
-[2026-11-01 13:10:14] INFO     peat.models —   Loaded qwen2.5-1.5b from local cache
-[2026-11-01 13:10:14] INFO     peat.models —   Loaded qwen2.5-1.5b: 1543.7M params, 28 layers
-[2026-11-01 13:10:14] INFO     peat.data — Loading cached StereoSet pairs from Parquet
-[2026-11-01 13:12:57] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
-[2026-11-01 13:12:57] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
-[2026-11-01 13:12:57] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+Loading weights:  51%|█████     | 171/338 [00:00<00:00, 1653.14it/s]
+Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1696.63it/s]
+[2026-11-01 13:14:40] INFO     peat.models —   Loaded qwen2.5-1.5b from local cache
+[2026-11-01 13:14:40] INFO     peat.models —   Loaded qwen2.5-1.5b: 1543.7M params, 28 layers
+[2026-11-01 13:14:40] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[2026-11-01 13:17:32] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 13:17:32] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 13:17:32] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
 {"cell": "place_all_qwen_s42", "status": "done"}
