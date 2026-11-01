@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "hp_r8_qwen_s42",
+  "last_cell": "hp_r16_qwen_s42",
   "last_status": "done",
   "last_minutes": 2.1,
   "worker": "jarvis-a",
-  "t": 1793540410.2469478,
-  "t_utc": "2026-11-01T13:40:10Z"
+  "t": 1793540548.5766747,
+  "t_utc": "2026-11-01T13:42:28Z"
 }
