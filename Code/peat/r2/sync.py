@@ -105,6 +105,16 @@ def publish(cell_id: str, worker: str, status: str) -> bool:
     return push(paths, f"r2: {worker} {status} {cell_id}")
 
 
+def release(cell_id: str, worker: str) -> bool:
+    """Drop this worker's claim after a failure so another worker can retry."""
+    p = CLAIMS_DIR / f"{cell_id}.json"
+    if claim_owner(cell_id) != worker or not p.exists():
+        return True
+    p.unlink()
+    git("rm", "-q", "--cached", "--", f"{REL}/claims/{cell_id}.json", check=False)
+    return push([f"{REL}/cells/{cell_id}"], f"r2: {worker} releases {cell_id}")
+
+
 def heartbeat(worker: str, info: dict) -> None:
     p = R2_DIR / "workers" / f"{worker}.json"
     p.parent.mkdir(parents=True, exist_ok=True)

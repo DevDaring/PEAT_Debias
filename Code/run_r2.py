@@ -130,6 +130,8 @@ def cmd_worker(worker: str, prefixes=None, max_attempts: int = 2) -> int:
         sync.heartbeat(worker, {"gpu_mem_gb": round(mem, 1), "last_cell": cid, "last_status": status,
                                 "last_minutes": round((time.time() - t0) / 60, 1)})
         ok = sync.publish(cid, worker, status)
+        if status != "done":
+            sync.release(cid, worker)
         print(f"[{worker}] {status} {cid} in {(time.time() - t0) / 60:.1f} min (pushed={ok})", flush=True)
 
 

@@ -199,6 +199,23 @@ def _load_task(name: str):
     return rows
 
 
+def token_budget_batches(order, lengths, model, max_items=16, logits_bytes=1.5e9):
+    """Group length-sorted indices so that the padded logits tensor
+    (items x max_len x vocab, bf16) stays under logits_bytes."""
+    vocab = model.get_output_embeddings().weight.shape[0]
+    budget = max(int(logits_bytes / (2 * vocab)), 64)  # padded tokens per batch
+    batch, longest = [], 0
+    for i in order:
+        L = lengths[i]
+        if batch and (len(batch) >= max_items or max(longest, L) * (len(batch) + 1) > budget):
+            yield batch
+            batch, longest = [], 0
+        batch.append(i)
+        longest = max(longest, L)
+    if batch:
+        yield batch
+
+
 @torch.no_grad()
 def _loglik(model, tokenizer, pairs: list[tuple[str, str]], device, chunk=16):
     """For (context, continuation) pairs: (sum log-prob, is_greedy, n_cont_tokens)."""
@@ -210,8 +227,7 @@ def _loglik(model, tokenizer, pairs: list[tuple[str, str]], device, chunk=16):
         enc.append((full, len(k)))
     res = [None] * len(enc)
     order = np.argsort([len(e[0]) for e in enc])
-    for start in range(0, len(order), chunk):
-        idx = order[start:start + chunk]
+    for idx in token_budget_batches(order, [len(e[0]) for e in enc], model, chunk):
         ids, att, lens = pad_batch([enc[i][0] for i in idx], pad_id_of(tokenizer), device)
         logits = model(input_ids=ids, attention_mask=att).logits
         for k, i in enumerate(idx):
