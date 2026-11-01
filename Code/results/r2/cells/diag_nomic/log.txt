@@ -46,3 +46,29 @@ Traceback (most recent call last):
   File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/transformers/modeling_utils.py", line 1094, in get_input_embeddings
     raise NotImplementedError(
 NotImplementedError: `get_input_embeddings` not auto‑handled for NomicBertForPreTraining; please override in the subclass.
+
+===== diag_nomic start 2026-11-01T12:54:49Z
+[2026-11-01 12:54:54] INFO     peat.models — Loading encoder: nomic-ai/nomic-bert-2048 (dtype=torch.bfloat16, attn=eager)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+<All keys matched successfully>
+[2026-11-01 12:54:58] INFO     peat.models —   Loaded nomicbert from local cache
+[2026-11-01 12:54:58] INFO     peat.models —   Loaded nomicbert: 137.3M params, 12 layers
+[2026-11-01 12:54:58] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+Traceback (most recent call last):
+  File "/home/PEAT_Debias/Code/run_r2.py", line 178, in <module>
+    sys.exit(main())
+  File "/home/PEAT_Debias/Code/run_r2.py", line 166, in main
+    return cmd_cell(a.cell)
+  File "/home/PEAT_Debias/Code/run_r2.py", line 64, in cmd_cell
+    meta = run_cell(get_cell(cell_id), device="cuda" if torch.cuda.is_available() else "cpu")
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 84, in run_cell
+    summary.update(_run_diag(model, tok, tag, train_full, val_full, d, device))
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 179, in _run_diag
+    gp = dg.gradient_profile(model, tok, tag, pairs, device, param_grads=n_params < 2e9)
+  File "/home/PEAT_Debias/Code/peat/r2/diagnostics.py", line 58, in gradient_profile
+    out = model(input_ids=ids, attention_mask=att, output_hidden_states=True)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/root/miniconda3/envs/py3.10/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+TypeError: NomicBertForPreTraining.forward() got an unexpected keyword argument 'output_hidden_states'
