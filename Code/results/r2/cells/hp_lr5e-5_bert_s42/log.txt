@@ -1,0 +1,24 @@
+
+===== hp_lr5e-5_bert_s42 start 2026-11-01T13:30:51Z
+[2026-11-01 13:30:56] INFO     peat.models — Loading encoder: google-bert/bert-base-uncased (dtype=torch.bfloat16, attn=eager)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 202/202 [00:00<00:00, 5285.40it/s]
+[transformers] [1mBertForMaskedLM LOAD REPORT[0m from: google-bert/bert-base-uncased
+Key                         | Status     |  | 
+----------------------------+------------+--+-
+bert.pooler.dense.weight    | UNEXPECTED |  | 
+cls.seq_relationship.bias   | UNEXPECTED |  | 
+cls.seq_relationship.weight | UNEXPECTED |  | 
+bert.pooler.dense.bias      | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[2026-11-01 13:30:57] INFO     peat.models —   Loaded bert-base from local cache
+[2026-11-01 13:30:57] INFO     peat.models —   Loaded bert-base: 109.5M params, 12 layers
+[2026-11-01 13:30:57] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+[2026-11-01 13:31:12] INFO     peat.data — Loaded CrowS-Pairs: 1508 rows, columns: ['id', 'sent_more', 'sent_less', 'stereo_antistereo', 'bias_type', 'annotations', 'anon_writer', 'anon_annotators']
+[2026-11-01 13:31:12] INFO     peat.data —   bias_type values: ['age', 'disability', 'gender', 'nationality', 'physical-appearance', 'race-color', 'religion', 'sexual-orientation', 'socioeconomic']
+[2026-11-01 13:31:12] INFO     peat.data —   stereo_antistereo values: ['antistereo', 'stereo']
+{"cell": "hp_lr5e-5_bert_s42", "status": "done"}
