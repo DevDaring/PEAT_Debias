@@ -1,0 +1,9 @@
+{
+  "gpu_mem_gb": 39.5,
+  "last_cell": "base_bert",
+  "last_status": "done",
+  "last_minutes": 0.3,
+  "worker": "jarvis-a",
+  "t": 1793527407.588816,
+  "t_utc": "2026-11-01T10:03:27Z"
+}
