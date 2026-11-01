@@ -1,9 +1,9 @@
 {
   "gpu_mem_gb": 39.5,
-  "last_cell": "hp_lr5e-5_qwen_s42",
+  "last_cell": "hp_lr2e-4_qwen_s42",
   "last_status": "done",
   "last_minutes": 2.1,
   "worker": "jarvis-a",
-  "t": 1793540682.8847263,
-  "t_utc": "2026-11-01T13:44:42Z"
+  "t": 1793540822.1339912,
+  "t_utc": "2026-11-01T13:47:02Z"
 }
