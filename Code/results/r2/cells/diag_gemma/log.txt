@@ -180,3 +180,34 @@ Traceback (most recent call last):
   File "/home/PEAT_Debias/Code/peat/r2/diagnostics.py", line 138, in _ridge_dual
     alpha = torch.linalg.solve(K + lam * torch.eye(K.shape[0], device=K.device), ytr)
 torch._C._LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
+
+===== diag_gemma start 2026-11-01T14:00:34Z
+[2026-11-01 14:00:39] INFO     peat.models — Loading causal: google/gemma-3-4b-it (dtype=torch.bfloat16, attn=sdpa)
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+
+Loading weights:   0%|          | 0/883 [00:00<?, ?it/s]
+Loading weights:  12%|█▏        | 104/883 [00:00<00:00, 1035.22it/s]
+Loading weights:  24%|██▎       | 208/883 [00:00<00:00, 1001.94it/s]
+Loading weights:  35%|███▍      | 309/883 [00:00<00:00, 982.60it/s] 
+Loading weights:  46%|████▌     | 408/883 [00:00<00:00, 960.12it/s]
+Loading weights:  88%|████████▊ | 781/883 [00:00<00:00, 1925.45it/s]
+Loading weights: 100%|██████████| 883/883 [00:00<00:00, 1638.80it/s]
+[2026-11-01 14:00:44] INFO     peat.models —   Loaded gemma-3-4b from local cache
+[2026-11-01 14:00:44] INFO     peat.models —   Loaded gemma-3-4b: 4300.1M params, 34 layers
+[2026-11-01 14:00:44] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+Traceback (most recent call last):
+  File "/home/PEAT_Debias/Code/run_r2.py", line 178, in <module>
+    sys.exit(main())
+  File "/home/PEAT_Debias/Code/run_r2.py", line 166, in main
+    return cmd_cell(a.cell)
+  File "/home/PEAT_Debias/Code/run_r2.py", line 64, in cmd_cell
+    meta = run_cell(get_cell(cell_id), device="cuda" if torch.cuda.is_available() else "cpu")
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 84, in run_cell
+    summary.update(_run_diag(model, tok, tag, train_full, val_full, d, device))
+  File "/home/PEAT_Debias/Code/peat/r2/cells.py", line 186, in _run_diag
+    pr = dg.probe_layers(H_s[:, idx], H_a[:, idx], dt["delta"].values, device)
+  File "/home/PEAT_Debias/Code/peat/r2/diagnostics.py", line 158, in probe_layers
+    pred = _ridge_dual(Xtr, ytr, D[te])
+  File "/home/PEAT_Debias/Code/peat/r2/diagnostics.py", line 138, in _ridge_dual
+    alpha = torch.linalg.solve(K + lam * torch.eye(K.shape[0], device=K.device), ytr)
+torch._C._LinAlgError: torch.linalg.solve: The solver failed because the input matrix is singular.
