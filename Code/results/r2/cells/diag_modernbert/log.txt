@@ -1,11 +1,11 @@
 
-===== diag_modernbert start 2026-11-01T12:58:31Z
-[2026-11-01 12:58:36] INFO     peat.models — Loading encoder: answerdotai/ModernBERT-base (dtype=torch.bfloat16, attn=sdpa)
+===== diag_modernbert start 2026-11-01T12:15:30Z
+[2026-11-01 12:15:35] INFO     peat.models — Loading encoder: answerdotai/ModernBERT-base (dtype=torch.bfloat16, attn=sdpa)
 [transformers] `torch_dtype` is deprecated! Use `dtype` instead!
 
 Loading weights:   0%|          | 0/137 [00:00<?, ?it/s]
-Loading weights: 100%|██████████| 137/137 [00:00<00:00, 3378.19it/s]
-[2026-11-01 12:58:38] INFO     peat.models —   Loaded modernbert-base from local cache
-[2026-11-01 12:58:38] INFO     peat.models —   Loaded modernbert-base: 149.7M params, 22 layers
-[2026-11-01 12:58:38] INFO     peat.data — Loading cached StereoSet pairs from Parquet
+Loading weights: 100%|██████████| 137/137 [00:00<00:00, 3669.21it/s]
+[2026-11-01 12:15:37] INFO     peat.models —   Loaded modernbert-base from local cache
+[2026-11-01 12:15:37] INFO     peat.models —   Loaded modernbert-base: 149.7M params, 22 layers
+[2026-11-01 12:15:37] INFO     peat.data — Loading cached StereoSet pairs from Parquet
 {"cell": "diag_modernbert", "status": "done"}
