@@ -1,0 +1,16 @@
+  \footnotesize\setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}llrrrrrr@{}}
+    \toprule
+    Model & Method & FR & HI & BN & HI$_{\mathrm{c}}$ & BN$_{\mathrm{c}}$ & EN$_{\mathrm{c}}$ \\
+    \midrule
+    Qwen2.5-1.5B & Base & 50.24 & 49.00 & 48.64 & 50.47 & 50.47 & 58.75 \\
+     & LoRA & 51.31 & 52.02 & 45.65 & 51.20 & 49.10 & 62.70 \\
+     & \PEAT{} & 49.92 & 47.94 & 48.17 & 48.63 & 50.80 & 57.26 \\
+    \midrule
+    Gemma-3-4B & Base & 50.24 & 54.13 & 50.14 & 53.61 & 45.58 & 53.15 \\
+     & \PEAT{} & 50.00 & 54.31 & 50.64 & 53.30 & 45.67 & 54.36 \\
+    \midrule
+    Llama-3.1-8B & Base & 53.70 & 55.76 & 56.28 & 56.69 & 54.64 & 59.04 \\
+     & \PEAT{} & 53.56 & 56.31 & 56.97 & 56.65 & 54.45 & 60.43 \\
+    \bottomrule
+  \end{tabular}

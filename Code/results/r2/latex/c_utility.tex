@@ -1,0 +1,28 @@
+  \footnotesize\setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}llrrrr@{}}
+    \toprule
+    Model & Method & (pseudo-)PPL & KL & TV & Zero-shot \\
+    \midrule
+    BERT-base & Base & 5.35 & --- & --- & --- \\
+     & LoRA & 5.66 & 0.0505 & 0.081 & --- \\
+     & \PEAT{} & 5.34 & 0.0008 & 0.010 & --- \\
+    \midrule
+    ModernBERT & Base & 6.16 & --- & --- & --- \\
+     & LoRA & 6.20 & 0.0200 & 0.054 & --- \\
+     & \PEAT{} & 6.16 & 0.0007 & 0.011 & --- \\
+    \midrule
+    NomicBERT & Base & 8.57 & --- & --- & --- \\
+     & LoRA & 13.12 & 0.3534 & 0.196 & --- \\
+     & \PEAT{} & 8.40 & 0.0038 & 0.025 & --- \\
+    \midrule
+    Qwen2.5-1.5B & Base & 9.16 & --- & --- & 66.7 \\
+     & LoRA & 10.46 & 0.1204 & 0.153 & 63.3 \\
+     & \PEAT{} & 9.21 & 0.0064 & 0.034 & 66.4 \\
+    \midrule
+    Gemma-3-4B & Base & 13.05 & --- & --- & 71.0 \\
+     & \PEAT{} & 12.68 & 0.0132 & 0.045 & 71.2 \\
+    \midrule
+    Llama-3.1-8B & Base & 6.77 & --- & --- & 75.5 \\
+     & \PEAT{} & 6.91 & 0.0169 & 0.055 & 75.5 \\
+    \bottomrule
+  \end{tabular}

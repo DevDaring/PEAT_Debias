@@ -35,7 +35,7 @@ def pm(mu, sd, d=2):
         return "---"
     if sd is None or (isinstance(sd, float) and (math.isnan(sd) or sd == 0)):
         return f(mu, d)
-    return f"{mu:.{d}f}\\,{{\\scriptsize$\\pm${sd:.{d}f}}}"
+    return f"{mu:.{d}f}$_{{\\pm {sd:.{d}f}}}$"
 
 
 def pval(p):
@@ -49,11 +49,12 @@ def load(name):
     return pd.read_csv(p) if p.exists() else pd.DataFrame()
 
 
-def wrap(rows, header, colspec, size="\\footnotesize"):
+def wrap(rows, header, colspec, size="\\footnotesize", sep="4pt"):
+    """Plain tabular: the Springer class wraps every table in threeparttable,
+    which breaks when the tabular sits inside an adjustbox."""
     body = "\n".join("    " + " & ".join(r) + " \\\\" if r != "MID" else "    \\midrule" for r in rows)
-    return (f"  {size}\n  \\begin{{adjustbox}}{{max width=\\textwidth}}\n  \\begin{{tabular}}{{{colspec}}}\n"
-            f"    \\toprule\n    {header} \\\\\n    \\midrule\n{body}\n    \\bottomrule\n  \\end{{tabular}}\n"
-            f"  \\end{{adjustbox}}\n")
+    return (f"  {size}\\setlength{{\\tabcolsep}}{{{sep}}}\n  \\begin{{tabular}}{{{colspec}}}\n"
+            f"    \\toprule\n    {header} \\\\\n    \\midrule\n{body}\n    \\bottomrule\n  \\end{{tabular}}\n")
 
 
 def t_surrogates():
@@ -164,7 +165,10 @@ def g3(x):
         return "---"
     if x == 0:
         return "0"
-    d = max(0, 2 - int(math.floor(math.log10(abs(x)))))
+    e = int(math.floor(math.log10(abs(x))))
+    if e <= -3:  # very small values as a power of ten, e.g. $3.2{\times}10^{-4}$
+        return f"${x / 10 ** e:.1f}{{\\times}}10^{{{e}}}$"
+    d = max(0, 2 - e)
     return f"{x:.{d}f}"
 
 

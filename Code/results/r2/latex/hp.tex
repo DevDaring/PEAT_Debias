@@ -1,24 +1,22 @@
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}llccc@{}}
     \toprule
     Model & Setting & CrowS SS & Cloze SS (en) & Held-out SS \\
     \midrule
-    BERT-base & $r=2$ & 57.73\,{\scriptsize$\pm$0.23} & 55.03\,{\scriptsize$\pm$0.05} & 60.43\,{\scriptsize$\pm$0.34} \\
-     & $r=4$ (\PEAT{}) & 57.91\,{\scriptsize$\pm$0.48} & 55.07\,{\scriptsize$\pm$0.12} & 60.19 \\
-     & $r=8$ & 57.63\,{\scriptsize$\pm$0.28} & 55.39\,{\scriptsize$\pm$0.05} & 60.19 \\
-     & $r=16$ & 57.82\,{\scriptsize$\pm$0.28} & 55.60\,{\scriptsize$\pm$0.25} & 59.95\,{\scriptsize$\pm$0.34} \\
-     & lr $5\times10^{-5}$ & 57.79\,{\scriptsize$\pm$0.23} & 55.07\,{\scriptsize$\pm$0.10} & 60.43\,{\scriptsize$\pm$0.34} \\
-     & lr $10^{-4}$ (\PEAT{}) & 57.91\,{\scriptsize$\pm$0.48} & 55.07\,{\scriptsize$\pm$0.12} & 60.19 \\
-     & lr $2\times10^{-4}$ & 57.43\,{\scriptsize$\pm$0.19} & 55.53\,{\scriptsize$\pm$0.05} & 59.72 \\
+    BERT-base & $r=2$ & 57.73$_{\pm 0.23}$ & 55.03$_{\pm 0.05}$ & 60.43$_{\pm 0.34}$ \\
+     & $r=4$ (\PEAT{}) & 57.91$_{\pm 0.48}$ & 55.07$_{\pm 0.12}$ & 60.19 \\
+     & $r=8$ & 57.63$_{\pm 0.28}$ & 55.39$_{\pm 0.05}$ & 60.19 \\
+     & $r=16$ & 57.82$_{\pm 0.28}$ & 55.60$_{\pm 0.25}$ & 59.95$_{\pm 0.34}$ \\
+     & lr $5\times10^{-5}$ & 57.79$_{\pm 0.23}$ & 55.07$_{\pm 0.10}$ & 60.43$_{\pm 0.34}$ \\
+     & lr $10^{-4}$ (\PEAT{}) & 57.91$_{\pm 0.48}$ & 55.07$_{\pm 0.12}$ & 60.19 \\
+     & lr $2\times10^{-4}$ & 57.43$_{\pm 0.19}$ & 55.53$_{\pm 0.05}$ & 59.72 \\
     \midrule
-    Qwen2.5-1.5B & $r=2$ & 54.14\,{\scriptsize$\pm$0.05} & 58.97\,{\scriptsize$\pm$0.10} & 61.37\,{\scriptsize$\pm$0.34} \\
-     & $r=4$ (\PEAT{}) & 53.40\,{\scriptsize$\pm$0.44} & 57.26\,{\scriptsize$\pm$0.31} & 59.56\,{\scriptsize$\pm$0.27} \\
-     & $r=8$ & 53.12\,{\scriptsize$\pm$0.09} & 56.59\,{\scriptsize$\pm$0.25} & 59.95\,{\scriptsize$\pm$0.34} \\
-     & $r=16$ & 52.25\,{\scriptsize$\pm$0.19} & 57.09\,{\scriptsize$\pm$0.55} & 59.24 \\
-     & lr $5\times10^{-5}$ & 53.78\,{\scriptsize$\pm$0.28} & 58.72\,{\scriptsize$\pm$0.25} & 62.09\,{\scriptsize$\pm$0.67} \\
-     & lr $10^{-4}$ (\PEAT{}) & 53.40\,{\scriptsize$\pm$0.44} & 57.26\,{\scriptsize$\pm$0.31} & 59.56\,{\scriptsize$\pm$0.27} \\
-     & lr $2\times10^{-4}$ & 52.22\,{\scriptsize$\pm$0.23} & 57.02\,{\scriptsize$\pm$1.05} & 59.72 \\
+    Qwen2.5-1.5B & $r=2$ & 54.14$_{\pm 0.05}$ & 58.97$_{\pm 0.10}$ & 61.37$_{\pm 0.34}$ \\
+     & $r=4$ (\PEAT{}) & 53.40$_{\pm 0.44}$ & 57.26$_{\pm 0.31}$ & 59.56$_{\pm 0.27}$ \\
+     & $r=8$ & 53.12$_{\pm 0.09}$ & 56.59$_{\pm 0.25}$ & 59.95$_{\pm 0.34}$ \\
+     & $r=16$ & 52.25$_{\pm 0.19}$ & 57.09$_{\pm 0.55}$ & 59.24 \\
+     & lr $5\times10^{-5}$ & 53.78$_{\pm 0.28}$ & 58.72$_{\pm 0.25}$ & 62.09$_{\pm 0.67}$ \\
+     & lr $10^{-4}$ (\PEAT{}) & 53.40$_{\pm 0.44}$ & 57.26$_{\pm 0.31}$ & 59.56$_{\pm 0.27}$ \\
+     & lr $2\times10^{-4}$ & 52.22$_{\pm 0.23}$ & 57.02$_{\pm 1.05}$ & 59.72 \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}

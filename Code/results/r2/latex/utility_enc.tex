@@ -1,18 +1,16 @@
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}llccc@{}}
     \toprule
     Model & Method & pseudo-PPL & KL & TV \\
     \midrule
     BERT-base & Base & 5.35 & --- & --- \\
-     & LoRA & 5.66\,{\scriptsize$\pm$0.01} & 0.0505 & 0.0809 \\
-     & \PEAT{} & 5.34\,{\scriptsize$\pm$0.00} & 0.0008 & 0.0101 \\
+     & LoRA & 5.66$_{\pm 0.01}$ & 0.0505 & 0.0809 \\
+     & \PEAT{} & 5.34$_{\pm 0.00}$ & 0.0008 & 0.0101 \\
     ModernBERT & Base & 6.16 & --- & --- \\
-     & LoRA & 6.20\,{\scriptsize$\pm$0.00} & 0.0200 & 0.0544 \\
-     & \PEAT{} & 6.16\,{\scriptsize$\pm$0.00} & 0.0007 & 0.0109 \\
+     & LoRA & 6.20$_{\pm 0.00}$ & 0.0200 & 0.0544 \\
+     & \PEAT{} & 6.16$_{\pm 0.00}$ & 0.0007 & 0.0109 \\
     NomicBERT & Base & 8.57 & --- & --- \\
-     & LoRA & 13.12\,{\scriptsize$\pm$0.17} & 0.3534 & 0.1964 \\
-     & \PEAT{} & 8.40\,{\scriptsize$\pm$0.03} & 0.0038 & 0.0248 \\
+     & LoRA & 13.12$_{\pm 0.17}$ & 0.3534 & 0.1964 \\
+     & \PEAT{} & 8.40$_{\pm 0.03}$ & 0.0038 & 0.0248 \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}

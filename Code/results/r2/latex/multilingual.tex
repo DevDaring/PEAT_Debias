@@ -1,18 +1,16 @@
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}llcccccc@{}}
     \toprule
     Model & Method & French & Hindi & Bengali & Hindi (cloze) & Bengali (cloze) & English (cloze) \\
     \midrule
     Qwen2.5-1.5B & Base & 50.24 & 49.00 & 48.64 & 50.47 & 50.47 & 58.75 \\
-     & LoRA & 51.31\,{\scriptsize$\pm$0.21} & 52.02\,{\scriptsize$\pm$1.01} & 45.65\,{\scriptsize$\pm$1.14} & 51.20\,{\scriptsize$\pm$0.77} & 49.10\,{\scriptsize$\pm$0.45} & 62.70\,{\scriptsize$\pm$0.11} \\
-     & \PEAT{} & 49.92\,{\scriptsize$\pm$0.34} & 47.94\,{\scriptsize$\pm$0.38} & 48.17\,{\scriptsize$\pm$0.25} & 48.63\,{\scriptsize$\pm$0.15} & 50.80\,{\scriptsize$\pm$0.27} & 57.26\,{\scriptsize$\pm$0.31} \\
+     & LoRA & 51.31$_{\pm 0.21}$ & 52.02$_{\pm 1.01}$ & 45.65$_{\pm 1.14}$ & 51.20$_{\pm 0.77}$ & 49.10$_{\pm 0.45}$ & 62.70$_{\pm 0.11}$ \\
+     & \PEAT{} & 49.92$_{\pm 0.34}$ & 47.94$_{\pm 0.38}$ & 48.17$_{\pm 0.25}$ & 48.63$_{\pm 0.15}$ & 50.80$_{\pm 0.27}$ & 57.26$_{\pm 0.31}$ \\
     \midrule
     Gemma-3-4B & Base & 50.24 & 54.13 & 50.14 & 53.61 & 45.58 & 53.15 \\
-     & \PEAT{} & 50.00\,{\scriptsize$\pm$0.10} & 54.31\,{\scriptsize$\pm$0.22} & 50.64\,{\scriptsize$\pm$0.19} & 53.30\,{\scriptsize$\pm$0.17} & 45.67\,{\scriptsize$\pm$0.04} & 54.36\,{\scriptsize$\pm$0.12} \\
+     & \PEAT{} & 50.00$_{\pm 0.10}$ & 54.31$_{\pm 0.22}$ & 50.64$_{\pm 0.19}$ & 53.30$_{\pm 0.17}$ & 45.67$_{\pm 0.04}$ & 54.36$_{\pm 0.12}$ \\
     \midrule
     Llama-3.1-8B & Base & 53.70 & 55.76 & 56.28 & 56.69 & 54.64 & 59.04 \\
-     & \PEAT{} & 53.56\,{\scriptsize$\pm$0.42} & 56.31\,{\scriptsize$\pm$0.23} & 56.97\,{\scriptsize$\pm$0.42} & 56.65\,{\scriptsize$\pm$0.22} & 54.45\,{\scriptsize$\pm$0.48} & 60.43\,{\scriptsize$\pm$0.27} \\
+     & \PEAT{} & 53.56$_{\pm 0.42}$ & 56.31$_{\pm 0.23}$ & 56.97$_{\pm 0.42}$ & 56.65$_{\pm 0.22}$ & 54.45$_{\pm 0.48}$ & 60.43$_{\pm 0.27}$ \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}

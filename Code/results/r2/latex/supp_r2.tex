@@ -12,8 +12,7 @@ Table~\ref{sup:tab:fp32} repeats the \PEAT{}-versus-LoRA test under both scoring
   \centering
   \caption{Published (R1) and retrained (R2) CrowS-Pairs scores. Ties: mean number of tied pairs under bfloat16.}
   \label{sup:tab:repro}
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}llcrrrr@{}}
     \toprule
     Model & Method & seeds & R1 (published) & R2 (bf16) & R2 (float32) & ties \\
@@ -34,15 +33,13 @@ Table~\ref{sup:tab:fp32} repeats the \PEAT{}-versus-LoRA test under both scoring
     Qwen2.5-1.5B & \PEAT{} & 3 & 53.42 & 53.40 & 55.00 & 50.3 \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}
 \end{table}
 
 \begin{table}[h]
   \centering
   \caption{\PEAT{} against LoRA-Vanilla-SFT on the retrained adapters. McNemar's exact test on the seed-majority preference of each pair (Holm over four models within each scoring) and a paired permutation test on per-pair seed means (10{,}000 resamples).}
   \label{sup:tab:fp32}
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}llrrrrrrr@{}}
     \toprule
     Model & Scoring & \PEAT{} & LoRA & \PEAT{} better & LoRA better & $p$ & $p_{\mathrm{Holm}}$ & $p_{\mathrm{perm}}$ \\
@@ -57,7 +54,6 @@ Table~\ref{sup:tab:fp32} repeats the \PEAT{}-versus-LoRA test under both scoring
     Qwen2.5-1.5B & float32 & 55.00 & 58.07 & 134 & 91 & 0.005 & 0.020 & 0.001 \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}
 \end{table}
 
 The retrained scores lie within 0.8 points of the published ones for every cell.
@@ -77,8 +73,7 @@ $\mathrm{SS}-50$ for every row.
   \centering
   \caption{Markov and Cantelli bounds and the realised decomposition on the 211 held-out StereoSet pairs (\PEAT{}, mean over three seeds).}
   \label{sup:tab:bounds}
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}lrrrrrrrr@{}}
     \toprule
     Model & $\varepsilon$ & $\mathcal{L}_{\mathrm{neut}}$ & $\mathrm{SS}_\varepsilon$ & Markov & Cantelli & tail & band & $\mathrm{SS}-50$ \\
@@ -109,7 +104,6 @@ $\mathrm{SS}-50$ for every row.
      & 1.00 & 1.69 & 25.8 & 100 & 93.3 & $+6.4$ & $+5.2$ & $+11.6$ \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}
 \end{table}
 
 \section{Non-English Significance Tests}
@@ -123,8 +117,7 @@ preference of each pair and is Holm-corrected over the twelve tests.
   \centering
   \caption{\PEAT{} against the base model beyond English CrowS-Pairs (float32 scoring, three seeds).}
   \label{sup:tab:multi}
-  \footnotesize
-  \begin{adjustbox}{max width=\textwidth}
+  \footnotesize\setlength{\tabcolsep}{4pt}
   \begin{tabular}{@{}llrrrrrrr@{}}
     \toprule
     Model & Benchmark & Base & \PEAT{} & \PEAT{} better & Base better & $p$ & $p_{\mathrm{Holm}}$ & $p_{\mathrm{perm}}$ \\
@@ -143,7 +136,6 @@ preference of each pair and is Holm-corrected over the twelve tests.
     Llama-3.1-8B & Multi-CrowS English & 61.95 & 62.12 & 31 & 31 & 1.000 & 1.000 & 0.793 \\
     \bottomrule
   \end{tabular}
-  \end{adjustbox}
 \end{table}
 
 \section{Synthetic Coverage-Balanced Pairs}
@@ -184,4 +176,44 @@ those files by \texttt{peat.r2.analysis} and \texttt{peat.r2.make\_tables}.
 The batched trainer computes the same loss as the original per-item implementation; a unit test
 (\texttt{tests/test\_r2\_equivalence.py}) confirms agreement to $10^{-5}$ on BERT-base and a Qwen2.5 decoder.
 Zero-shot tasks are scored with up to 2{,}000 items each (fixed random subset) for the first seed.
+
+\section{Per-Task Zero-Shot Accuracy}
+\label{sup:zeroshot}
+
+Table~\ref{sup:tab:zeroshot} lists the zero-shot accuracy behind the averages of the utility table in
+the main paper (acc\_norm for ARC, HellaSwag and PIQA; accuracy otherwise; first seed; up to 2{,}000
+items per task).
+
+\begin{table}[h]
+  \centering
+  \caption{Zero-shot accuracy (\%) per task.}
+  \label{sup:tab:zeroshot}
+  \footnotesize\setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}llrrrrrrr@{}}
+    \toprule
+    Model & Method & ARC-e & ARC-c & HellaSwag & PIQA & WinoGr. & BoolQ & LAMBADA \\
+    \midrule
+    Qwen2.5-1.5B & Base & 76.7 & 46.7 & 67.0 & 75.9 & 63.2 & 76.2 & 61.2 \\
+     & LoRA & 74.2 & 46.5 & 65.2 & 75.7 & 64.2 & 74.2 & 43.2 \\
+     & \PEAT{} & 75.9 & 46.9 & 67.3 & 75.9 & 63.0 & 75.4 & 60.1 \\
+    Gemma-3-4B & Base & 78.3 & 57.0 & 72.5 & 77.3 & 69.5 & 83.1 & 59.3 \\
+     & \PEAT{} & 78.1 & 57.3 & 73.5 & 77.4 & 70.5 & 83.2 & 58.7 \\
+    Llama-3.1-8B & Base & 80.2 & 56.7 & 78.0 & 81.6 & 73.6 & 85.2 & 73.4 \\
+     & \PEAT{} & 79.8 & 56.3 & 78.6 & 81.5 & 74.7 & 84.8 & 72.5 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Loss-Term Trajectories}
+\label{sup:traj}
+
+Figure~\ref{sup:fig:traj} shows the weighted loss terms and their gradient norms over training for one
+seed per model, logged every ten steps.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{images/loss_dynamics}
+  \caption{Weighted loss terms (top) and gradient norms (bottom) during training.}
+  \label{sup:fig:traj}
+\end{figure}
 

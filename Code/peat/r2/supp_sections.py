@@ -113,8 +113,41 @@ def sec_compute():
             "Zero-shot tasks are scored with up to 2{,}000 items each (fixed random subset) for the first seed.\n\n")
 
 
+def sec_zeroshot():
+    d = load("utility")
+    tasks = [("arc_easy_acc_norm", "ARC-e"), ("arc_challenge_acc_norm", "ARC-c"), ("hellaswag_acc_norm", "HellaSwag"),
+             ("piqa_acc_norm", "PIQA"), ("winogrande_acc", "WinoGr."), ("boolq_acc", "BoolQ"),
+             ("lambada_openai_acc", "LAMBADA")]
+    rows = []
+    for m in ["qwen", "gemma", "llama"]:
+        for meth in ["base", "lora", "peat"]:
+            r = d[(d.model == m) & (d.method == meth)]
+            if r.empty:
+                continue
+            r = r.iloc[0]
+            rows.append([PUB[m] if meth == "base" else "", {"base": "Base", "lora": "LoRA", "peat": "\\PEAT{}"}[meth]]
+                        + [f(100 * r[k], 1) for k, _ in tasks])
+    t = wrap(rows, "Model & Method & " + " & ".join(n for _, n in tasks), "@{}ll" + "r" * len(tasks) + "@{}")
+    return ("\\section{Per-Task Zero-Shot Accuracy}\n\\label{sup:zeroshot}\n\n"
+            "Table~\\ref{sup:tab:zeroshot} lists the zero-shot accuracy behind the averages of the utility table in\n"
+            "the main paper (acc\\_norm for ARC, HellaSwag and PIQA; accuracy otherwise; first seed; up to 2{,}000\n"
+            "items per task).\n\n"
+            "\\begin{table}[h]\n  \\centering\n  \\caption{Zero-shot accuracy (\\%) per task.}\n"
+            "  \\label{sup:tab:zeroshot}\n" + t + "\\end{table}\n\n")
+
+
+def sec_traj():
+    return ("\\section{Loss-Term Trajectories}\n\\label{sup:traj}\n\n"
+            "Figure~\\ref{sup:fig:traj} shows the weighted loss terms and their gradient norms over training for one\n"
+            "seed per model, logged every ten steps.\n\n"
+            "\\begin{figure}[h]\n  \\centering\n  \\includegraphics[width=\\linewidth]{images/loss_dynamics}\n"
+            "  \\caption{Weighted loss terms (top) and gradient norms (bottom) during training.}\n"
+            "  \\label{sup:fig:traj}\n\\end{figure}\n\n")
+
+
 def main():
-    out = sec_fp32() + sec_bounds() + sec_multi_tests() + sec_cb() + sec_compute()
+    out = (sec_fp32() + sec_bounds() + sec_multi_tests() + sec_cb() + sec_compute() + sec_zeroshot()
+           + sec_traj())
     (R2_DIR / "latex" / "supp_r2.tex").write_text(out, encoding="utf-8", newline="\n")
     print("wrote supp_r2.tex", len(out))
 
