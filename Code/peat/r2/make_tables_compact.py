@@ -106,10 +106,17 @@ def c_boldbbq():
     d = load("bold_bbq_paired")
     lab = {"gender": "BOLD gender", "race": "BOLD race", "religious_ideology": "BOLD religion",
            "BBQ s_amb": "BBQ $s_{\\mathrm{amb}}$"}
-    rows = []
+    rows, prev = [], (None, None)
+    d = d.sort_values(["model", "method"], key=lambda s: s.map({"qwen": 0, "gemma": 1, "llama": 2,
+                                                               "peat": 0, "lora": 1}).fillna(9), kind="stable")
     for _, r in d.iterrows():
-        rows.append([NAME[r.model], METH[r.method], lab[r.domain], f(r.gap_base, 3), f(r["diff"], 3, True),
+        key = (r.model, r.method)
+        if rows and r.model != prev[0]:
+            rows.append("MID")
+        rows.append([NAME[r.model] if r.model != prev[0] else "", METH[r.method] if key != prev else "",
+                     lab[r.domain], f(r.gap_base, 3), f(r["diff"], 3, True),
                      f"$[{r.ci_lo:+.3f},\\,{r.ci_hi:+.3f}]$"])
+        prev = key
     return wrap(rows, "Model & Method & Measure & Base & Change & 95\\% CI", "@{}lllrrc@{}")
 
 
